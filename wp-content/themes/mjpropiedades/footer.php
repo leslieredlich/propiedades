@@ -49,11 +49,11 @@
                 <h4>Contacto</h4>
                 <div class="contact-info">
                     <span>📞</span>
-                    <span><?php echo get_theme_mod('mjpropiedades_phone', '+56 9 8765 4321'); ?></span>
+                    <span><?php echo get_theme_mod('mjpropiedades_phone', '++56 9 4927 6448'); ?></span>
                 </div>
                 <div class="contact-info">
                     <span>✉️</span>
-                    <span><?php echo get_theme_mod('mjpropiedades_email', 'maria@propiedades.cl'); ?></span>
+                    <span><?php echo get_theme_mod('mjpropiedades_email', 'homeisaspa@gmail.com'); ?></span>
                 </div>
                 <div class="contact-info">
                     <span>📍</span>

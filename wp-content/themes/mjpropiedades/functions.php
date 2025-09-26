@@ -1028,6 +1028,220 @@ function mjpropiedades_customize_register($wp_customize) {
         'type' => 'text',
     ));
     
+    // Sección Testimonios
+    $wp_customize->add_section('mjpropiedades_testimonials', array(
+        'title'    => __('Sección Testimonios', 'mjpropiedades'),
+        'priority' => 32,
+    ));
+    
+    // Título de la sección
+    $wp_customize->add_setting('mjpropiedades_testimonials_title', array(
+        'default' => 'Lo que dicen nuestros clientes',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonials_title', array(
+        'label' => __('Título de la Sección', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    // Subtítulo de la sección
+    $wp_customize->add_setting('mjpropiedades_testimonials_subtitle', array(
+        'default' => 'Testimonios reales de clientes satisfechos en la Cuarta Región',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonials_subtitle', array(
+        'label' => __('Subtítulo de la Sección', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'textarea',
+    ));
+    
+    // Testimonio 1
+    $wp_customize->add_setting('mjpropiedades_testimonial_1_text', array(
+        'default' => 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. María José fue increíble, muy profesional y siempre disponible para resolver mis dudas.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_1_text', array(
+        'label' => __('Testimonio 1 - Texto', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_1_name', array(
+        'default' => 'Carlos Mendoza',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_1_name', array(
+        'label' => __('Testimonio 1 - Nombre', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_1_location', array(
+        'default' => 'Peñuelas, Coquimbo',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_1_location', array(
+        'label' => __('Testimonio 1 - Ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    // Testimonio 2
+    $wp_customize->add_setting('mjpropiedades_testimonial_2_text', array(
+        'default' => 'Encontré el departamento perfecto en La Serena gracias a María José. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_2_text', array(
+        'label' => __('Testimonio 2 - Texto', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_2_name', array(
+        'default' => 'Ana Rodríguez',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_2_name', array(
+        'label' => __('Testimonio 2 - Nombre', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_2_location', array(
+        'default' => 'La Serena',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_2_location', array(
+        'label' => __('Testimonio 2 - Ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    // Testimonio 3
+    $wp_customize->add_setting('mjpropiedades_testimonial_3_text', array(
+        'default' => 'Arrendé mi casa en Ovalle con María José. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_3_text', array(
+        'label' => __('Testimonio 3 - Texto', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_3_name', array(
+        'default' => 'Roberto Silva',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_3_name', array(
+        'label' => __('Testimonio 3 - Nombre', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_3_location', array(
+        'default' => 'Ovalle',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_3_location', array(
+        'label' => __('Testimonio 3 - Ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    // Testimonio 4
+    $wp_customize->add_setting('mjpropiedades_testimonial_4_text', array(
+        'default' => 'Excelente asesoría para mi inversión en Coquimbo. María José me ayudó a encontrar la propiedad ideal con el mejor retorno. Muy satisfecho.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_4_text', array(
+        'label' => __('Testimonio 4 - Texto', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_4_name', array(
+        'default' => 'María González',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_4_name', array(
+        'label' => __('Testimonio 4 - Nombre', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_4_location', array(
+        'default' => 'Coquimbo',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_4_location', array(
+        'label' => __('Testimonio 4 - Ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    // Testimonio 5
+    $wp_customize->add_setting('mjpropiedades_testimonial_5_text', array(
+        'default' => 'Compré mi primera casa en La Serena con María José. Su paciencia y dedicación hicieron que todo el proceso fuera muy fácil para mí.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_5_text', array(
+        'label' => __('Testimonio 5 - Texto', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_5_name', array(
+        'default' => 'Diego Herrera',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_5_name', array(
+        'label' => __('Testimonio 5 - Nombre', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_5_location', array(
+        'default' => 'La Serena',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_5_location', array(
+        'label' => __('Testimonio 5 - Ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    // Testimonio 6
+    $wp_customize->add_setting('mjpropiedades_testimonial_6_text', array(
+        'default' => 'Vendí mi terreno en Ovalle rápidamente gracias a la estrategia de marketing de María José. Su experiencia en la región es invaluable.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_6_text', array(
+        'label' => __('Testimonio 6 - Texto', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_6_name', array(
+        'default' => 'Patricia Morales',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_6_name', array(
+        'label' => __('Testimonio 6 - Nombre', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_testimonial_6_location', array(
+        'default' => 'Ovalle',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_testimonial_6_location', array(
+        'label' => __('Testimonio 6 - Ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_testimonials',
+        'type' => 'text',
+    ));
+    
     // Logo personalizado
     $wp_customize->add_setting('mjpropiedades_logo', array(
         'default'           => '',
@@ -1042,7 +1256,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Teléfono
     $wp_customize->add_setting('mjpropiedades_phone', array(
-        'default'           => '+56 9 8765 4321',
+        'default'           => '+56 9 4927 6448',
         'sanitize_callback' => 'sanitize_text_field',
     ));
     
@@ -1054,7 +1268,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Email
     $wp_customize->add_setting('mjpropiedades_email', array(
-        'default'           => 'maria@propiedades.cl',
+        'default'           => 'homeisaspa@gmail.com',
         'sanitize_callback' => 'sanitize_email',
     ));
     

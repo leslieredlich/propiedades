@@ -291,7 +291,7 @@ window.mjpropiedades = {
     
     // Función para enviar email
     email: function(subject = '', body = '') {
-        const email = 'maria@propiedades.cl';
+        const email = 'homeisaspa@gmail.com';
         const url = `mailto:${email}${subject ? '?subject=' + encodeURIComponent(subject) : ''}${body ? '&body=' + encodeURIComponent(body) : ''}`;
         window.location.href = url;
     }

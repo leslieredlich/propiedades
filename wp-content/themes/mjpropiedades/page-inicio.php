@@ -257,71 +257,6 @@ get_header(); ?>
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="cta-section">
-    <div class="container">
-        <div class="cta-content">
-            <h3>¿Listo para comenzar?</h3>
-            <p>Contáctanos hoy mismo y descubre cómo podemos ayudarte a alcanzar tus objetivos inmobiliarios.</p>
-            <div class="cta-buttons">
-                <a href="#contacto" class="cta-btn primary">Agendar Cita Gratuita</a>
-                <a href="tel:<?php echo get_theme_mod('mjpropiedades_phone', '+56987654321'); ?>" class="cta-btn secondary">Llamar Ahora</a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Quiénes Somos -->
-<section id="about" class="about section">
-    <div class="container">
-        <div class="about-container">
-            <div class="about-content">
-                <h2>Conoce a María José</h2>
-                <p class="about-text">
-                    <?php echo get_theme_mod('mjpropiedades_about_text_1', 'Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.'); ?>
-                </p>
-                <p class="about-text">
-                    <?php echo get_theme_mod('mjpropiedades_about_text_2', 'Mi compromiso es brindarte un servicio personalizado, transparente y profesional en cada paso del proceso. Desde la primera consulta hasta la firma del contrato, estaré contigo para hacer realidad tus objetivos inmobiliarios en La Serena, Coquimbo y Ovalle.'); ?>
-                </p>
-                
-                <div class="stats">
-                    <div class="stat">
-                        <span class="stat-number"><?php echo get_theme_mod('mjpropiedades_about_stat_1_number', '500+'); ?></span>
-                        <span class="stat-label"><?php echo get_theme_mod('mjpropiedades_about_stat_1_label', 'Propiedades Vendidas'); ?></span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number"><?php echo get_theme_mod('mjpropiedades_about_stat_2_number', '98%'); ?></span>
-                        <span class="stat-label"><?php echo get_theme_mod('mjpropiedades_about_stat_2_label', 'Clientes Satisfechos'); ?></span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="about-image">
-                <?php
-                $about_image_id = get_theme_mod('mjpropiedades_about_image');
-                if ($about_image_id) {
-                    $about_image_url = wp_get_attachment_image_url($about_image_id, 'large');
-                    if ($about_image_url) {
-                        echo '<img src="' . esc_url($about_image_url) . '" alt="María José">';
-                    } else {
-                        echo '<img src="' . get_template_directory_uri() . '/images/maria-jose.jpg" alt="María José">';
-                    }
-                } else {
-                    echo '<img src="' . get_template_directory_uri() . '/images/maria-jose.jpg" alt="María José">';
-                }
-                ?>
-                <div class="certification-badge">
-                    <div class="badge-icon">✓</div>
-                    <div class="badge-text">
-                        <strong>Certificada</strong>
-                        Colegio de Corredores
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- Propiedades en Arriendo -->
 <section id="arriendo" class="section bg-light section-spacing">
     <div class="container">
@@ -444,6 +379,159 @@ get_header(); ?>
                     <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2"/>
                 </svg>
             </a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h3>¿Listo para comenzar?</h3>
+            <p>Contáctanos hoy mismo y descubre cómo podemos ayudarte a alcanzar tus objetivos inmobiliarios.</p>
+            <div class="cta-buttons">
+                <a href="#contacto" class="cta-btn primary">Agendar Cita Gratuita</a>
+                <a href="tel:<?php echo get_theme_mod('mjpropiedades_phone', '+56987654321'); ?>" class="cta-btn secondary">Llamar Ahora</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quiénes Somos -->
+<section id="about" class="about section">
+    <div class="container">
+        <div class="about-container">
+            <div class="about-content">
+                <h2>Conoce a María José</h2>
+                <p class="about-text">
+                    <?php echo get_theme_mod('mjpropiedades_about_text_1', 'Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.'); ?>
+                </p>
+                <p class="about-text">
+                    <?php echo get_theme_mod('mjpropiedades_about_text_2', 'Mi compromiso es brindarte un servicio personalizado, transparente y profesional en cada paso del proceso. Desde la primera consulta hasta la firma del contrato, estaré contigo para hacer realidad tus objetivos inmobiliarios en La Serena, Coquimbo y Ovalle.'); ?>
+                </p>
+                
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-number"><?php echo get_theme_mod('mjpropiedades_about_stat_1_number', '500+'); ?></span>
+                        <span class="stat-label"><?php echo get_theme_mod('mjpropiedades_about_stat_1_label', 'Propiedades Vendidas'); ?></span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number"><?php echo get_theme_mod('mjpropiedades_about_stat_2_number', '98%'); ?></span>
+                        <span class="stat-label"><?php echo get_theme_mod('mjpropiedades_about_stat_2_label', 'Clientes Satisfechos'); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="about-image">
+                <?php
+                $about_image_id = get_theme_mod('mjpropiedades_about_image');
+                if ($about_image_id) {
+                    $about_image_url = wp_get_attachment_image_url($about_image_id, 'large');
+                    if ($about_image_url) {
+                        echo '<img src="' . esc_url($about_image_url) . '" alt="María José">';
+                    } else {
+                        echo '<img src="' . get_template_directory_uri() . '/images/maria-jose.jpg" alt="María José">';
+                    }
+                } else {
+                    echo '<img src="' . get_template_directory_uri() . '/images/maria-jose.jpg" alt="María José">';
+                }
+                ?>
+                <div class="certification-badge">
+                    <div class="badge-icon">✓</div>
+                    <div class="badge-text">
+                        <strong>Certificada</strong>
+                        Colegio de Corredores
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonios -->
+<section id="testimonios" class="testimonials section bg-light">
+    <div class="container">
+        <h2 class="section-title"><?php echo get_theme_mod('mjpropiedades_testimonials_title', 'Lo que dicen nuestros clientes'); ?></h2>
+        <p class="section-subtitle"><?php echo get_theme_mod('mjpropiedades_testimonials_subtitle', 'Testimonios reales de clientes satisfechos en la Cuarta Región'); ?></p>
+        
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_1_text', 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. María José fue increíble, muy profesional y siempre disponible para resolver mis dudas.'); ?>"</p>
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-info">
+                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_1_name', 'Carlos Mendoza'); ?></h4>
+                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_1_location', 'Peñuelas, Coquimbo'); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_2_text', 'Encontré el departamento perfecto en La Serena gracias a María José. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.'); ?>"</p>
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-info">
+                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_2_name', 'Ana Rodríguez'); ?></h4>
+                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_2_location', 'La Serena'); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_3_text', 'Arrendé mi casa en Ovalle con María José. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.'); ?>"</p>
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-info">
+                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_3_name', 'Roberto Silva'); ?></h4>
+                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_3_location', 'Ovalle'); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_4_text', 'Excelente asesoría para mi inversión en Coquimbo. María José me ayudó a encontrar la propiedad ideal con el mejor retorno. Muy satisfecho.'); ?>"</p>
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-info">
+                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_4_name', 'María González'); ?></h4>
+                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_4_location', 'Coquimbo'); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_5_text', 'Compré mi primera casa en La Serena con María José. Su paciencia y dedicación hicieron que todo el proceso fuera muy fácil para mí.'); ?>"</p>
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-info">
+                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_5_name', 'Diego Herrera'); ?></h4>
+                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_5_location', 'La Serena'); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_6_text', 'Vendí mi terreno en Ovalle rápidamente gracias a la estrategia de marketing de María José. Su experiencia en la región es invaluable.'); ?>"</p>
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-info">
+                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_6_name', 'Patricia Morales'); ?></h4>
+                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_6_location', 'Ovalle'); ?></span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
