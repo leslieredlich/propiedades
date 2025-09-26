@@ -17,9 +17,9 @@ wp-content/wp-cache-config.php
 # Plugins y themes que no quieras versionar
 # (deja solo los que desarrolles tú)
 wp-content/plugins/*
-!wp-content/plugins/tu-plugin/
+# !wp-content/plugins/tu-plugin/
 wp-content/themes/*
-!wp-content/themes/tu-tema/
+!wp-content/themes/mjpropiedades/
 
 # Logs y temporales
 *.log
