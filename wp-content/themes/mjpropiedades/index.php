@@ -89,10 +89,10 @@
             <div class="about-content">
                 <h2>Conoce a María José</h2>
                 <p class="about-text">
-                    Con más de 8 años de experiencia en el mercado inmobiliario chileno, me especializo en ayudar a familias a encontrar su hogar ideal y a propietarios a obtener el mejor precio por sus propiedades.
+                    Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.
                 </p>
                 <p class="about-text">
-                    Mi compromiso es brindarte un servicio personalizado, transparente y profesional en cada paso del proceso. Desde la primera consulta hasta la firma del contrato, estaré contigo para hacer realidad tus objetivos inmobiliarios.
+                    Mi compromiso es brindarte un servicio personalizado, transparente y profesional en cada paso del proceso. Desde la primera consulta hasta la firma del contrato, estaré contigo para hacer realidad tus objetivos inmobiliarios en La Serena, Coquimbo y Ovalle.
                 </p>
                 
                 <div class="stats">
