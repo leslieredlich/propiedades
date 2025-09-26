@@ -52,6 +52,11 @@
     <!-- Menú Móvil -->
     <nav class="mobile-nav">
         <div class="mobile-nav-content">
+            <!-- Botón de cerrar -->
+            <button class="mobile-menu-close" aria-label="Cerrar menú" onclick="closeMobileMenuFromButton(event)">
+                <span class="close-icon">×</span>
+            </button>
+            
             <?php
             wp_nav_menu(array(
                 'theme_location' => 'primary',

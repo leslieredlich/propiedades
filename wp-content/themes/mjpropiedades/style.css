@@ -17,6 +17,21 @@ html, body {
     overflow-x: hidden;
     width: 100%;
     max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Asegurar que el body no tenga márgenes superiores en móvil */
+@media (max-width: 768px) {
+    body {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    
+    html {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
 }
 
 /* Asegurar que todos los contenedores principales respeten el viewport */
@@ -60,6 +75,8 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
+    margin: 0;
+    padding: 0;
 }
 
 .header-container {
@@ -233,6 +250,7 @@ body {
     align-items: center;
     position: relative;
     overflow: hidden;
+    margin-top: 80px; /* Compensar header fijo */
 }
 
 /* Carrusel de Imágenes */
@@ -1320,6 +1338,81 @@ body {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
+    position: relative;
+}
+
+/* Botón de cerrar del menú móvil - REDISEÑADO */
+.mobile-menu-close {
+    position: absolute !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 50px !important;
+    height: 50px !important;
+    background: rgba(255, 107, 53, 0.1) !important;
+    border: 3px solid var(--secondary-orange) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation !important;
+}
+
+.mobile-menu-close:hover {
+    background: var(--secondary-orange) !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3) !important;
+}
+
+.mobile-menu-close:active {
+    transform: scale(0.95) !important;
+}
+
+.close-icon {
+    font-size: 24px !important;
+    font-weight: bold !important;
+    color: var(--secondary-orange) !important;
+    line-height: 1 !important;
+    pointer-events: none !important;
+}
+
+.mobile-menu-close:hover .close-icon {
+    color: var(--white) !important;
+}
+
+/* REGLA PRINCIPAL: Solo mostrar nuestro botón de cerrar */
+.mobile-nav button:not(.mobile-menu-close),
+.mobile-nav .close,
+.mobile-nav [class*="close"],
+.mobile-nav [id*="close"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Asegurar que solo nuestro botón sea visible */
+.mobile-menu-close {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    top: 20px !important;
+    right: 20px !important;
+    z-index: 1001 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
 }
 
 .mobile-nav-menu {
@@ -1409,11 +1502,13 @@ body {
 
 @media (max-width: 768px) {
     .header {
-        top: 46px; /* Ajustar para móviles con barra de admin */
+        top: 0; /* Pegado a la parte superior en móvil */
         width: 100%;
         max-width: 100%;
         left: 0;
         right: 0;
+        margin: 0;
+        padding: 0;
     }
     
     .header-container {
@@ -1424,6 +1519,11 @@ body {
         max-width: 100%;
         width: 100%;
         margin: 0;
+    }
+    
+    /* Ajustar hero para compensar header móvil */
+    .hero {
+        margin-top: 80px;
     }
     
     /* Ocultar menú desktop y botón contacto desktop */
@@ -1556,14 +1656,17 @@ body {
     }
 }
 
-/* Ajustes para la barra de administración de WordPress */
-body.admin-bar .header {
-    top: 32px;
+/* Ajustes para la barra de administración de WordPress - Solo en desktop */
+@media (min-width: 783px) {
+    body.admin-bar .header {
+        top: 32px;
+    }
 }
 
+/* En móvil, ignorar la barra de admin para mejor UX */
 @media (max-width: 782px) {
     body.admin-bar .header {
-        top: 46px;
+        top: 0 !important;
     }
 }
 
@@ -3114,6 +3217,11 @@ body.admin-bar .hero {
     
     .hamburger-line {
         height: 2px;
+    }
+    
+    /* Ajustar hero para header más pequeño */
+    .hero {
+        margin-top: 70px;
     }
     
     .carousel-dots {

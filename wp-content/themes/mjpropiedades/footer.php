@@ -223,8 +223,127 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeMobileMenu();
             }
         });
+        
+        // REDISEÑO COMPLETO DEL BOTÓN DE CERRAR
+        // Función específica para cerrar menú desde botón X
+        function closeMenuFromButton() {
+            console.log('Cerrando menú desde botón X');
+            mobileNav.classList.remove('active');
+            mobileOverlay.classList.remove('active');
+            mobileToggle.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Método 1: Event listener directo cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.querySelector('.mobile-menu-close');
+            console.log('Botón de cerrar encontrado:', closeBtn);
+            
+            if (closeBtn) {
+                closeBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Click directo en botón X');
+                    closeMenuFromButton();
+                    return false;
+                };
+            }
+        });
+        
+        // Método 2: Delegación de eventos global
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('mobile-menu-close') || 
+                e.target.classList.contains('close-icon') ||
+                e.target.closest('.mobile-menu-close')) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Click delegado en botón X');
+                closeMenuFromButton();
+                return false;
+            }
+        });
+        
+        // Método 3: Event listener en el contenedor del menú
+        if (mobileNav) {
+            mobileNav.addEventListener('click', function(e) {
+                if (e.target.classList.contains('mobile-menu-close') || 
+                    e.target.classList.contains('close-icon') ||
+                    e.target.closest('.mobile-menu-close')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Click en contenedor del menú');
+                    closeMenuFromButton();
+                    return false;
+                }
+            });
+        }
+        
+        // Método 4: Implementación con jQuery si está disponible
+        if (typeof jQuery !== 'undefined') {
+            jQuery(document).ready(function($) {
+                $('.mobile-menu-close').on('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Click con jQuery en botón X');
+                    closeMenuFromButton();
+                    return false;
+                });
+                
+                // También para el icono dentro del botón
+                $('.close-icon').on('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Click con jQuery en icono X');
+                    closeMenuFromButton();
+                    return false;
+                });
+            });
+        }
+        
+        // Método 5: Verificación periódica para asegurar que el botón funcione
+        setInterval(function() {
+            const closeBtn = document.querySelector('.mobile-menu-close');
+            if (closeBtn && !closeBtn.hasAttribute('data-listener-added')) {
+                closeBtn.setAttribute('data-listener-added', 'true');
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Click periódico en botón X');
+                    closeMenuFromButton();
+                    return false;
+                });
+            }
+        }, 500);
     }
 });
+
+// FUNCIÓN GLOBAL PARA EL ONCLICK DEL BOTÓN X
+function closeMobileMenuFromButton(event) {
+    console.log('Función global llamada para cerrar menú');
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Obtener elementos del menú
+    const mobileNav = document.querySelector('.mobile-nav');
+    const mobileOverlay = document.querySelector('.mobile-menu-overlay');
+    const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    
+    if (mobileNav) {
+        mobileNav.classList.remove('active');
+    }
+    if (mobileOverlay) {
+        mobileOverlay.classList.remove('active');
+    }
+    if (mobileToggle) {
+        mobileToggle.classList.remove('active');
+    }
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+    
+    console.log('Menú cerrado desde función global');
+    return false;
+}
 
 // Mejoras para sliders móviles
 document.addEventListener('DOMContentLoaded', function() {
