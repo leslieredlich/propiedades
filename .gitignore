@@ -1,0 +1,38 @@
+# WordPress core
+wp-admin/
+wp-includes/
+
+# Archivos de configuración y credenciales
+wp-config.php
+wp-config-*.php
+
+# Contenido que se genera o se sube
+wp-content/cache/
+wp-content/backups/
+wp-content/uploads/
+wp-content/upgrade/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+
+# Plugins y themes que no quieras versionar
+# (deja solo los que desarrolles tú)
+wp-content/plugins/*
+!wp-content/plugins/tu-plugin/
+wp-content/themes/*
+!wp-content/themes/tu-tema/
+
+# Logs y temporales
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Dependencias de Node o Composer
+node_modules/
+vendor/
+
+# Archivos de entorno
+.env
+.DS_Store
+.idea/
+.vscode/
