@@ -84,6 +84,22 @@ get_header(); ?>
             <span class="search-tag">Búsqueda Rápida</span>
             <h2 class="section-title">Encuentra tu Propiedad Ideal</h2>
             <p class="section-subtitle">Utiliza nuestro buscador avanzado para encontrar exactamente lo que necesitas</p>
+            
+            <!-- Elementos de Confianza -->
+            <div class="search-trust">
+                <div class="trust-item">
+                    <span class="trust-icon">✓</span>
+                    <span>Asesoría 100% Gratuita</span>
+                </div>
+                <div class="trust-item">
+                    <span class="trust-icon">✓</span>
+                    <span>Respuesta en 24 horas</span>
+                </div>
+                <div class="trust-item">
+                    <span class="trust-icon">✓</span>
+                    <span>Sin compromiso</span>
+                </div>
+            </div>
         </div>
         
         <div class="search-form-container">
@@ -136,6 +152,31 @@ get_header(); ?>
     <div class="container">
         <h2 class="section-title">Propiedades en Venta</h2>
         <p class="section-subtitle">Encuentra tu nuevo hogar entre nuestras propiedades destacadas</p>
+        
+        <!-- Beneficios Clave -->
+        <div class="benefits-section">
+            <div class="benefit-item">
+                <div class="benefit-icon">🏠</div>
+                <div class="benefit-content">
+                    <h4>Propiedades Exclusivas</h4>
+                    <p>Acceso a propiedades únicas</p>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">💰</div>
+                <div class="benefit-content">
+                    <h4>Mejor Precio Garantizado</h4>
+                    <p>Negociación profesional</p>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">⚡</div>
+                <div class="benefit-content">
+                    <h4>Proceso Rápido</h4>
+                    <p>Venta promedio en 30 días</p>
+                </div>
+            </div>
+        </div>
         
         <div class="properties-slider-container">
             <!-- Swiper -->
@@ -383,16 +424,58 @@ get_header(); ?>
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="cta-section">
+<!-- CTA Section - Diseño Mejorado -->
+<section class="cta-section-enhanced">
     <div class="container">
-        <div class="cta-content">
-            <h3>¿Listo para comenzar?</h3>
-            <p>Contáctanos hoy mismo y descubre cómo podemos ayudarte a alcanzar tus objetivos inmobiliarios.</p>
-            <div class="cta-buttons">
-                <a href="#contacto" class="cta-btn primary">Agendar Cita Gratuita</a>
-                <a href="tel:<?php echo get_theme_mod('mjpropiedades_phone', '+56987654321'); ?>" class="cta-btn secondary">Llamar Ahora</a>
+        <div class="cta-content-enhanced">
+            <div class="cta-text-enhanced">
+                <div class="cta-badge">
+                    <span class="badge-icon">🚀</span>
+                    <span>¡Comienza Ahora!</span>
+                </div>
+                <h3>¿Listo para Encontrar tu Hogar Ideal?</h3>
+                <p>Contáctanos hoy mismo y descubre cómo podemos ayudarte a alcanzar tus objetivos inmobiliarios en la Región de Coquimbo.</p>
+                
+                <!-- Elementos de Persuasión -->
+                <div class="cta-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Consulta 100% Gratuita</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Respuesta Inmediata</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Sin Compromiso</span>
+                    </div>
+                </div>
             </div>
+            
+            <div class="cta-buttons-enhanced">
+                <a href="#contacto" class="cta-btn-enhanced primary">
+                    <span class="btn-icon">📅</span>
+                    <div class="btn-content">
+                        <span class="btn-title">Agendar Cita Gratuita</span>
+                        <span class="btn-subtitle">Sin costo ni compromiso</span>
+                    </div>
+                </a>
+                <a href="https://wa.me/<?php echo str_replace(array('+', ' ', '-'), '', get_theme_mod('mjpropiedades_phone', '+56987654321')); ?>" class="cta-btn-enhanced secondary" target="_blank">
+                    <span class="btn-icon">💬</span>
+                    <div class="btn-content">
+                        <span class="btn-title">Hablar Ahora</span>
+                        <span class="btn-subtitle">WhatsApp directo</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Elementos Decorativos -->
+        <div class="cta-decoration">
+            <div class="decoration-circle circle-1"></div>
+            <div class="decoration-circle circle-2"></div>
+            <div class="decoration-circle circle-3"></div>
         </div>
     </div>
 </section>
@@ -402,7 +485,7 @@ get_header(); ?>
     <div class="container">
         <div class="about-container">
             <div class="about-content">
-                <h2>Conoce a Home Isa - Corredora de Propiedades especializada en la Región de Coquimbo</h2>
+                <h2>Conoce a Home Isa - Especialista en la Región de Coquimbo</h2>
                 <p class="about-text">
                     <?php echo get_theme_mod('mjpropiedades_about_text_1', 'Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.'); ?>
                 </p>
@@ -453,6 +536,18 @@ get_header(); ?>
     <div class="container">
         <h2 class="section-title"><?php echo get_theme_mod('mjpropiedades_testimonials_title', 'Lo que dicen nuestros clientes'); ?></h2>
         <p class="section-subtitle"><?php echo get_theme_mod('mjpropiedades_testimonials_subtitle', 'Testimonios reales de clientes satisfechos en la Cuarta Región'); ?></p>
+        
+        <!-- Estadísticas de Satisfacción -->
+        <div class="testimonials-stats">
+            <div class="stat-item">
+                <span class="stat-number">100+</span>
+                <span class="stat-label">Clientes Felices</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">98%</span>
+                <span class="stat-label">Recomiendan</span>
+            </div>
+        </div>
         
         <div class="testimonials-grid">
             <div class="testimonial-card">
