@@ -3,7 +3,22 @@
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php wp_title('|', true, 'right'); ?><?php bloginfo('name'); ?></title>
+    <title><?php 
+        if (is_home() || is_front_page()) {
+            echo 'Corredora de Propiedades en La Serena y Coquimbo | Home Isa Propiedades';
+        } else {
+            wp_title('|', true, 'right');
+            bloginfo('name');
+        }
+    ?></title>
+    <meta name="description" content="<?php 
+        if (is_home() || is_front_page()) {
+            echo 'Especialistas en venta y arriendo en la Región de Coquimbo. Encuentra tu casa o departamento en La Serena, Coquimbo y Ovalle. Asesoría experta y certificada.';
+        } else {
+            echo get_bloginfo('description');
+        }
+    ?>">
+    <meta name="keywords" content="corredora de propiedades, La Serena, Coquimbo, Región de Coquimbo, venta de casas, arriendo departamentos, propiedades Ovalle, inmobiliaria La Serena">
     <?php wp_head(); ?>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo get_template_directory_uri(); ?>/style.css?v=<?php echo time(); ?>">

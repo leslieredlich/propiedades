@@ -919,7 +919,7 @@ function mjpropiedades_customize_register($wp_customize) {
     ));
     
     $wp_customize->add_setting('mjpropiedades_hero_title', array(
-        'default' => 'Encuentra el Hogar de tus Sueños',
+        'default' => 'Encuentra el Hogar de tus Sueños en la Región de Coquimbo',
         'sanitize_callback' => 'sanitize_text_field',
     ));
     $wp_customize->add_control('mjpropiedades_hero_title', array(
@@ -929,7 +929,7 @@ function mjpropiedades_customize_register($wp_customize) {
     ));
     
     $wp_customize->add_setting('mjpropiedades_hero_description', array(
-        'default' => 'Descubre propiedades exclusivas que se ajustan a tu estilo de vida. Asesoría personalizada en todo el proceso de compra.',
+        'default' => 'Descubre propiedades exclusivas en La Serena, Coquimbo y Ovalle. Asesoría personalizada y certificada en todo el proceso de compra y arriendo.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_hero_description', array(
@@ -1058,7 +1058,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Testimonio 1
     $wp_customize->add_setting('mjpropiedades_testimonial_1_text', array(
-        'default' => 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. María José fue increíble, muy profesional y siempre disponible para resolver mis dudas.',
+        'default' => 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. Home Isa fue increíble, muy profesional y siempre disponible para resolver mis dudas.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_testimonial_1_text', array(
@@ -1089,7 +1089,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Testimonio 2
     $wp_customize->add_setting('mjpropiedades_testimonial_2_text', array(
-        'default' => 'Encontré el departamento perfecto en La Serena gracias a María José. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.',
+        'default' => 'Encontré el departamento perfecto en La Serena gracias a Home Isa. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_testimonial_2_text', array(
@@ -1120,7 +1120,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Testimonio 3
     $wp_customize->add_setting('mjpropiedades_testimonial_3_text', array(
-        'default' => 'Arrendé mi casa en Ovalle con María José. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.',
+        'default' => 'Arrendé mi casa en Ovalle con Home Isa. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_testimonial_3_text', array(
@@ -1151,7 +1151,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Testimonio 4
     $wp_customize->add_setting('mjpropiedades_testimonial_4_text', array(
-        'default' => 'Excelente asesoría para mi inversión en Coquimbo. María José me ayudó a encontrar la propiedad ideal con el mejor retorno. Muy satisfecho.',
+        'default' => 'Excelente asesoría para mi inversión en Coquimbo. Home Isa me ayudó a encontrar la propiedad ideal con el mejor retorno. Muy satisfecho.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_testimonial_4_text', array(
@@ -1182,7 +1182,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Testimonio 5
     $wp_customize->add_setting('mjpropiedades_testimonial_5_text', array(
-        'default' => 'Compré mi primera casa en La Serena con María José. Su paciencia y dedicación hicieron que todo el proceso fuera muy fácil para mí.',
+        'default' => 'Compré mi primera casa en La Serena con Home Isa. Su paciencia y dedicación hicieron que todo el proceso fuera muy fácil para mí.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_testimonial_5_text', array(
@@ -1213,7 +1213,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Testimonio 6
     $wp_customize->add_setting('mjpropiedades_testimonial_6_text', array(
-        'default' => 'Vendí mi terreno en Ovalle rápidamente gracias a la estrategia de marketing de María José. Su experiencia en la región es invaluable.',
+        'default' => 'Vendí mi terreno en Ovalle rápidamente gracias a la estrategia de marketing de Home Isa. Su experiencia en la región es invaluable.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_testimonial_6_text', array(
@@ -1852,4 +1852,72 @@ function mjpropiedades_save_page_template($post_id) {
     }
 }
 add_action('save_post', 'mjpropiedades_save_page_template');
+
+// Generar sitemap XML
+function mjpropiedades_generate_sitemap() {
+    if (isset($_GET['sitemap']) && $_GET['sitemap'] == 'xml') {
+        header('Content-Type: application/xml; charset=utf-8');
+        echo '<?xml version="1.0" encoding="UTF-8"?>';
+        ?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url>
+                <loc><?php echo home_url('/'); ?></loc>
+                <lastmod><?php echo date('Y-m-d'); ?></lastmod>
+                <changefreq>daily</changefreq>
+                <priority>1.0</priority>
+            </url>
+            <url>
+                <loc><?php echo home_url('/propiedades/'); ?></loc>
+                <lastmod><?php echo date('Y-m-d'); ?></lastmod>
+                <changefreq>daily</changefreq>
+                <priority>0.8</priority>
+            </url>
+            <url>
+                <loc><?php echo home_url('/propiedades/?operacion=venta'); ?></loc>
+                <lastmod><?php echo date('Y-m-d'); ?></lastmod>
+                <changefreq>daily</changefreq>
+                <priority>0.7</priority>
+            </url>
+            <url>
+                <loc><?php echo home_url('/propiedades/?operacion=arriendo'); ?></loc>
+                <lastmod><?php echo date('Y-m-d'); ?></lastmod>
+                <changefreq>daily</changefreq>
+                <priority>0.7</priority>
+            </url>
+            <url>
+                <loc><?php echo home_url('/contacto/'); ?></loc>
+                <lastmod><?php echo date('Y-m-d'); ?></lastmod>
+                <changefreq>monthly</changefreq>
+                <priority>0.6</priority>
+            </url>
+            <url>
+                <loc><?php echo home_url('/sobre-nosotros/'); ?></loc>
+                <lastmod><?php echo date('Y-m-d'); ?></lastmod>
+                <changefreq>monthly</changefreq>
+                <priority>0.5</priority>
+            </url>
+            <?php
+            // Agregar propiedades dinámicamente
+            $properties = get_posts(array(
+                'post_type' => 'propiedad',
+                'posts_per_page' => -1,
+                'post_status' => 'publish'
+            ));
+            
+            foreach ($properties as $property) {
+                $lastmod = get_the_modified_date('Y-m-d', $property->ID);
+                echo '<url>';
+                echo '<loc>' . get_permalink($property->ID) . '</loc>';
+                echo '<lastmod>' . $lastmod . '</lastmod>';
+                echo '<changefreq>weekly</changefreq>';
+                echo '<priority>0.6</priority>';
+                echo '</url>';
+            }
+            ?>
+        </urlset>
+        <?php
+        exit;
+    }
+}
+add_action('init', 'mjpropiedades_generate_sitemap');
 ?>

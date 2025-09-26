@@ -1,5 +1,5 @@
 /**
- * María José Propiedades - JavaScript Principal
+ * Home Isa Propiedades - JavaScript Principal
  */
 
 jQuery(document).ready(function($) {

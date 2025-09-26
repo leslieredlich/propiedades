@@ -42,9 +42,9 @@ get_header(); ?>
     <div class="hero-container">
         <div class="hero-content">
             <span class="hero-tag"><?php echo get_theme_mod('mjpropiedades_hero_tag', 'Compra de Propiedades'); ?></span>
-            <h1><?php echo get_theme_mod('mjpropiedades_hero_title', 'Encuentra el Hogar de tus Sueños'); ?></h1>
+            <h1><?php echo get_theme_mod('mjpropiedades_hero_title', 'Encuentra el Hogar de tus Sueños en la Región de Coquimbo'); ?></h1>
             <p class="hero-description">
-                <?php echo get_theme_mod('mjpropiedades_hero_description', 'Descubre propiedades exclusivas que se ajustan a tu estilo de vida. Asesoría personalizada en todo el proceso de compra.'); ?>
+                <?php echo get_theme_mod('mjpropiedades_hero_description', 'Descubre propiedades exclusivas en La Serena, Coquimbo y Ovalle. Asesoría personalizada y certificada en todo el proceso de compra y arriendo.'); ?>
             </p>
             <a href="#buscar" class="hero-btn">
                 <?php echo get_theme_mod('mjpropiedades_hero_button', 'Buscar Propiedades'); ?> →
@@ -180,11 +180,11 @@ get_header(); ?>
                                         <div class="property-tag" <?php echo $tag_class; ?>><?php echo $tag_text; ?></div>
                                         <?php if (has_post_thumbnail()) : ?>
                                             <a href="<?php the_permalink(); ?>">
-                                                <?php the_post_thumbnail('medium'); ?>
+                                                <?php the_post_thumbnail('medium', array('alt' => get_the_title() . ' - Propiedad en ' . ($comuna ? $comuna : 'Región de Coquimbo'))); ?>
                                             </a>
                                         <?php else : ?>
                                             <a href="<?php the_permalink(); ?>">
-                                                <img src="<?php echo get_template_directory_uri(); ?>/images/propiedades/placeholder.jpg" alt="<?php the_title(); ?>" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 250\'><rect fill=\'%23f0f0f0\' width=\'400\' height=\'250\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'><?php the_title(); ?></text></svg>'">
+                                                <img src="<?php echo get_template_directory_uri(); ?>/images/propiedades/placeholder.jpg" alt="<?php the_title(); ?> - Propiedad en <?php echo $comuna ? $comuna : 'Región de Coquimbo'; ?>" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 250\'><rect fill=\'%23f0f0f0\' width=\'400\' height=\'250\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'><?php the_title(); ?></text></svg>'">
                                             </a>
                                         <?php endif; ?>
                                     </div>
@@ -306,11 +306,11 @@ get_header(); ?>
                                         <div class="property-tag" <?php echo $tag_class; ?>><?php echo $tag_text; ?></div>
                                         <?php if (has_post_thumbnail()) : ?>
                                             <a href="<?php the_permalink(); ?>">
-                                                <?php the_post_thumbnail('medium'); ?>
+                                                <?php the_post_thumbnail('medium', array('alt' => get_the_title() . ' - Propiedad en ' . ($comuna ? $comuna : 'Región de Coquimbo'))); ?>
                                             </a>
                                         <?php else : ?>
                                             <a href="<?php the_permalink(); ?>">
-                                                <img src="<?php echo get_template_directory_uri(); ?>/images/propiedades/placeholder.jpg" alt="<?php the_title(); ?>" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 250\'><rect fill=\'%23f0f0f0\' width=\'400\' height=\'250\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'><?php the_title(); ?></text></svg>'">
+                                                <img src="<?php echo get_template_directory_uri(); ?>/images/propiedades/placeholder.jpg" alt="<?php the_title(); ?> - Propiedad en <?php echo $comuna ? $comuna : 'Región de Coquimbo'; ?>" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 250\'><rect fill=\'%23f0f0f0\' width=\'400\' height=\'250\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'><?php the_title(); ?></text></svg>'">
                                             </a>
                                         <?php endif; ?>
                                     </div>
@@ -402,7 +402,7 @@ get_header(); ?>
     <div class="container">
         <div class="about-container">
             <div class="about-content">
-                <h2>Conoce a María José</h2>
+                <h2>Conoce a Home Isa - Corredora de Propiedades especializada en la Región de Coquimbo</h2>
                 <p class="about-text">
                     <?php echo get_theme_mod('mjpropiedades_about_text_1', 'Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.'); ?>
                 </p>
@@ -428,12 +428,12 @@ get_header(); ?>
                 if ($about_image_id) {
                     $about_image_url = wp_get_attachment_image_url($about_image_id, 'large');
                     if ($about_image_url) {
-                        echo '<img src="' . esc_url($about_image_url) . '" alt="María José">';
+                        echo '<img src="' . esc_url($about_image_url) . '" alt="Home Isa - Corredora de Propiedades Certificada en La Serena y Coquimbo">';
                     } else {
-                        echo '<img src="' . get_template_directory_uri() . '/images/maria-jose.jpg" alt="María José">';
+                        echo '<img src="' . get_template_directory_uri() . '/images/maria-jose.jpg" alt="Home Isa - Corredora de Propiedades Certificada en La Serena y Coquimbo">';
                     }
                 } else {
-                    echo '<img src="' . get_template_directory_uri() . '/images/maria-jose.jpg" alt="María José">';
+                    echo '<img src="' . get_template_directory_uri() . '/images/maria-jose.jpg" alt="Home Isa - Corredora de Propiedades Certificada en La Serena y Coquimbo">';
                 }
                 ?>
                 <div class="certification-badge">
@@ -458,7 +458,7 @@ get_header(); ?>
             <div class="testimonial-card">
                 <div class="testimonial-content">
                     <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_1_text', 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. María José fue increíble, muy profesional y siempre disponible para resolver mis dudas.'); ?>"</p>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_1_text', 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. Home Isa fue increíble, muy profesional y siempre disponible para resolver mis dudas.'); ?>"</p>
                 </div>
                 <div class="testimonial-author">
                     <div class="author-info">
@@ -471,7 +471,7 @@ get_header(); ?>
             <div class="testimonial-card">
                 <div class="testimonial-content">
                     <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_2_text', 'Encontré el departamento perfecto en La Serena gracias a María José. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.'); ?>"</p>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_2_text', 'Encontré el departamento perfecto en La Serena gracias a Home Isa. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.'); ?>"</p>
                 </div>
                 <div class="testimonial-author">
                     <div class="author-info">
@@ -484,7 +484,7 @@ get_header(); ?>
             <div class="testimonial-card">
                 <div class="testimonial-content">
                     <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_3_text', 'Arrendé mi casa en Ovalle con María José. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.'); ?>"</p>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_3_text', 'Arrendé mi casa en Ovalle con Home Isa. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.'); ?>"</p>
                 </div>
                 <div class="testimonial-author">
                     <div class="author-info">
@@ -497,7 +497,7 @@ get_header(); ?>
             <div class="testimonial-card">
                 <div class="testimonial-content">
                     <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_4_text', 'Excelente asesoría para mi inversión en Coquimbo. María José me ayudó a encontrar la propiedad ideal con el mejor retorno. Muy satisfecho.'); ?>"</p>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_4_text', 'Excelente asesoría para mi inversión en Coquimbo. Home Isa me ayudó a encontrar la propiedad ideal con el mejor retorno. Muy satisfecho.'); ?>"</p>
                 </div>
                 <div class="testimonial-author">
                     <div class="author-info">
@@ -510,7 +510,7 @@ get_header(); ?>
             <div class="testimonial-card">
                 <div class="testimonial-content">
                     <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_5_text', 'Compré mi primera casa en La Serena con María José. Su paciencia y dedicación hicieron que todo el proceso fuera muy fácil para mí.'); ?>"</p>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_5_text', 'Compré mi primera casa en La Serena con Home Isa. Su paciencia y dedicación hicieron que todo el proceso fuera muy fácil para mí.'); ?>"</p>
                 </div>
                 <div class="testimonial-author">
                     <div class="author-info">
@@ -523,7 +523,7 @@ get_header(); ?>
             <div class="testimonial-card">
                 <div class="testimonial-content">
                     <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_6_text', 'Vendí mi terreno en Ovalle rápidamente gracias a la estrategia de marketing de María José. Su experiencia en la región es invaluable.'); ?>"</p>
+                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_6_text', 'Vendí mi terreno en Ovalle rápidamente gracias a la estrategia de marketing de Home Isa. Su experiencia en la región es invaluable.'); ?>"</p>
                 </div>
                 <div class="testimonial-author">
                     <div class="author-info">
@@ -748,7 +748,7 @@ get_header(); ?>
                 <button type="submit" class="submit-btn">Enviar Solicitud</button>
                 
                 <p class="form-disclaimer">
-                    Al enviar este formulario, aceptas que María José se contacte contigo para brindarte información sobre propiedades.
+                    Al enviar este formulario, aceptas que Home Isa se contacte contigo para brindarte información sobre propiedades.
                 </p>
             </div>
         </form>

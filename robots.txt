@@ -1,0 +1,30 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://homeisa.devkreativo.cl/?sitemap=xml
+Sitemap: https://homeisa.devkreativo.cl/sitemap.xml
+Sitemap: https://homeisa.devkreativo.cl/sitemap.php
+
+# Disallow admin areas
+Disallow: /wp-admin/
+Disallow: /wp-includes/
+Disallow: /wp-content/plugins/
+Disallow: /wp-content/themes/
+Disallow: /wp-content/upgrade/
+Disallow: /wp-content/uploads/
+Disallow: /wp-json/
+Disallow: /xmlrpc.php
+Disallow: /readme.html
+Disallow: /license.txt
+Disallow: /wp-config.php
+Disallow: /wp-settings.php
+Disallow: /wp-load.php
+Disallow: /wp-blog-header.php
+Disallow: /wp-cron.php
+Disallow: /wp-mail.php
+Disallow: /wp-signup.php
+Disallow: /wp-trackback.php
+Disallow: /wp-activate.php
+Disallow: /wp-comments-post.php
+Disallow: /wp-links-opml.php

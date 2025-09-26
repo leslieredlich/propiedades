@@ -87,7 +87,7 @@
     <div class="container">
         <div class="about-container">
             <div class="about-content">
-                <h2>Conoce a María José</h2>
+                <h2>Conoce a Home Isa</h2>
                 <p class="about-text">
                     Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.
                 </p>
@@ -108,7 +108,7 @@
             </div>
             
             <div class="about-image">
-                <img src="<?php echo get_template_directory_uri(); ?>/images/maria-jose.jpg" alt="María José">
+                <img src="<?php echo get_template_directory_uri(); ?>/images/maria-jose.jpg" alt="Home Isa">
                 <div class="certification-badge">
                     <div class="badge-icon">✓</div>
                     <div class="badge-text">
