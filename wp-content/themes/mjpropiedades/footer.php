@@ -16,7 +16,7 @@
     <div class="container">
         <div class="footer-content">
             <div class="footer-brand">
-                <h3>PLUS Propiedades</h3>
+                <h3>HOME ISA</h3>
                 <p>Tu corredora de confianza especializada en la Cuarta Región de Chile.</p>
                 <div class="social-icons">
                     <a href="#" class="social-icon">f</a>
