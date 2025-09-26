@@ -96,22 +96,8 @@ get_header(); ?>
                             <option value="la serena">La Serena</option>
                             <option value="coquimbo">Coquimbo</option>
                             <option value="ovalle">Ovalle</option>
-                            <option value="illapel">Illapel</option>
-                            <option value="salamanca">Salamanca</option>
-                            <option value="los vilos">Los Vilos</option>
-                            <option value="canela">Canela</option>
-                            <option value="combarbala">Combarbalá</option>
-                            <option value="punitaqui">Punitaqui</option>
-                            <option value="rio hurtado">Río Hurtado</option>
-                            <option value="monte patria">Monte Patria</option>
                             <option value="vicuña">Vicuña</option>
                             <option value="paihuano">Paihuano</option>
-                            <option value="andacollo">Andacollo</option>
-                            <option value="la higuera">La Higuera</option>
-                            <option value="freirina">Freirina</option>
-                            <option value="huasco">Huasco</option>
-                            <option value="alto del carmen">Alto del Carmen</option>
-                            <option value="vallenar">Vallenar</option>
                         </select>
                     </div>
                     
