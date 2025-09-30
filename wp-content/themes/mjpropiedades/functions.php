@@ -44,6 +44,7 @@ function mjpropiedades_setup() {
 }
 add_action('after_setup_theme', 'mjpropiedades_setup');
 
+
 // Registrar post type para consultas de contacto
 function mjpropiedades_register_contact_inquiry_post_type() {
     register_post_type('contact_inquiry', array(
@@ -1782,6 +1783,7 @@ function mjpropiedades_typography_css() {
     <?php
 }
 add_action('wp_head', 'mjpropiedades_typography_css');
+
 
 // Función de sanitización para la alineación del menú
 function mjpropiedades_sanitize_menu_alignment($input) {
