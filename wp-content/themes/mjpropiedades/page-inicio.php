@@ -18,21 +18,26 @@ get_header(); ?>
             get_theme_mod('mjpropiedades_hero_2'),
             get_theme_mod('mjpropiedades_hero_3')
         );
-        $has_images = false;
+        
+        $default_images = array(
+            'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80', // Casas
+            'https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80', // Tasación
+            'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'  // Ciudades
+        );
+        
         foreach ($hero_images as $index => $image_id) {
+            $active_class = ($index === 0) ? ' active' : '';
+            $image_url = '';
+            
             if ($image_id) {
                 $image_url = wp_get_attachment_image_url($image_id, 'full');
-                if ($image_url) {
-                    $has_images = true;
-                    $active_class = ($index === 0) ? ' active' : '';
-                    echo '<div class="hero-slide' . $active_class . '" style="background-image: url(\'' . esc_url($image_url) . '\');">';
-                    echo '<div class="hero-overlay"></div>';
-                    echo '</div>';
-                }
             }
-        }
-        if (!$has_images) {
-            echo '<div class="hero-slide active" style="background-image: url(\'' . get_template_directory_uri() . '/images/hero-default.jpg\');">';
+            
+            if (!$image_url) {
+                $image_url = $default_images[$index];
+            }
+            
+            echo '<div class="hero-slide' . $active_class . '" style="background-image: url(\'' . esc_url($image_url) . '\');">';
             echo '<div class="hero-overlay"></div>';
             echo '</div>';
         }
@@ -40,15 +45,43 @@ get_header(); ?>
     </div>
     
     <div class="hero-container">
-        <div class="hero-content">
-            <span class="hero-tag"><?php echo get_theme_mod('mjpropiedades_hero_tag', 'Compra de Propiedades'); ?></span>
-            <h1><?php echo get_theme_mod('mjpropiedades_hero_title', 'Encuentra el Hogar de tus Sueños en la Región de Coquimbo'); ?></h1>
+        <!-- Diapositiva 1: Compra de Propiedades -->
+        <div class="hero-content slide-content active" data-slide="0">
+            <span class="hero-tag"><?php echo get_theme_mod('mjpropiedades_slide_1_tag', 'Compra de Propiedades'); ?></span>
+            <h1><?php echo get_theme_mod('mjpropiedades_slide_1_title', 'Encuentra tu Hogar Ideal en Chile'); ?></h1>
             <p class="hero-description">
-                <?php echo get_theme_mod('mjpropiedades_hero_description', 'Descubre propiedades exclusivas en La Serena, Coquimbo y Ovalle. Asesoría personalizada y certificada en todo el proceso de compra y arriendo.'); ?>
+                <?php echo get_theme_mod('mjpropiedades_slide_1_description', 'Atendemos en Copiapó, Viña del Mar, La Serena y nos expandimos a más ciudades. Descubre propiedades exclusivas con asesoría personalizada y certificada en todo el proceso de compra.'); ?>
             </p>
-            <a href="#buscar" class="hero-btn">
-                <?php echo get_theme_mod('mjpropiedades_hero_button', 'Buscar Propiedades'); ?> →
-            </a>
+            <div class="hero-buttons">
+                <a href="#venta" class="hero-btn primary"><?php echo get_theme_mod('mjpropiedades_slide_1_btn_primary', 'Ver Propiedades'); ?> →</a>
+                <a href="#contacto" class="hero-btn secondary"><?php echo get_theme_mod('mjpropiedades_slide_1_btn_secondary', 'Solicitar Tasación'); ?></a>
+            </div>
+        </div>
+
+        <!-- Diapositiva 2: Venta de Propiedades -->
+        <div class="hero-content slide-content" data-slide="1">
+            <span class="hero-tag"><?php echo get_theme_mod('mjpropiedades_slide_2_tag', 'Venta de Propiedades'); ?></span>
+            <h1><?php echo get_theme_mod('mjpropiedades_slide_2_title', 'Vende tu Propiedad al Mejor Precio'); ?></h1>
+            <p class="hero-description">
+                <?php echo get_theme_mod('mjpropiedades_slide_2_description', '¿Tienes una propiedad para vender? Te ayudamos a obtener el mejor valor de mercado. Servicios profesionales de tasación y comercialización en Copiapó, Viña del Mar, La Serena y próximamente en más ciudades.'); ?>
+            </p>
+            <div class="hero-buttons">
+                <a href="#contacto" class="hero-btn primary"><?php echo get_theme_mod('mjpropiedades_slide_2_btn_primary', 'Solicitar Tasación'); ?></a>
+                <a href="#venta" class="hero-btn secondary"><?php echo get_theme_mod('mjpropiedades_slide_2_btn_secondary', 'Ver Propiedades'); ?> →</a>
+            </div>
+        </div>
+
+        <!-- Diapositiva 3: Arriendo de Propiedades -->
+        <div class="hero-content slide-content" data-slide="2">
+            <span class="hero-tag"><?php echo get_theme_mod('mjpropiedades_slide_3_tag', 'Arriendo de Propiedades'); ?></span>
+            <h1><?php echo get_theme_mod('mjpropiedades_slide_3_title', 'Arrienda o Arrienda tu Propiedad'); ?></h1>
+            <p class="hero-description">
+                <?php echo get_theme_mod('mjpropiedades_slide_3_description', 'Ya sea que busques arrendar o tengas una propiedad para arrendar, te conectamos con las mejores opciones. Servicio profesional en Copiapó, Viña del Mar, La Serena con expansión continua a nuevas ciudades.'); ?>
+            </p>
+            <div class="hero-buttons">
+                <a href="#arriendo" class="hero-btn primary"><?php echo get_theme_mod('mjpropiedades_slide_3_btn_primary', 'Ver Arriendos'); ?> →</a>
+                <a href="#contacto" class="hero-btn secondary"><?php echo get_theme_mod('mjpropiedades_slide_3_btn_secondary', 'Arrendar Propiedad'); ?></a>
+            </div>
         </div>
     </div>
     
@@ -58,22 +91,9 @@ get_header(); ?>
     
     <!-- Carousel Dots -->
     <div class="carousel-dots">
-        <?php
-        $image_count = 0;
-        foreach ($hero_images as $image_id) {
-            if ($image_id) {
-                $image_url = wp_get_attachment_image_url($image_id, 'full');
-                if ($image_url) {
-                    $active_class = ($image_count === 0) ? ' active' : '';
-                    echo '<span class="dot' . $active_class . '"></span>';
-                    $image_count++;
-                }
-            }
-        }
-        if ($image_count === 0) {
-            echo '<span class="dot active"></span>';
-        }
-        ?>
+        <span class="dot active" data-slide="0"></span>
+        <span class="dot" data-slide="1"></span>
+        <span class="dot" data-slide="2"></span>
     </div>
 </section>
 
@@ -81,209 +101,367 @@ get_header(); ?>
 <section id="buscar" class="search-section section">
     <div class="container">
         <div class="search-header">
-            <span class="search-tag">Búsqueda Rápida</span>
             <h2 class="section-title">Encuentra tu Propiedad Ideal</h2>
-            <p class="section-subtitle">Utiliza nuestro buscador avanzado para encontrar exactamente lo que necesitas</p>
-            
-            <!-- Elementos de Confianza -->
-            <div class="search-trust">
-                <div class="trust-item">
-                    <span class="trust-icon">✓</span>
-                    <span>Asesoría 100% Gratuita</span>
-                </div>
-                <div class="trust-item">
-                    <span class="trust-icon">✓</span>
-                    <span>Respuesta en 24 horas</span>
-                </div>
-                <div class="trust-item">
-                    <span class="trust-icon">✓</span>
-                    <span>Sin compromiso</span>
-                </div>
-            </div>
         </div>
         
         <div class="search-form-container">
             <form class="search-form" method="get" action="<?php echo home_url('/propiedades/'); ?>">
-                <div class="search-form-grid">
+                <!-- Primera fila de filtros -->
+                <div class="search-form-row">
                     <div class="search-group">
-                        <label for="search-comuna" class="search-label">Comuna</label>
-                        <select id="search-comuna" name="comuna" class="search-select">
-                            <option value="">Seleccionar comuna</option>
-                            <option value="la serena">La Serena</option>
-                            <option value="coquimbo">Coquimbo</option>
-                            <option value="ovalle">Ovalle</option>
-                            <option value="vicuña">Vicuña</option>
-                            <option value="paihuano">Paihuano</option>
+                        <label for="search-tipo-propiedad" class="search-label">Tipo de Propiedad</label>
+                        <select id="search-tipo-propiedad" name="tipo_propiedad" class="search-select">
+                            <option value="">Todos los tipos</option>
+                            <?php
+                            $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array(
+                                'casa' => 'Casa',
+                                'departamento' => 'Departamento',
+                                'oficina' => 'Oficina',
+                                'local' => 'Local Comercial',
+                                'terreno' => 'Terreno'
+                            ));
+                            foreach ($tipos_propiedad as $value => $label) {
+                                echo '<option value="' . esc_attr($value) . '">' . esc_html($label) . '</option>';
+                            }
+                            ?>
                         </select>
                     </div>
                     
-                    <div class="search-group search-text-group">
-                        <label for="search-text" class="search-label">¿Qué estás buscando?</label>
-                        <input type="text" id="search-text" name="busqueda" class="search-input" placeholder="Ej: departamento 2 dormitorios, casa con jardín...">
+                    <div class="search-group">
+                        <label for="search-ubicacion" class="search-label">Ubicación</label>
+                        <select id="search-ubicacion" name="ubicacion" class="search-select">
+                            <option value="">Seleccionar comuna</option>
+                            <?php
+                            $comunas = get_option('mjpropiedades_comunas', array(
+                                'la-serena' => 'La Serena',
+                                'coquimbo' => 'Coquimbo',
+                                'ovalle' => 'Ovalle',
+                                'vicuna' => 'Vicuña',
+                                'paihuano' => 'Paihuano',
+                                'andacollo' => 'Andacollo',
+                                'combarbala' => 'Combarbalá',
+                                'monte-patri' => 'Monte Patria',
+                                'punitaqui' => 'Punitaqui',
+                                'rio-hurtado' => 'Río Hurtado'
+                            ));
+                            foreach ($comunas as $value => $label) {
+                                echo '<option value="' . esc_attr($value) . '">' . esc_html($label) . '</option>';
+                            }
+                            ?>
+                        </select>
                     </div>
                     
-                    <div class="search-group search-type-group">
-                        <label for="search-type" class="search-label">Tipo de Operación</label>
-                        <select id="search-type" name="operacion" class="search-select">
-                            <option value="">Cualquier operación</option>
-                            <option value="venta">Venta</option>
-                            <option value="arriendo">Arriendo</option>
+                    <div class="search-group">
+                        <label for="search-dormitorios" class="search-label">Dormitorios</label>
+                        <select id="search-dormitorios" name="dormitorios" class="search-select">
+                            <option value="">Cualquier cantidad</option>
+                            <?php
+                            $dormitorios_options = get_option('mjpropiedades_dormitorios', array(
+                                '1' => '1 dormitorio',
+                                '2' => '2 dormitorios',
+                                '3' => '3 dormitorios',
+                                '4' => '4 dormitorios',
+                                '5+' => '5+ dormitorios'
+                            ));
+                            foreach ($dormitorios_options as $value => $label) {
+                                echo '<option value="' . esc_attr($value) . '">' . esc_html($label) . '</option>';
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    
+                    <div class="search-group">
+                        <label for="search-banos" class="search-label">Baños</label>
+                        <select id="search-banos" name="banos" class="search-select">
+                            <option value="">Cualquier cantidad</option>
+                            <?php
+                            $banos_options = get_option('mjpropiedades_banos', array(
+                                '1' => '1 baño',
+                                '2' => '2 baños',
+                                '3' => '3 baños',
+                                '4' => '4 baños',
+                                '5+' => '5+ baños'
+                            ));
+                            foreach ($banos_options as $value => $label) {
+                                echo '<option value="' . esc_attr($value) . '">' . esc_html($label) . '</option>';
+                            }
+                            ?>
                         </select>
                     </div>
                 </div>
                 
+                <!-- Segunda fila con sliders de precio -->
+                <div class="search-form-row">
+                    <div class="search-group price-group">
+                        <label for="search-precio-min" class="search-label">Precio Mínimo (CLP)</label>
+                        <div class="price-slider-container">
+                            <input type="range" id="search-precio-min" name="precio_min" class="price-slider" min="0" max="1000000000" value="0" step="100000">
+                            <div class="price-display">
+                                <span class="price-value" id="precio-min-value">$0</span>
+                                <span class="price-max">$1.000.000.000</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="search-group price-group">
+                        <label for="search-precio-max" class="search-label">Precio Máximo (CLP)</label>
+                        <div class="price-slider-container">
+                            <input type="range" id="search-precio-max" name="precio_max" class="price-slider" min="0" max="1000000000" value="1000000000" step="100000">
+                            <div class="price-display">
+                                <span class="price-min">$0</span>
+                                <span class="price-value" id="precio-max-value">$1.000.000.000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botón de búsqueda -->
                 <div class="search-actions">
                     <button type="submit" class="search-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-                            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
-                        </svg>
                         Buscar Propiedades
                     </button>
-                    <button type="reset" class="search-reset">Limpiar</button>
                 </div>
             </form>
         </div>
     </div>
 </section>
 
+<!-- Servicios -->
+<section id="servicios" class="services section">
+    <div class="container">
+        <div class="services-header">
+            <span class="services-tag"><?php echo esc_html(get_theme_mod('mjpropiedades_services_tag', 'NUESTROS SERVICIOS')); ?></span>
+            <h2 class="section-title" style="color: <?php echo esc_attr(get_theme_mod('mjpropiedades_services_title_color', '#374151')); ?>">
+                <?php echo esc_html(get_theme_mod('mjpropiedades_services_title', 'Te Acompañamos en Cada Paso')); ?>
+            </h2>
+            <p class="section-subtitle" style="color: <?php echo esc_attr(get_theme_mod('mjpropiedades_services_subtitle_color', '#6b7280')); ?>">
+                <?php echo esc_html(get_theme_mod('mjpropiedades_services_subtitle', 'Servicios profesionales diseñados para hacer realidad tus objetivos inmobiliarios')); ?>
+            </p>
+        </div>
+        
+        <?php
+        // Servicios por defecto si no hay configuración
+        $default_services = array(
+            1 => array(
+                'title' => 'Venta',
+                'description' => 'Te ayudamos a vender tu propiedad al mejor precio del mercado con estrategias personalizadas.',
+                'features' => array('Marketing digital especializado', 'Fotografía profesional', 'Tours virtuales', 'Asesoría de precios')
+            ),
+            2 => array(
+                'title' => 'Arriendo',
+                'description' => 'Encontramos el inquilino ideal para tu propiedad con procesos seguros y eficientes.',
+                'features' => array('Selección de inquilinos', 'Verificación de antecedentes', 'Contratos legales', 'Gestión de pagos')
+            ),
+            3 => array(
+                'title' => 'Tasaciones',
+                'description' => 'Valoramos tu propiedad con precisión profesional para tomar las mejores decisiones.',
+                'features' => array('Análisis de mercado', 'Comparación de propiedades', 'Informe detallado', 'Certificación profesional')
+            ),
+            4 => array(
+                'title' => 'Asesoría Legal',
+                'description' => 'Te acompañamos en todo el proceso legal y administrativo para que no tengas que preocuparte por nada.',
+                'features' => array('Tramitación de escrituras', 'Gestión de permisos', 'Seguimiento legal', 'Asesoría especializada')
+            )
+        );
+        
+        // Contar servicios primero
+        $services_count = 0;
+        for ($i = 1; $i <= 6; $i++) {
+            $title = get_theme_mod("mjpropiedades_service_{$i}_title", '');
+            if (!empty($title)) {
+                $services_count++;
+            }
+        }
+        
+        // Si no hay servicios configurados, usar los por defecto
+        if ($services_count == 0) {
+            $services_count = 4;
+        }
+        ?>
+        <div class="services-grid services-count-<?php echo $services_count; ?>">
+            <?php
+            for ($i = 1; $i <= 6; $i++) {
+                $title = get_theme_mod("mjpropiedades_service_{$i}_title", '');
+                $description = get_theme_mod("mjpropiedades_service_{$i}_description", '');
+                $features = get_theme_mod("mjpropiedades_service_{$i}_features", '');
+                
+                // Si no hay configuración completa, usar valores por defecto
+                if (empty($title) && isset($default_services[$i])) {
+                    $title = $default_services[$i]['title'];
+                    $description = $default_services[$i]['description'];
+                    $features_array = $default_services[$i]['features'];
+                } else {
+                    $features_array = !empty($features) ? explode("\n", $features) : array();
+                }
+                
+                // Solo mostrar si tiene título
+                if (!empty($title)) {
+                    ?>
+                    <div class="service-card">
+                        <div class="service-icon">
+                            <div class="icon-wrapper">
+                                <?php
+                                // Iconos directamente en el código según el servicio
+                                switch($i) {
+                                    case 1:
+                                        echo '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22V12H15V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 6V12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 9L12 6L15 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                                        break;
+                                    case 2:
+                                        echo '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 2L2 7L10 13L21 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 13L7 20L2 7L10 13Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                                        break;
+                                    case 3:
+                                        echo '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                                        break;
+                                    case 4:
+                                        echo '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2V8H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 13H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 17H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 9H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                                        break;
+                                    default:
+                                        echo '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2V8H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 13H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 17H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 9H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                                }
+                                ?>
+                </div>
+            </div>
+                        <div class="service-content">
+                            <h3><?php echo esc_html($title); ?></h3>
+                            <p><?php echo esc_html($description); ?></p>
+                            <?php if (!empty($features_array)): ?>
+                                <ul class="service-features">
+                                    <?php foreach ($features_array as $feature): ?>
+                                        <?php if (!empty(trim($feature))): ?>
+                                            <li><?php echo esc_html(trim($feature)); ?></li>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
+                </div>
+            </div>
+                    <?php
+                }
+            }
+            ?>
+                </div>
+        
+            </div>
+</section>
+
 <!-- Propiedades en Venta -->
 <section id="venta" class="section">
     <div class="container">
-        <h2 class="section-title">Propiedades en Venta</h2>
-        <p class="section-subtitle">Encuentra tu nuevo hogar entre nuestras propiedades destacadas</p>
-        
-        <!-- Beneficios Clave -->
-        <div class="benefits-section">
-            <div class="benefit-item">
-                <div class="benefit-icon">🏠</div>
-                <div class="benefit-content">
-                    <h4>Propiedades Exclusivas</h4>
-                    <p>Acceso a propiedades únicas</p>
-                </div>
+        <div class="section-header">
+            <div class="section-tag venta-tag">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 22V12H15V22" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 6V12" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 9L12 6L15 9" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Propiedades en Venta</span>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">💰</div>
-                <div class="benefit-content">
-                    <h4>Mejor Precio Garantizado</h4>
-                    <p>Negociación profesional</p>
-                </div>
-            </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">⚡</div>
-                <div class="benefit-content">
-                    <h4>Proceso Rápido</h4>
-                    <p>Venta promedio en 30 días</p>
-                </div>
-            </div>
+            <h2 class="section-title">Propiedades Destacadas</h2>
+            <p class="section-subtitle">Descubre las mejores oportunidades inmobiliarias disponibles</p>
         </div>
         
-        <div class="properties-slider-container">
-            <!-- Swiper -->
-            <div class="swiper venta-slider">
-                <div class="swiper-wrapper">
                     <?php
-                    // Obtener propiedades en venta
-                    $venta_properties = mjpropiedades_get_properties('venta', 6); // Más propiedades para el slider
-                    
-                    // Si no hay propiedades con operación específica, mostrar todas
-                    if (!$venta_properties->have_posts()) {
-                        $venta_properties = mjpropiedades_get_properties('', 6);
-                    }
-                    
-                    if ($venta_properties->have_posts()) :
-                        while ($venta_properties->have_posts()) : $venta_properties->the_post();
-                            $precio = get_post_meta(get_the_ID(), '_propiedad_precio', true);
-                            $dormitorios = get_post_meta(get_the_ID(), '_propiedad_dormitorios', true);
-                            $banos = get_post_meta(get_the_ID(), '_propiedad_banos', true);
-                            $metros = get_post_meta(get_the_ID(), '_propiedad_metros', true);
-                            $comuna = get_post_meta(get_the_ID(), '_propiedad_comuna', true);
-                            $operacion_real = get_post_meta(get_the_ID(), '_propiedad_operacion', true);
-                            
-                            // Si no hay operación configurada, determinar por precio
-                            if (!$operacion_real) {
-                                $operacion_real = ($precio && $precio < 1000000) ? 'arriendo' : 'venta';
-                            }
-                            
-                            // Solo mostrar propiedades de venta
-                            if ($operacion_real !== 'venta') continue;
-                            
-                            $tag_class = ($operacion_real === 'arriendo') ? 'style="background: var(--orange);"' : '';
-                            $tag_text = ucfirst($operacion_real);
-                            $precio_text = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
-                            if ($operacion_real === 'arriendo') {
-                                $precio_text .= '/mes';
-                            }
-                    ?>
-                            <div class="swiper-slide">
+        // Obtener propiedades destacadas en venta
+        $featured_properties = mjpropiedades_get_featured_properties_by_operation('venta', 6);
+        
+        if (!empty($featured_properties)) :
+            $properties_count = count($featured_properties);
+        ?>
+        <div class="featured-properties-grid featured-properties-count-<?php echo $properties_count; ?>">
+            <?php foreach ($featured_properties as $property) :
+                $precio = get_post_meta($property->ID, '_propiedad_precio', true);
+                $dormitorios = get_post_meta($property->ID, '_propiedad_dormitorios', true);
+                $banos = get_post_meta($property->ID, '_propiedad_banos', true);
+                $metros = get_post_meta($property->ID, '_propiedad_metros', true);
+                $comuna = get_post_meta($property->ID, '_propiedad_comuna', true);
+                $operacion = get_post_meta($property->ID, '_propiedad_operacion', true);
+                $estacionamientos = get_post_meta($property->ID, '_propiedad_estacionamientos', true);
+                
+                // Obtener imagen destacada
+                $featured_image = get_the_post_thumbnail_url($property->ID, 'large');
+                if (!$featured_image) {
+                    $featured_image = get_template_directory_uri() . '/images/property-placeholder.jpg';
+                }
+                
+                // Formatear precio
+                $precio_formatted = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
+                
+                // Determinar operación si no está configurada
+                if (!$operacion) {
+                    $operacion = ($precio && $precio < 1000000) ? 'arriendo' : 'venta';
+                }
+            ?>
                                 <div class="property-card">
                                     <div class="property-image">
-                                        <div class="property-tag" <?php echo $tag_class; ?>><?php echo $tag_text; ?></div>
-                                        <?php if (has_post_thumbnail()) : ?>
-                                            <a href="<?php the_permalink(); ?>">
-                                                <?php the_post_thumbnail('medium', array('alt' => get_the_title() . ' - Propiedad en ' . ($comuna ? $comuna : 'Región de Coquimbo'))); ?>
-                                            </a>
-                                        <?php else : ?>
-                                            <a href="<?php the_permalink(); ?>">
-                                                <img src="<?php echo get_template_directory_uri(); ?>/images/propiedades/placeholder.jpg" alt="<?php the_title(); ?> - Propiedad en <?php echo $comuna ? $comuna : 'Región de Coquimbo'; ?>" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 250\'><rect fill=\'%23f0f0f0\' width=\'400\' height=\'250\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'><?php the_title(); ?></text></svg>'">
-                                            </a>
-                                        <?php endif; ?>
+                    <img src="<?php echo esc_url($featured_image); ?>" alt="<?php echo esc_attr($property->post_title); ?>">
+                    <div class="property-status-tag <?php echo esc_attr($operacion); ?>">
+                        <?php echo esc_html(ucfirst($operacion)); ?>
+                    </div>
                                     </div>
                                     
                                     <div class="property-content">
-                                        <h3 class="property-title">
-                                            <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-                                        </h3>
-                                        
-                                        <?php if ($comuna) : ?>
-                                            <p class="property-location">📍 <?php echo $comuna; ?></p>
-                                        <?php endif; ?>
-                                        
-                                        <div class="property-details">
-                                            <?php if ($dormitorios) : ?>
-                                                <span><?php echo $dormitorios; ?> dormitorios</span>
+                    <div class="property-price"><?php echo esc_html($precio_formatted); ?></div>
+                    <h3 class="property-title"><?php echo esc_html($property->post_title); ?></h3>
+                    
+                    <div class="property-location">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.3639 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <?php echo esc_html($comuna ? $comuna . ', Coquimbo' : 'Coquimbo'); ?>
+                    </div>
+                    
+                    <div class="property-features">
+                        <?php if ($dormitorios): ?>
+                        <div class="property-feature">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <?php echo esc_html($dormitorios); ?> dorm
+                        </div>
                                             <?php endif; ?>
                                             
-                                            <?php if ($banos) : ?>
-                                                <span><?php echo $banos; ?> baños</span>
+                        <?php if ($banos): ?>
+                        <div class="property-feature">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 6L9 7C9 8.10457 9.89543 9 11 9H13C14.1046 9 15 8.10457 15 7V6" stroke="currentColor" stroke-width="2"/>
+                                <path d="M8 6V4C8 2.89543 8.89543 2 10 2H14C15.1046 2 16 2.89543 16 4V6" stroke="currentColor" stroke-width="2"/>
+                                <path d="M4 12H20C21.1046 12 22 12.8954 22 14V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V14C2 12.8954 2.89543 12 4 12Z" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <?php echo esc_html($banos); ?> baños
+                        </div>
                                             <?php endif; ?>
                                             
-                                            <?php if ($metros) : ?>
-                                                <span><?php echo $metros; ?> m²</span>
-                                            <?php endif; ?>
+                        <?php if ($estacionamientos): ?>
+                        <div class="property-feature">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 17H17V19C17 19.5523 16.5523 20 16 20H8C7.44772 20 7 19.5523 7 19V17Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M7 17V7C7 5.89543 7.89543 5 9 5H15C16.1046 5 17 5.89543 17 7V17" stroke="currentColor" stroke-width="2"/>
+                                <path d="M10 9H14" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <?php echo esc_html($estacionamientos); ?> estac
                                         </div>
-                                        
-                                        <?php if ($precio) : ?>
-                                            <div class="property-price">
-                                                <?php echo $precio_text; ?>
+                        <?php endif; ?>
+                        
+                        <?php if ($metros): ?>
+                        <div class="property-feature">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 3H21V21H3V3Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M9 9H15V15H9V9Z" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <?php echo esc_html($metros); ?> m²
                                             </div>
                                         <?php endif; ?>
+                    </div>
                                         
-                                        <a href="<?php the_permalink(); ?>" class="property-btn">
+                    <a href="<?php echo get_permalink($property->ID); ?>" class="property-button">
                                             Ver Detalles
                                         </a>
                                     </div>
                                 </div>
-                            </div>
-                    <?php 
-                        endwhile;
-                        wp_reset_postdata();
-                    else : ?>
-                        <div class="swiper-slide">
-                            <div class="no-properties">
-                                <p>No hay propiedades disponibles en este momento.</p>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                
-                <!-- Navigation arrows -->
-                <div class="swiper-button-next venta-slider-next"></div>
-                <div class="swiper-button-prev venta-slider-prev"></div>
-                
-                <!-- Pagination -->
-                <div class="swiper-pagination venta-slider-pagination"></div>
-            </div>
+            <?php endforeach; ?>
         </div>
         
         <!-- Ver todas button -->
@@ -295,121 +473,137 @@ get_header(); ?>
                 </svg>
             </a>
         </div>
+        
+        <?php else : ?>
+        <div class="no-properties-message">
+            <p>No hay propiedades destacadas en venta disponibles en este momento.</p>
+            <a href="<?php echo home_url('/propiedades/?operacion=venta'); ?>" class="view-all-btn">
+                Ver Todas las Propiedades en Venta
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </a>
+        </div>
+        <?php endif; ?>
     </div>
 </section>
 
-<!-- Propiedades en Arriendo -->
-<section id="arriendo" class="section bg-light section-spacing">
+<!-- Propiedades Destacadas en Arriendo -->
+<section id="arriendo" class="section bg-light">
     <div class="container">
-        <h2 class="section-title">Propiedades en Arriendo</h2>
-        <p class="section-subtitle">Opciones de arriendo para todos los presupuestos</p>
+        <div class="section-header">
+            <div class="section-tag arriendo-tag">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 11H5C3.89543 11 3 11.8954 3 13V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V13C21 11.8954 20.1046 11 19 11Z" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 11V7C7 4.79086 8.79086 3 11 3H13C15.2091 3 17 4.79086 17 7V11" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Propiedades en Arriendo</span>
+            </div>
+            <h2 class="section-title">Propiedades Destacadas</h2>
+            <p class="section-subtitle">Descubre las mejores oportunidades inmobiliarias disponibles</p>
+        </div>
         
-        <div class="properties-slider-container">
-            <!-- Swiper -->
-            <div class="swiper arriendo-slider">
-                <div class="swiper-wrapper">
                     <?php
-                    // Obtener propiedades en arriendo
-                    $arriendo_properties = mjpropiedades_get_properties('arriendo', 6); // Más propiedades para el slider
-                    
-                    // Si no hay propiedades con operación específica, mostrar todas
-                    if (!$arriendo_properties->have_posts()) {
-                        $arriendo_properties = mjpropiedades_get_properties('', 6);
-                    }
-                    
-                    if ($arriendo_properties->have_posts()) :
-                        while ($arriendo_properties->have_posts()) : $arriendo_properties->the_post();
-                            $precio = get_post_meta(get_the_ID(), '_propiedad_precio', true);
-                            $dormitorios = get_post_meta(get_the_ID(), '_propiedad_dormitorios', true);
-                            $banos = get_post_meta(get_the_ID(), '_propiedad_banos', true);
-                            $metros = get_post_meta(get_the_ID(), '_propiedad_metros', true);
-                            $comuna = get_post_meta(get_the_ID(), '_propiedad_comuna', true);
-                            $operacion_real = get_post_meta(get_the_ID(), '_propiedad_operacion', true);
-                            
-                            // Si no hay operación configurada, determinar por precio
-                            if (!$operacion_real) {
-                                $operacion_real = ($precio && $precio < 1000000) ? 'arriendo' : 'venta';
-                            }
-                            
-                            // Solo mostrar propiedades de arriendo
-                            if ($operacion_real !== 'arriendo') continue;
-                            
-                            $tag_class = ($operacion_real === 'arriendo') ? 'style="background: var(--orange);"' : '';
-                            $tag_text = ucfirst($operacion_real);
-                            $precio_text = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
-                            if ($operacion_real === 'arriendo') {
-                                $precio_text .= '/mes';
-                            }
-                    ?>
-                            <div class="swiper-slide">
+        // Obtener propiedades destacadas en arriendo
+        $featured_arriendo_properties = mjpropiedades_get_featured_properties_by_operation('arriendo', 6);
+        
+        if (!empty($featured_arriendo_properties)) :
+            $arriendo_count = count($featured_arriendo_properties);
+        ?>
+        <div class="featured-properties-grid featured-properties-count-<?php echo $arriendo_count; ?>">
+            <?php foreach ($featured_arriendo_properties as $property) :
+                $precio = get_post_meta($property->ID, '_propiedad_precio', true);
+                $dormitorios = get_post_meta($property->ID, '_propiedad_dormitorios', true);
+                $banos = get_post_meta($property->ID, '_propiedad_banos', true);
+                $metros = get_post_meta($property->ID, '_propiedad_metros', true);
+                $comuna = get_post_meta($property->ID, '_propiedad_comuna', true);
+                $operacion = get_post_meta($property->ID, '_propiedad_operacion', true);
+                $estacionamientos = get_post_meta($property->ID, '_propiedad_estacionamientos', true);
+                
+                // Obtener imagen destacada
+                $featured_image = get_the_post_thumbnail_url($property->ID, 'large');
+                if (!$featured_image) {
+                    $featured_image = get_template_directory_uri() . '/images/property-placeholder.jpg';
+                }
+                
+                // Formatear precio
+                $precio_formatted = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
+                
+                // Determinar operación si no está configurada
+                if (!$operacion) {
+                    $operacion = ($precio && $precio < 1000000) ? 'arriendo' : 'venta';
+                }
+            ?>
                                 <div class="property-card">
                                     <div class="property-image">
-                                        <div class="property-tag" <?php echo $tag_class; ?>><?php echo $tag_text; ?></div>
-                                        <?php if (has_post_thumbnail()) : ?>
-                                            <a href="<?php the_permalink(); ?>">
-                                                <?php the_post_thumbnail('medium', array('alt' => get_the_title() . ' - Propiedad en ' . ($comuna ? $comuna : 'Región de Coquimbo'))); ?>
-                                            </a>
-                                        <?php else : ?>
-                                            <a href="<?php the_permalink(); ?>">
-                                                <img src="<?php echo get_template_directory_uri(); ?>/images/propiedades/placeholder.jpg" alt="<?php the_title(); ?> - Propiedad en <?php echo $comuna ? $comuna : 'Región de Coquimbo'; ?>" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 250\'><rect fill=\'%23f0f0f0\' width=\'400\' height=\'250\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'><?php the_title(); ?></text></svg>'">
-                                            </a>
-                                        <?php endif; ?>
+                    <img src="<?php echo esc_url($featured_image); ?>" alt="<?php echo esc_attr($property->post_title); ?>">
+                    <div class="property-status-tag <?php echo esc_attr($operacion); ?>">
+                        <?php echo esc_html(ucfirst($operacion)); ?>
+                    </div>
                                     </div>
                                     
                                     <div class="property-content">
-                                        <h3 class="property-title">
-                                            <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-                                        </h3>
-                                        
-                                        <?php if ($comuna) : ?>
-                                            <p class="property-location">📍 <?php echo $comuna; ?></p>
-                                        <?php endif; ?>
-                                        
-                                        <div class="property-details">
-                                            <?php if ($dormitorios) : ?>
-                                                <span><?php echo $dormitorios; ?> dormitorios</span>
+                    <div class="property-price"><?php echo esc_html($precio_formatted); ?></div>
+                    <h3 class="property-title"><?php echo esc_html($property->post_title); ?></h3>
+                    
+                    <div class="property-location">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.3639 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <?php echo esc_html($comuna ? $comuna . ', Coquimbo' : 'Coquimbo'); ?>
+                    </div>
+                    
+                    <div class="property-features">
+                        <?php if ($dormitorios): ?>
+                        <div class="property-feature">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <?php echo esc_html($dormitorios); ?> dorm
+                        </div>
                                             <?php endif; ?>
                                             
-                                            <?php if ($banos) : ?>
-                                                <span><?php echo $banos; ?> baños</span>
+                        <?php if ($banos): ?>
+                        <div class="property-feature">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 6L9 7C9 8.10457 9.89543 9 11 9H13C14.1046 9 15 8.10457 15 7V6" stroke="currentColor" stroke-width="2"/>
+                                <path d="M8 6V4C8 2.89543 8.89543 2 10 2H14C15.1046 2 16 2.89543 16 4V6" stroke="currentColor" stroke-width="2"/>
+                                <path d="M4 12H20C21.1046 12 22 12.8954 22 14V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V14C2 12.8954 2.89543 12 4 12Z" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <?php echo esc_html($banos); ?> baños
+                        </div>
                                             <?php endif; ?>
                                             
-                                            <?php if ($metros) : ?>
-                                                <span><?php echo $metros; ?> m²</span>
-                                            <?php endif; ?>
+                        <?php if ($estacionamientos): ?>
+                        <div class="property-feature">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 17H17V19C17 19.5523 16.5523 20 16 20H8C7.44772 20 7 19.5523 7 19V17Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M7 17V7C7 5.89543 7.89543 5 9 5H15C16.1046 5 17 5.89543 17 7V17" stroke="currentColor" stroke-width="2"/>
+                                <path d="M10 9H14" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <?php echo esc_html($estacionamientos); ?> estac
                                         </div>
-                                        
-                                        <?php if ($precio) : ?>
-                                            <div class="property-price">
-                                                <?php echo $precio_text; ?>
+                        <?php endif; ?>
+                        
+                        <?php if ($metros): ?>
+                        <div class="property-feature">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 3H21V21H3V3Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M9 9H15V15H9V9Z" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <?php echo esc_html($metros); ?> m²
                                             </div>
                                         <?php endif; ?>
+                    </div>
                                         
-                                        <a href="<?php the_permalink(); ?>" class="property-btn">
+                    <a href="<?php echo get_permalink($property->ID); ?>" class="property-button">
                                             Ver Detalles
                                         </a>
                                     </div>
                                 </div>
-                            </div>
-                    <?php 
-                        endwhile;
-                        wp_reset_postdata();
-                    else : ?>
-                        <div class="swiper-slide">
-                            <div class="no-properties">
-                                <p>No hay propiedades disponibles en este momento.</p>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                
-                <!-- Navigation arrows -->
-                <div class="swiper-button-next arriendo-slider-next"></div>
-                <div class="swiper-button-prev arriendo-slider-prev"></div>
-                
-                <!-- Pagination -->
-                <div class="swiper-pagination arriendo-slider-pagination"></div>
-            </div>
+            <?php endforeach; ?>
         </div>
         
         <!-- Ver todas button -->
@@ -421,62 +615,18 @@ get_header(); ?>
                 </svg>
             </a>
         </div>
-    </div>
-</section>
-
-<!-- CTA Section - Diseño Mejorado -->
-<section class="cta-section-enhanced">
-    <div class="container">
-        <div class="cta-content-enhanced">
-            <div class="cta-text-enhanced">
-                <div class="cta-badge">
-                    <span class="badge-icon">🚀</span>
-                    <span>¡Comienza Ahora!</span>
-                </div>
-                <h3>¿Listo para Encontrar tu Hogar Ideal?</h3>
-                <p>Contáctanos hoy mismo y descubre cómo podemos ayudarte a alcanzar tus objetivos inmobiliarios en la Región de Coquimbo.</p>
-                
-                <!-- Elementos de Persuasión -->
-                <div class="cta-features">
-                    <div class="feature-item">
-                        <span class="feature-icon">✓</span>
-                        <span>Consulta 100% Gratuita</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon">✓</span>
-                        <span>Respuesta Inmediata</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon">✓</span>
-                        <span>Sin Compromiso</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="cta-buttons-enhanced">
-                <a href="#contacto" class="cta-btn-enhanced primary">
-                    <span class="btn-icon">📅</span>
-                    <div class="btn-content">
-                        <span class="btn-title">Agendar Cita Gratuita</span>
-                        <span class="btn-subtitle">Sin costo ni compromiso</span>
-                    </div>
-                </a>
-                <a href="https://wa.me/<?php echo str_replace(array('+', ' ', '-'), '', get_theme_mod('mjpropiedades_phone', '+56987654321')); ?>" class="cta-btn-enhanced secondary" target="_blank">
-                    <span class="btn-icon">💬</span>
-                    <div class="btn-content">
-                        <span class="btn-title">Hablar Ahora</span>
-                        <span class="btn-subtitle">WhatsApp directo</span>
-                    </div>
-                </a>
-            </div>
-        </div>
         
-        <!-- Elementos Decorativos -->
-        <div class="cta-decoration">
-            <div class="decoration-circle circle-1"></div>
-            <div class="decoration-circle circle-2"></div>
-            <div class="decoration-circle circle-3"></div>
-        </div>
+        <?php else : ?>
+        <div class="no-properties-message">
+            <p>No hay propiedades destacadas en arriendo disponibles en este momento.</p>
+            <a href="<?php echo home_url('/propiedades/?operacion=arriendo'); ?>" class="view-all-btn">
+                Ver Todas las Propiedades en Arriendo
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </a>
+                    </div>
+        <?php endif; ?>
     </div>
 </section>
 
@@ -485,12 +635,12 @@ get_header(); ?>
     <div class="container">
         <div class="about-container">
             <div class="about-content">
-                <h2>Conoce a Home Isa - Especialista en la Región de Coquimbo</h2>
+                <h2>Sobre Home Isa</h2>
                 <p class="about-text">
-                    <?php echo get_theme_mod('mjpropiedades_about_text_1', 'Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.'); ?>
+                    <?php echo get_theme_mod('mjpropiedades_about_text_1', 'Home Isa es una empresa inmobiliaria innovadora fundada en 2025, con alcance nacional en Chile. Nos especializamos en brindar servicios integrales de corretaje inmobiliario, asesoría y tasación de propiedades.'); ?>
                 </p>
                 <p class="about-text">
-                    <?php echo get_theme_mod('mjpropiedades_about_text_2', 'Mi compromiso es brindarte un servicio personalizado, transparente y profesional en cada paso del proceso. Desde la primera consulta hasta la firma del contrato, estaré contigo para hacer realidad tus objetivos inmobiliarios en La Serena, Coquimbo y Ovalle.'); ?>
+                    <?php echo get_theme_mod('mjpropiedades_about_text_2', 'Nuestro compromiso es facilitar el proceso inmobiliario para todo tipo de clientes: familias que buscan su primer hogar, inversionistas experimentados que buscan oportunidades de crecimiento, propietarios que desean vender sus propiedades al mejor precio, y personas que necesitan arrendar o encontrar inquilinos para sus inmuebles. Con sede en La Serena y cobertura nacional, combinamos la experiencia local con una visión moderna del mercado inmobiliario chileno.'); ?>
                 </p>
                 
                 <div class="stats">
@@ -519,13 +669,6 @@ get_header(); ?>
                     echo '<img src="' . get_template_directory_uri() . '/images/maria-jose.jpg" alt="Home Isa - Corredora de Propiedades Certificada en La Serena y Coquimbo">';
                 }
                 ?>
-                <div class="certification-badge">
-                    <div class="badge-icon">✓</div>
-                    <div class="badge-text">
-                        <strong>Certificada</strong>
-                        Colegio de Corredores
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -549,226 +692,88 @@ get_header(); ?>
             </div>
         </div>
         
-        <div class="testimonials-grid">
+        <?php
+        // Testimonios por defecto si no hay configuración
+        $default_testimonials = array(
+            1 => array(
+                'text' => 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. Home Isa fue increíble, muy profesional y siempre disponible para resolver mis dudas.',
+                'name' => 'Carlos Mendoza',
+                'location' => 'Peñuelas, Coquimbo'
+            ),
+            2 => array(
+                'text' => 'Encontré el departamento perfecto en La Serena gracias a Home Isa. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.',
+                'name' => 'Ana Rodríguez',
+                'location' => 'La Serena'
+            ),
+            3 => array(
+                'text' => 'Arrendé mi casa en Ovalle con Home Isa. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.',
+                'name' => 'Roberto Silva',
+                'location' => 'Ovalle'
+            )
+        );
+        
+        // Contar testimonios con contenido
+        $testimonials_count = 0;
+        for ($i = 1; $i <= 6; $i++) {
+            $text = get_theme_mod("mjpropiedades_testimonial_{$i}_text", '');
+            if (!empty(trim($text))) {
+                $testimonials_count++;
+            }
+        }
+        
+        // Si no hay testimonios configurados, usar los por defecto
+        if ($testimonials_count == 0) {
+            $testimonials_count = 3;
+        }
+        ?>
+        <div class="testimonials-grid testimonials-count-<?php echo $testimonials_count; ?>">
+            <?php
+            for ($i = 1; $i <= 6; $i++) {
+                $text = get_theme_mod("mjpropiedades_testimonial_{$i}_text", '');
+                $name = get_theme_mod("mjpropiedades_testimonial_{$i}_name", '');
+                $location = get_theme_mod("mjpropiedades_testimonial_{$i}_location", '');
+                
+                // Si no hay configuración, usar valores por defecto
+                if (empty(trim($text)) && isset($default_testimonials[$i])) {
+                    $text = $default_testimonials[$i]['text'];
+                    $name = $default_testimonials[$i]['name'];
+                    $location = $default_testimonials[$i]['location'];
+                }
+                
+                // Solo mostrar si tiene texto
+                if (!empty(trim($text))) {
+                    ?>
             <div class="testimonial-card">
                 <div class="testimonial-content">
                     <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_1_text', 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. Home Isa fue increíble, muy profesional y siempre disponible para resolver mis dudas.'); ?>"</p>
+                            <p class="testimonial-text">"<?php echo esc_html($text); ?>"</p>
                 </div>
                 <div class="testimonial-author">
                     <div class="author-info">
-                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_1_name', 'Carlos Mendoza'); ?></h4>
-                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_1_location', 'Peñuelas, Coquimbo'); ?></span>
+                                <?php if (!empty($name)): ?>
+                                    <h4><?php echo esc_html($name); ?></h4>
+                                <?php endif; ?>
+                                <?php if (!empty($location)): ?>
+                                    <span class="author-location"><?php echo esc_html($location); ?></span>
+                                <?php endif; ?>
                     </div>
                 </div>
             </div>
-            
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_2_text', 'Encontré el departamento perfecto en La Serena gracias a Home Isa. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.'); ?>"</p>
-                </div>
-                <div class="testimonial-author">
-                    <div class="author-info">
-                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_2_name', 'Ana Rodríguez'); ?></h4>
-                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_2_location', 'La Serena'); ?></span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_3_text', 'Arrendé mi casa en Ovalle con Home Isa. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.'); ?>"</p>
-                </div>
-                <div class="testimonial-author">
-                    <div class="author-info">
-                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_3_name', 'Roberto Silva'); ?></h4>
-                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_3_location', 'Ovalle'); ?></span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_4_text', 'Excelente asesoría para mi inversión en Coquimbo. Home Isa me ayudó a encontrar la propiedad ideal con el mejor retorno. Muy satisfecho.'); ?>"</p>
-                </div>
-                <div class="testimonial-author">
-                    <div class="author-info">
-                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_4_name', 'María González'); ?></h4>
-                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_4_location', 'Coquimbo'); ?></span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_5_text', 'Compré mi primera casa en La Serena con Home Isa. Su paciencia y dedicación hicieron que todo el proceso fuera muy fácil para mí.'); ?>"</p>
-                </div>
-                <div class="testimonial-author">
-                    <div class="author-info">
-                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_5_name', 'Diego Herrera'); ?></h4>
-                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_5_location', 'La Serena'); ?></span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"<?php echo get_theme_mod('mjpropiedades_testimonial_6_text', 'Vendí mi terreno en Ovalle rápidamente gracias a la estrategia de marketing de Home Isa. Su experiencia en la región es invaluable.'); ?>"</p>
-                </div>
-                <div class="testimonial-author">
-                    <div class="author-info">
-                        <h4><?php echo get_theme_mod('mjpropiedades_testimonial_6_name', 'Patricia Morales'); ?></h4>
-                        <span class="author-location"><?php echo get_theme_mod('mjpropiedades_testimonial_6_location', 'Ovalle'); ?></span>
-                    </div>
-                </div>
-            </div>
+                    <?php
+                }
+            }
+            ?>
         </div>
     </div>
 </section>
 
-<!-- Servicios -->
-<section id="servicios" class="services section">
-    <div class="container">
-        <div class="services-header">
-            <span class="services-tag">Nuestros Servicios</span>
-            <h2 class="section-title">Te Acompañamos en Cada Paso</h2>
-            <p class="section-subtitle">Servicios profesionales diseñados para hacer realidad tus objetivos inmobiliarios</p>
-        </div>
-        
-        <div class="services-grid">
-            <div class="service-card">
-                <div class="service-icon">
-                    <div class="icon-wrapper">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="service-content">
-                    <h3>Venta</h3>
-                    <p>Vendemos tu propiedad al mejor precio del mercado con estrategias efectivas de marketing.</p>
-                    <ul class="service-features">
-                        <li>Marketing profesional</li>
-                        <li>Precio optimizado</li>
-                        <li>Venta garantizada</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="service-card">
-                <div class="service-icon">
-                    <div class="icon-wrapper">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21 2L2 7L10 13L21 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M10 13L7 20L2 7L10 13Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="service-content">
-                    <h3>Arriendo</h3>
-                    <p>Gestionamos el arriendo de tu propiedad con inquilinos verificados y contratos seguros.</p>
-                    <ul class="service-features">
-                        <li>Arrendatarios verificados</li>
-                        <li>Contratos seguros</li>
-                        <li>Gestión completa</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="service-card">
-                <div class="service-icon">
-                    <div class="icon-wrapper">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="service-content">
-                    <h3>Tasaciones</h3>
-                    <p>Realizamos tasaciones precisas basadas en el análisis del mercado inmobiliario actual.</p>
-                    <ul class="service-features">
-                        <li>Análisis de mercado</li>
-                        <li>Precisión garantizada</li>
-                        <li>Informe detallado</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="service-card">
-                <div class="service-icon">
-                    <div class="icon-wrapper">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 11H15M9 15H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L19.7071 9.70711C19.8946 9.89464 20 10.149 20 10.4142V19C20 20.1046 19.1046 21 18 21H17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="service-content">
-                    <h3>Garantía Total</h3>
-                    <p>Tu tranquilidad es nuestra prioridad. Garantizamos transacciones 100% seguras y transparentes.</p>
-                    <ul class="service-features">
-                        <li>Protección completa</li>
-                        <li>Transparencia total</li>
-                        <li>Respaldo legal</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="service-card">
-                <div class="service-icon">
-                    <div class="icon-wrapper">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 11H15M9 15H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L19.7071 9.70711C19.8946 9.89464 20 10.149 20 10.4142V19C20 20.1046 19.1046 21 18 21H17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="service-content">
-                    <h3>Gestión de Documentos</h3>
-                    <p>Te acompañamos en todo el proceso legal y administrativo para que no tengas que preocuparte por nada.</p>
-                    <ul class="service-features">
-                        <li>Tramitación de escrituras</li>
-                        <li>Gestión de permisos</li>
-                        <li>Seguimiento legal</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="service-card">
-                <div class="service-icon">
-                    <div class="icon-wrapper">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="service-content">
-                    <h3>Atención Personalizada</h3>
-                    <p>Un servicio único y personalizado que se adapta a tus necesidades específicas y presupuesto.</p>
-                    <ul class="service-features">
-                        <li>Consultoría de 09:00 a 18:00 hrs</li>
-                        <li>Respuesta rápida</li>
-                        <li>Seguimiento continuo</li>
-                    </ul>
-                </div>
-        </div>
-        
-    </div>
-</section>
 
 <!-- Contact Section -->
 <section id="contacto" class="section">
     <div class="container">
         <div class="contact-header">
-            <span class="contact-tag">Contacto</span>
-            <h2 class="section-title">¡Hagamos Realidad tu Proyecto Inmobiliario!</h2>
-            <p class="section-subtitle">Completa el formulario y te contactaré en menos de 24 horas</p>
+            <h2 class="section-title">Contáctanos</h2>
+            <p class="section-subtitle">Estamos aquí para ayudarte con todas tus necesidades inmobiliarias</p>
             
             <?php
             // Mostrar mensajes de éxito o error
@@ -780,74 +785,112 @@ get_header(); ?>
                 }
             }
             ?>
-        </div>
-        
-        <form class="contact-form" method="post" action="">
-            <?php wp_nonce_field('contact_form_nonce', 'contact_nonce'); ?>
-            <input type="hidden" name="contact_form_submitted" value="1">
-            <div class="form-group">
-                <label for="nombre" class="form-label">Nombre Completo</label>
-                <input type="text" id="nombre" name="nombre" class="form-input" placeholder="Tu nombre completo" required>
             </div>
             
-            <div class="form-group">
-                <label for="telefono" class="form-label">Teléfono</label>
-                <input type="tel" id="telefono" name="telefono" class="form-input" placeholder="+56 9 1234 5678" required>
-            </div>
-            
-            <div class="form-group email-full">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" id="email" name="email" class="form-input" placeholder="tu@email.com" required>
-            </div>
-            
-            <div class="form-group radio-full">
-                <label class="form-label">¿Qué necesitas?</label>
-                <div class="radio-group">
-                    <div class="radio-item">
-                        <input type="radio" id="vender" name="tipo_consulta" value="vender">
-                        <label for="vender">Vender mi propiedad</label>
+        <div class="contact-content">
+            <!-- Información de Contacto -->
+            <div class="contact-info">
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M22 6L12 13L2 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </div>
-                    <div class="radio-item">
-                        <input type="radio" id="comprar" name="tipo_consulta" value="comprar">
-                        <label for="comprar">Comprar propiedad</label>
-                    </div>
-                    <div class="radio-item">
-                        <input type="radio" id="tasacion" name="tipo_consulta" value="tasacion">
-                        <label for="tasacion">Tasación</label>
-                    </div>
+                    <div class="contact-details">
+                        <strong>Email</strong>
+                        <span><?php echo esc_html(get_theme_mod('mjpropiedades_contact_email', 'consultas@homeisa.cl')); ?></span>
                 </div>
             </div>
             
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.18999 12.85C3.49997 10.2412 2.44824 7.27099 2.11999 4.18C2.095 3.90347 2.12787 3.62476 2.21649 3.36162C2.30512 3.09849 2.44756 2.85669 2.63476 2.65162C2.82196 2.44655 3.0498 2.28271 3.30379 2.17052C3.55777 2.05833 3.83233 2.00026 4.10999 2H7.10999C7.59531 1.99522 8.06679 2.16708 8.43376 2.48353C8.80073 2.79999 9.03996 3.23945 9.10999 3.72C9.23662 4.68007 9.47144 5.62273 9.80999 6.53C9.94454 6.88792 9.97366 7.27691 9.89391 7.65088C9.81415 8.02485 9.62886 8.36811 9.35999 8.64L8.08999 9.91C9.51355 12.4135 11.5865 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9751 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0555 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="contact-details">
+                        <strong>Teléfono</strong>
+                        <span><?php echo esc_html(get_theme_mod('mjpropiedades_contact_phone', '+56 9 4927 6448')); ?></span>
+                </div>
+            </div>
+            
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.3639 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="contact-details">
+                        <strong>Ubicación</strong>
+                        <span><?php echo esc_html(get_theme_mod('mjpropiedades_contact_address', 'La Serena, Chile')); ?></span>
+                </div>
+            </div>
+            
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 6V12L16 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="contact-details">
+                        <strong>Horarios</strong>
+                        <span><?php echo esc_html(get_theme_mod('mjpropiedades_contact_hours_weekdays', 'Lunes a Viernes: 9:00 - 18:00')); ?></span>
+                        <span><?php echo esc_html(get_theme_mod('mjpropiedades_contact_hours_saturday', 'Sábados: 9:00 - 14:00')); ?></span>
+                </div>
+                </div>
+            </div>
+            
+            <!-- Formulario de Contacto -->
+            <div class="contact-form-container">
+        <form class="contact-form" method="post" action="">
+            <?php wp_nonce_field('contact_form_nonce', 'contact_nonce'); ?>
+            <input type="hidden" name="contact_form_submitted" value="1">
+            
+                    <div class="form-row">
             <div class="form-group">
-                <label for="tipo_propiedad" class="form-label">Tipo de Propiedad</label>
-                <select id="tipo_propiedad" name="tipo_propiedad" class="form-select">
+                            <label for="nombre" class="form-label">Nombre completo</label>
+                            <input type="text" id="nombre" name="nombre" class="form-input" required>
+            </div>
+            
+                        <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" class="form-input" required>
+                        </div>
+            </div>
+            
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <input type="tel" id="telefono" name="telefono" class="form-input" required>
+            </div>
+            
+            <div class="form-group">
+                            <label for="tipo_consulta" class="form-label">Tipo de consulta</label>
+                            <select id="tipo_consulta" name="tipo_consulta" class="form-select" required>
                     <option value="">Seleccionar tipo</option>
-                    <option value="casa">Casa</option>
-                    <option value="departamento">Departamento</option>
-                    <option value="oficina">Oficina</option>
-                    <option value="local">Local Comercial</option>
+                                <option value="compra">Compra de propiedad</option>
+                                <option value="venta">Venta de propiedad</option>
+                                <option value="arriendo">Arriendo de propiedad</option>
+                                <option value="tasacion">Tasación</option>
+                                <option value="asesoria">Asesoría inmobiliaria</option>
                 </select>
+                        </div>
             </div>
             
             <div class="form-group">
-                <label for="comuna" class="form-label">Comuna</label>
-                <input type="text" id="comuna" name="comuna" class="form-input" placeholder="¿En qué comuna de la Cuarta Región?">
+                        <label for="mensaje" class="form-label">Mensaje</label>
+                        <textarea id="mensaje" name="mensaje" class="form-textarea" placeholder="Cuéntanos más sobre tu consulta..." required></textarea>
             </div>
             
-            <div class="form-group" style="grid-column: 1 / -1;">
-                <label for="mensaje" class="form-label">Mensaje Adicional</label>
-                <textarea id="mensaje" name="mensaje" class="form-textarea" placeholder="Cuéntame más detalles sobre lo que necesitas..."></textarea>
+                    <button type="submit" class="submit-btn">Enviar Consulta</button>
+                </form>
             </div>
-            
-            <div class="form-group" style="grid-column: 1 / -1;">
-                <button type="submit" class="submit-btn">Enviar Solicitud</button>
-                
-                <p class="form-disclaimer">
-                    Al enviar este formulario, aceptas que Home Isa se contacte contigo para brindarte información sobre propiedades.
-                </p>
             </div>
-        </form>
     </div>
 </section>
 
 <?php get_footer(); ?>
+

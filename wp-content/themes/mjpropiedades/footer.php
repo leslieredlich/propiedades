@@ -91,16 +91,34 @@
             <div class="footer-section">
                 <h4>Contacto</h4>
                 <div class="contact-info">
-                    <span>📞</span>
-                    <span><?php echo get_theme_mod('mjpropiedades_phone', '+56 9 4927 6448'); ?></span>
-                </div>
-                <div class="contact-info">
-                    <span>✉️</span>
-                    <span><?php echo get_theme_mod('mjpropiedades_email', 'homeisaspa@gmail.com'); ?></span>
-                </div>
-                <div class="contact-info">
-                    <span>📍</span>
-                    <span><?php echo get_theme_mod('mjpropiedades_address', 'Cuarta Región, Chile'); ?></span>
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <div class="contact-details">
+                            <strong>Teléfono</strong>
+                            <span><?php echo get_theme_mod('mjpropiedades_phone', '+56 9 4927 6448'); ?></span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">✉️</div>
+                        <div class="contact-details">
+                            <strong>Email</strong>
+                            <span><?php echo get_theme_mod('mjpropiedades_email', 'inmobiliario.homeisaspa@gmail.com'); ?></span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div class="contact-details">
+                            <strong>Ubicación</strong>
+                            <span><?php echo get_theme_mod('mjpropiedades_address', 'La Serena, Región de Coquimbo, Chile'); ?></span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">🕒</div>
+                        <div class="contact-details">
+                            <strong>Horarios</strong>
+                            <span>Lunes a Viernes: 9:00 - 18:00<br>Sábados: 9:00 - 14:00</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

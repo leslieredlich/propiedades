@@ -11,23 +11,25 @@
             get_theme_mod('mjpropiedades_hero_3')
         );
         
-        $has_images = false;
+        $default_images = array(
+            'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80', // Casas
+            'https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80', // Tasación
+            'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'  // Ciudades
+        );
+        
         foreach ($hero_images as $index => $image_id) {
+            $active_class = ($index === 0) ? ' active' : '';
+            $image_url = '';
+            
             if ($image_id) {
                 $image_url = wp_get_attachment_image_url($image_id, 'full');
-                if ($image_url) {
-                    $has_images = true;
-                    $active_class = ($index === 0) ? ' active' : '';
-                    echo '<div class="hero-slide' . $active_class . '" style="background-image: url(\'' . esc_url($image_url) . '\');">';
-                    echo '<div class="hero-overlay"></div>';
-                    echo '</div>';
-                }
             }
-        }
-        
-        // Si no hay imágenes configuradas, mostrar imagen por defecto
-        if (!$has_images) {
-            echo '<div class="hero-slide active" style="background-image: url(\'' . get_template_directory_uri() . '/images/hero-default.jpg\');">';
+            
+            if (!$image_url) {
+                $image_url = $default_images[$index];
+            }
+            
+            echo '<div class="hero-slide' . $active_class . '" style="background-image: url(\'' . esc_url($image_url) . '\');">';
             echo '<div class="hero-overlay"></div>';
             echo '</div>';
         }
@@ -35,15 +37,43 @@
     </div>
     
     <div class="hero-container">
-        <div class="hero-content">
-            <span class="hero-tag">Compra de Propiedades</span>
-            <h1>Encuentra el Hogar de tus Sueños</h1>
+        <!-- Diapositiva 1: Compra de Propiedades -->
+        <div class="hero-content slide-content active" data-slide="0">
+            <span class="hero-tag"><?php echo get_theme_mod('mjpropiedades_slide_1_tag', 'Compra de Propiedades'); ?></span>
+            <h1><?php echo get_theme_mod('mjpropiedades_slide_1_title', 'Encuentra tu Hogar Ideal en Chile'); ?></h1>
             <p class="hero-description">
-                Descubre propiedades exclusivas que se ajustan a tu estilo de vida. Asesoría personalizada en todo el proceso de compra.
+                <?php echo get_theme_mod('mjpropiedades_slide_1_description', 'Atendemos en Copiapó, Viña del Mar, La Serena y nos expandimos a más ciudades. Descubre propiedades exclusivas con asesoría personalizada y certificada en todo el proceso de compra.'); ?>
             </p>
-            <a href="#venta" class="hero-btn">
-                Buscar Propiedades →
-            </a>
+            <div class="hero-buttons">
+                <a href="#venta" class="hero-btn primary"><?php echo get_theme_mod('mjpropiedades_slide_1_btn_primary', 'Ver Propiedades'); ?> →</a>
+                <a href="#contacto" class="hero-btn secondary"><?php echo get_theme_mod('mjpropiedades_slide_1_btn_secondary', 'Solicitar Tasación'); ?></a>
+            </div>
+        </div>
+
+        <!-- Diapositiva 2: Venta de Propiedades -->
+        <div class="hero-content slide-content" data-slide="1">
+            <span class="hero-tag"><?php echo get_theme_mod('mjpropiedades_slide_2_tag', 'Venta de Propiedades'); ?></span>
+            <h1><?php echo get_theme_mod('mjpropiedades_slide_2_title', 'Vende tu Propiedad al Mejor Precio'); ?></h1>
+            <p class="hero-description">
+                <?php echo get_theme_mod('mjpropiedades_slide_2_description', '¿Tienes una propiedad para vender? Te ayudamos a obtener el mejor valor de mercado. Servicios profesionales de tasación y comercialización en Copiapó, Viña del Mar, La Serena y próximamente en más ciudades.'); ?>
+            </p>
+            <div class="hero-buttons">
+                <a href="#contacto" class="hero-btn primary"><?php echo get_theme_mod('mjpropiedades_slide_2_btn_primary', 'Solicitar Tasación'); ?></a>
+                <a href="#venta" class="hero-btn secondary"><?php echo get_theme_mod('mjpropiedades_slide_2_btn_secondary', 'Ver Propiedades'); ?> →</a>
+            </div>
+        </div>
+
+        <!-- Diapositiva 3: Arriendo de Propiedades -->
+        <div class="hero-content slide-content" data-slide="2">
+            <span class="hero-tag"><?php echo get_theme_mod('mjpropiedades_slide_3_tag', 'Arriendo de Propiedades'); ?></span>
+            <h1><?php echo get_theme_mod('mjpropiedades_slide_3_title', 'Arrienda o Arrienda tu Propiedad'); ?></h1>
+            <p class="hero-description">
+                <?php echo get_theme_mod('mjpropiedades_slide_3_description', 'Ya sea que busques arrendar o tengas una propiedad para arrendar, te conectamos con las mejores opciones. Servicio profesional en Copiapó, Viña del Mar, La Serena con expansión continua a nuevas ciudades.'); ?>
+            </p>
+            <div class="hero-buttons">
+                <a href="#arriendo" class="hero-btn primary"><?php echo get_theme_mod('mjpropiedades_slide_3_btn_primary', 'Ver Arriendos'); ?> →</a>
+                <a href="#contacto" class="hero-btn secondary"><?php echo get_theme_mod('mjpropiedades_slide_3_btn_secondary', 'Arrendar Propiedad'); ?></a>
+            </div>
         </div>
     </div>
     
@@ -53,22 +83,9 @@
     
     <!-- Carousel Dots -->
     <div class="carousel-dots">
-        <?php
-        $image_count = 0;
-        foreach ($hero_images as $image_id) {
-            if ($image_id) {
-                $image_url = wp_get_attachment_image_url($image_id, 'full');
-                if ($image_url) {
-                    $active_class = ($image_count === 0) ? ' active' : '';
-                    echo '<span class="dot' . $active_class . '"></span>';
-                    $image_count++;
-                }
-            }
-        }
-        if ($image_count === 0) {
-            echo '<span class="dot active"></span>';
-        }
-        ?>
+        <span class="dot active" data-slide="0"></span>
+        <span class="dot" data-slide="1"></span>
+        <span class="dot" data-slide="2"></span>
     </div>
 </section>
 
@@ -87,12 +104,12 @@
     <div class="container">
         <div class="about-container">
             <div class="about-content">
-                <h2>Conoce a Home Isa</h2>
+                <h2>Sobre Home Isa</h2>
                 <p class="about-text">
-                    Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.
+                    Home Isa es una empresa inmobiliaria innovadora fundada en 2025, con alcance nacional en Chile. Nos especializamos en brindar servicios integrales de corretaje inmobiliario, asesoría y tasación de propiedades.
                 </p>
                 <p class="about-text">
-                    Mi compromiso es brindarte un servicio personalizado, transparente y profesional en cada paso del proceso. Desde la primera consulta hasta la firma del contrato, estaré contigo para hacer realidad tus objetivos inmobiliarios en La Serena, Coquimbo y Ovalle.
+                    Nuestro compromiso es facilitar el proceso inmobiliario para todo tipo de clientes: familias que buscan su primer hogar, inversionistas experimentados que buscan oportunidades de crecimiento, propietarios que desean vender sus propiedades al mejor precio, y personas que necesitan arrendar o encontrar inquilinos para sus inmuebles. Con sede en La Serena y cobertura nacional, combinamos la experiencia local con una visión moderna del mercado inmobiliario chileno.
                 </p>
                 
                 <div class="stats">

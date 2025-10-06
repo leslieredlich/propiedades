@@ -15,23 +15,67 @@ jQuery(document).ready(function($) {
         }
     });
     
+    // Funcionalidad de los sliders de precio
+    function formatPrice(value) {
+        return '$' + parseInt(value).toLocaleString('es-CL');
+    }
+    
+    // Slider precio mínimo
+    $('#search-precio-min').on('input', function() {
+        const value = $(this).val();
+        $('#precio-min-value').text(formatPrice(value));
+        
+        // Asegurar que el precio mínimo no sea mayor que el máximo
+        const maxValue = $('#search-precio-max').val();
+        if (parseInt(value) > parseInt(maxValue)) {
+            $('#search-precio-max').val(value);
+            $('#precio-max-value').text(formatPrice(value));
+        }
+    });
+    
+    // Slider precio máximo
+    $('#search-precio-max').on('input', function() {
+        const value = $(this).val();
+        $('#precio-max-value').text(formatPrice(value));
+        
+        // Asegurar que el precio máximo no sea menor que el mínimo
+        const minValue = $('#search-precio-min').val();
+        if (parseInt(value) < parseInt(minValue)) {
+            $('#search-precio-min').val(value);
+            $('#precio-min-value').text(formatPrice(value));
+        }
+    });
+    
+    // Inicializar valores de los sliders
+    $('#precio-min-value').text(formatPrice($('#search-precio-min').val()));
+    $('#precio-max-value').text(formatPrice($('#search-precio-max').val()));
+    
     // Carousel functionality
 let currentSlide = 0;
 const $dots = $('.dot');
 const $slides = $('.hero-slide');
+const $slideContents = $('.slide-content');
 const totalSlides = $dots.length;
 
 function updateCarousel() {
     // Actualizar dots
     $dots.removeClass('active').eq(currentSlide).addClass('active');
     
-    // Actualizar slides
+    // Actualizar slides de fondo
     $slides.removeClass('active').eq(currentSlide).addClass('active');
+    
+    // Actualizar contenido de las diapositivas
+    $slideContents.removeClass('active').eq(currentSlide).addClass('active');
 }
 
 if ($dots.length > 0) {
     $dots.on('click', function() {
-        currentSlide = $(this).index();
+        const slideIndex = $(this).data('slide');
+        if (slideIndex !== undefined) {
+            currentSlide = slideIndex;
+        } else {
+            currentSlide = $(this).index();
+        }
         updateCarousel();
     });
     
@@ -50,7 +94,7 @@ if ($dots.length > 0) {
     setInterval(() => {
         currentSlide = (currentSlide + 1) % totalSlides;
         updateCarousel();
-    }, 5000);
+    }, 6000); // Aumentado a 6 segundos para mejor experiencia
 }
     
     // Form submission con AJAX

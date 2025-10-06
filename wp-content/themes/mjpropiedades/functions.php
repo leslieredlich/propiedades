@@ -321,6 +321,33 @@ function mjpropiedades_add_property_meta_boxes() {
 }
 add_action('add_meta_boxes', 'mjpropiedades_add_property_meta_boxes');
 
+// Agregar meta box para propiedades destacadas
+function mjpropiedades_add_featured_property_meta_box() {
+    add_meta_box(
+        'featured_property',
+        'Propiedad Destacada',
+        'mjpropiedades_featured_property_callback',
+        'propiedad',
+        'side',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'mjpropiedades_add_featured_property_meta_box');
+
+// Callback para propiedad destacada
+function mjpropiedades_featured_property_callback($post) {
+    wp_nonce_field('mjpropiedades_featured_property_nonce', 'featured_property_nonce');
+    
+    $featured = get_post_meta($post->ID, '_featured_property', true);
+    $featured_checked = $featured ? 'checked' : '';
+    
+    echo '<p><label for="featured_property">';
+    echo '<input type="checkbox" id="featured_property" name="featured_property" value="1" ' . $featured_checked . '> ';
+    echo '⭐ Marcar como Propiedad Destacada';
+    echo '</label></p>';
+    echo '<p class="description">Las propiedades destacadas aparecerán en la página principal.</p>';
+}
+
 // Callback para información básica
 function mjpropiedades_property_basic_info_callback($post) {
     wp_nonce_field('mjpropiedades_property_meta_nonce', 'property_meta_nonce');
@@ -761,6 +788,84 @@ function mjpropiedades_save_property_meta($post_id) {
 }
 add_action('save_post', 'mjpropiedades_save_property_meta');
 
+// Guardar campo destacada
+function mjpropiedades_save_featured_property($post_id) {
+    // Verificar nonce
+    if (!isset($_POST['featured_property_nonce']) || !wp_verify_nonce($_POST['featured_property_nonce'], 'mjpropiedades_featured_property_nonce')) {
+        return;
+    }
+    
+    // Verificar permisos
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+    
+    // Solo para propiedades
+    if (get_post_type($post_id) !== 'propiedad') {
+        return;
+    }
+    
+    // Guardar campo destacada
+    if (isset($_POST['featured_property'])) {
+        update_post_meta($post_id, '_featured_property', '1');
+    } else {
+        delete_post_meta($post_id, '_featured_property');
+    }
+}
+add_action('save_post', 'mjpropiedades_save_featured_property');
+
+// Función para obtener propiedades destacadas
+function mjpropiedades_get_featured_properties($limit = 6) {
+    $args = array(
+        'post_type' => 'propiedad',
+        'posts_per_page' => $limit,
+        'post_status' => 'publish',
+        'meta_query' => array(
+            array(
+                'key' => '_featured_property',
+                'value' => '1',
+                'compare' => '='
+            )
+        ),
+        'orderby' => 'date',
+        'order' => 'DESC'
+    );
+    
+    return get_posts($args);
+}
+
+// Función para obtener propiedades destacadas por operación
+function mjpropiedades_get_featured_properties_by_operation($operacion = '', $limit = 6) {
+    $meta_query = array(
+        'relation' => 'AND',
+        array(
+            'key' => '_featured_property',
+            'value' => '1',
+            'compare' => '='
+        )
+    );
+    
+    // Si se especifica operación, agregar filtro
+    if (!empty($operacion)) {
+        $meta_query[] = array(
+            'key' => '_propiedad_operacion',
+            'value' => $operacion,
+            'compare' => '='
+        );
+    }
+    
+    $args = array(
+        'post_type' => 'propiedad',
+        'posts_per_page' => $limit,
+        'post_status' => 'publish',
+        'meta_query' => $meta_query,
+        'orderby' => 'date',
+        'order' => 'DESC'
+    );
+    
+    return get_posts($args);
+}
+
 // Función para obtener propiedades
 function mjpropiedades_get_properties($operacion = '', $limit = -1) {
     $args = array(
@@ -1105,93 +1210,435 @@ function mjpropiedades_customize_register($wp_customize) {
         'priority' => 30,
     ));
     
-    // Sección de imágenes del hero
+    // Sección del Hero Slider
     $wp_customize->add_section('mjpropiedades_hero', array(
-        'title'    => __('Imágenes del Hero', 'mjpropiedades'),
+        'title'    => __('Hero Slider', 'mjpropiedades'),
         'priority' => 25,
     ));
     
-    // Hero Image 1
+    // Hero Image 1 - Compra de Propiedades
     $wp_customize->add_setting('mjpropiedades_hero_1', array(
         'default'           => '',
         'sanitize_callback' => 'absint',
     ));
     
     $wp_customize->add_control(new WP_Customize_Media_Control($wp_customize, 'mjpropiedades_hero_1', array(
-        'label'   => __('Imagen Hero 1', 'mjpropiedades'),
+        'label'   => __('Diapositiva 1 - Imagen de Fondo (Compra)', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'mime_type' => 'image',
     )));
     
-    // Hero Image 2
+    // Contenido Diapositiva 1
+    $wp_customize->add_setting('mjpropiedades_slide_1_tag', array(
+        'default' => 'Compra de Propiedades',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_tag', array(
+        'label' => __('Diapositiva 1 - Tag', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_1_title', array(
+        'default' => 'Encuentra tu Hogar Ideal en Chile',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_title', array(
+        'label' => __('Diapositiva 1 - Título', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_1_description', array(
+        'default' => 'Atendemos en Copiapó, Viña del Mar, La Serena y nos expandimos a más ciudades. Descubre propiedades exclusivas con asesoría personalizada y certificada en todo el proceso de compra.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_description', array(
+        'label' => __('Diapositiva 1 - Descripción', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_1_btn_primary', array(
+        'default' => 'Ver Propiedades',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_btn_primary', array(
+        'label' => __('Diapositiva 1 - Botón Primario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_1_btn_secondary', array(
+        'default' => 'Solicitar Tasación',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_btn_secondary', array(
+        'label' => __('Diapositiva 1 - Botón Secundario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_hero_separator_1', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_hero_separator_1', array(
+        'label' => '',
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
+    // Hero Image 2 - Venta de Propiedades
     $wp_customize->add_setting('mjpropiedades_hero_2', array(
         'default'           => '',
         'sanitize_callback' => 'absint',
     ));
     
     $wp_customize->add_control(new WP_Customize_Media_Control($wp_customize, 'mjpropiedades_hero_2', array(
-        'label'   => __('Imagen Hero 2', 'mjpropiedades'),
+        'label'   => __('Diapositiva 2 - Imagen de Fondo (Venta)', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'mime_type' => 'image',
     )));
     
-    // Hero Image 3
+    // Contenido Diapositiva 2
+    $wp_customize->add_setting('mjpropiedades_slide_2_tag', array(
+        'default' => 'Venta de Propiedades',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_tag', array(
+        'label' => __('Diapositiva 2 - Tag', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_2_title', array(
+        'default' => 'Vende tu Propiedad al Mejor Precio',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_title', array(
+        'label' => __('Diapositiva 2 - Título', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_2_description', array(
+        'default' => '¿Tienes una propiedad para vender? Te ayudamos a obtener el mejor valor de mercado. Servicios profesionales de tasación y comercialización en Copiapó, Viña del Mar, La Serena y próximamente en más ciudades.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_description', array(
+        'label' => __('Diapositiva 2 - Descripción', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_2_btn_primary', array(
+        'default' => 'Solicitar Tasación',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_btn_primary', array(
+        'label' => __('Diapositiva 2 - Botón Primario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_2_btn_secondary', array(
+        'default' => 'Ver Propiedades',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_btn_secondary', array(
+        'label' => __('Diapositiva 2 - Botón Secundario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_hero_separator_2', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_hero_separator_2', array(
+        'label' => '',
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
+    // Hero Image 3 - Arriendo de Propiedades
     $wp_customize->add_setting('mjpropiedades_hero_3', array(
         'default'           => '',
         'sanitize_callback' => 'absint',
     ));
     
     $wp_customize->add_control(new WP_Customize_Media_Control($wp_customize, 'mjpropiedades_hero_3', array(
-        'label'   => __('Imagen Hero 3', 'mjpropiedades'),
+        'label'   => __('Diapositiva 3 - Imagen de Fondo (Arriendo)', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'mime_type' => 'image',
     )));
     
-    // Contenido del Hero
-    $wp_customize->add_setting('mjpropiedades_hero_tag', array(
-        'default' => 'Compra de Propiedades',
+    // Contenido Diapositiva 3
+    $wp_customize->add_setting('mjpropiedades_slide_3_tag', array(
+        'default' => 'Arriendo de Propiedades',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('mjpropiedades_hero_tag', array(
-        'label' => __('Tag del Hero', 'mjpropiedades'),
+    $wp_customize->add_control('mjpropiedades_slide_3_tag', array(
+        'label' => __('Diapositiva 3 - Tag', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'type' => 'text',
     ));
     
-    $wp_customize->add_setting('mjpropiedades_hero_title', array(
-        'default' => 'Encuentra el Hogar de tus Sueños en la Región de Coquimbo',
+    $wp_customize->add_setting('mjpropiedades_slide_3_title', array(
+        'default' => 'Arrienda o Arrienda tu Propiedad',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('mjpropiedades_hero_title', array(
-        'label' => __('Título del Hero', 'mjpropiedades'),
+    $wp_customize->add_control('mjpropiedades_slide_3_title', array(
+        'label' => __('Diapositiva 3 - Título', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'type' => 'text',
     ));
     
-    $wp_customize->add_setting('mjpropiedades_hero_description', array(
-        'default' => 'Descubre propiedades exclusivas en La Serena, Coquimbo y Ovalle. Asesoría personalizada y certificada en todo el proceso de compra y arriendo.',
+    $wp_customize->add_setting('mjpropiedades_slide_3_description', array(
+        'default' => 'Ya sea que busques arrendar o tengas una propiedad para arrendar, te conectamos con las mejores opciones. Servicio profesional en Copiapó, Viña del Mar, La Serena con expansión continua a nuevas ciudades.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
-    $wp_customize->add_control('mjpropiedades_hero_description', array(
-        'label' => __('Descripción del Hero', 'mjpropiedades'),
+    $wp_customize->add_control('mjpropiedades_slide_3_description', array(
+        'label' => __('Diapositiva 3 - Descripción', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'type' => 'textarea',
     ));
     
-    $wp_customize->add_setting('mjpropiedades_hero_button', array(
-        'default' => 'Buscar Propiedades',
+    $wp_customize->add_setting('mjpropiedades_slide_3_btn_primary', array(
+        'default' => 'Ver Arriendos',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('mjpropiedades_hero_button', array(
-        'label' => __('Texto del Botón', 'mjpropiedades'),
+    $wp_customize->add_control('mjpropiedades_slide_3_btn_primary', array(
+        'label' => __('Diapositiva 3 - Botón Primario', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'type' => 'text',
     ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_3_btn_secondary', array(
+        'default' => 'Arrendar Propiedad',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_3_btn_secondary', array(
+        'label' => __('Diapositiva 3 - Botón Secundario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    // Separador visual para colores
+    $wp_customize->add_setting('mjpropiedades_hero_colors_separator', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_hero_colors_separator', array(
+        'label' => '',
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
+    // Color de las viñetas (tags)
+    $wp_customize->add_setting('mjpropiedades_hero_tag_color', array(
+        'default' => '#1e40af',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_hero_tag_color', array(
+        'label' => __('Color de las Viñetas (Tags)', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'description' => __('Selecciona el color de fondo de las viñetas que aparecen arriba de los títulos', 'mjpropiedades'),
+    )));
+    
+    // Color del texto de las viñetas
+    $wp_customize->add_setting('mjpropiedades_hero_tag_text_color', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_hero_tag_text_color', array(
+        'label' => __('Color del Texto de las Viñetas', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'description' => __('Selecciona el color del texto dentro de las viñetas', 'mjpropiedades'),
+    )));
+    
+    // Color de los títulos
+    $wp_customize->add_setting('mjpropiedades_hero_title_color', array(
+        'default' => '#1e293b',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_hero_title_color', array(
+        'label' => __('Color de los Títulos', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'description' => __('Selecciona el color de los títulos principales del slider', 'mjpropiedades'),
+    )));
+    
+    // Color de las descripciones
+    $wp_customize->add_setting('mjpropiedades_hero_description_color', array(
+        'default' => '#64748b',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_hero_description_color', array(
+        'label' => __('Color de las Descripciones', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'description' => __('Selecciona el color del texto de las descripciones', 'mjpropiedades'),
+    )));
+    
+    // Botón para resetear valores por defecto
+    $wp_customize->add_setting('mjpropiedades_hero_reset', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_hero_reset', array(
+        'label' => __('Resetear a Valores por Defecto', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'button',
+        'input_attrs' => array(
+            'value' => 'Resetear Valores',
+            'class' => 'button button-secondary',
+            'onclick' => 'mjpropiedadesResetHeroValues()',
+        ),
+    ));
+    
+    // Función para resetear valores del hero
+    function mjpropiedades_reset_hero_values() {
+        if (isset($_POST['action']) && $_POST['action'] === 'reset_hero_values') {
+            check_ajax_referer('reset_hero_values', 'nonce');
+            
+            // Valores por defecto
+            $default_values = array(
+                'mjpropiedades_slide_1_tag' => 'Compra de Propiedades',
+                'mjpropiedades_slide_1_title' => 'Encuentra tu Hogar Ideal en Chile',
+                'mjpropiedades_slide_1_description' => 'Atendemos en Copiapó, Viña del Mar, La Serena y nos expandimos a más ciudades. Descubre propiedades exclusivas con asesoría personalizada y certificada en todo el proceso de compra.',
+                'mjpropiedades_slide_1_btn_primary' => 'Ver Propiedades',
+                'mjpropiedades_slide_1_btn_secondary' => 'Solicitar Tasación',
+                
+                'mjpropiedades_slide_2_tag' => 'Venta de Propiedades',
+                'mjpropiedades_slide_2_title' => 'Vende tu Propiedad al Mejor Precio',
+                'mjpropiedades_slide_2_description' => '¿Tienes una propiedad para vender? Te ayudamos a obtener el mejor valor de mercado. Servicios profesionales de tasación y comercialización en Copiapó, Viña del Mar, La Serena y próximamente en más ciudades.',
+                'mjpropiedades_slide_2_btn_primary' => 'Solicitar Tasación',
+                'mjpropiedades_slide_2_btn_secondary' => 'Ver Propiedades',
+                
+                'mjpropiedades_slide_3_tag' => 'Arriendo de Propiedades',
+                'mjpropiedades_slide_3_title' => 'Arrienda o Arrienda tu Propiedad',
+                'mjpropiedades_slide_3_description' => 'Ya sea que busques arrendar o tengas una propiedad para arrendar, te conectamos con las mejores opciones. Servicio profesional en Copiapó, Viña del Mar, La Serena con expansión continua a nuevas ciudades.',
+                'mjpropiedades_slide_3_btn_primary' => 'Ver Arriendos',
+                'mjpropiedades_slide_3_btn_secondary' => 'Arrendar Propiedad',
+                
+                // Colores por defecto
+                'mjpropiedades_hero_tag_color' => '#1e40af',
+                'mjpropiedades_hero_tag_text_color' => '#ffffff',
+                'mjpropiedades_hero_title_color' => '#1e293b',
+                'mjpropiedades_hero_description_color' => '#64748b',
+            );
+            
+            // Actualizar valores
+            foreach ($default_values as $key => $value) {
+                set_theme_mod($key, $value);
+            }
+            
+            wp_send_json_success('Valores reseteados correctamente');
+        }
+    }
+    add_action('wp_ajax_reset_hero_values', 'mjpropiedades_reset_hero_values');
+    
+    // Agregar JavaScript al Customizer
+    function mjpropiedades_customizer_scripts() {
+        ?>
+        <script type="text/javascript">
+        function mjpropiedadesResetHeroValues() {
+            if (confirm('¿Estás seguro de que quieres resetear todos los valores del Hero Slider a los valores por defecto?')) {
+                jQuery.post(ajaxurl, {
+                    action: 'reset_hero_values',
+                    nonce: '<?php echo wp_create_nonce('reset_hero_values'); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        alert('Valores reseteados correctamente. Recarga la página para ver los cambios.');
+                        location.reload();
+                    } else {
+                        alert('Error al resetear los valores.');
+                    }
+                });
+            }
+        }
+        </script>
+        <?php
+    }
+    add_action('customize_controls_print_scripts', 'mjpropiedades_customizer_scripts');
+    
+    // Agregar CSS dinámico para los colores del hero
+    function mjpropiedades_hero_dynamic_css() {
+        $tag_color = get_theme_mod('mjpropiedades_hero_tag_color', '#1e40af');
+        $tag_text_color = get_theme_mod('mjpropiedades_hero_tag_text_color', '#ffffff');
+        $title_color = get_theme_mod('mjpropiedades_hero_title_color', '#1e293b');
+        $description_color = get_theme_mod('mjpropiedades_hero_description_color', '#64748b');
+        
+        $css = "
+        <style type='text/css' id='mjpropiedades-hero-colors'>
+        :root {
+            --hero-tag-color: {$tag_color} !important;
+            --hero-tag-text-color: {$tag_text_color} !important;
+            --hero-title-color: {$title_color} !important;
+            --hero-description-color: {$description_color} !important;
+        }
+        
+        .hero-tag {
+            background-color: {$tag_color} !important;
+            color: {$tag_text_color} !important;
+        }
+        
+        .hero-content h1 {
+            color: {$title_color} !important;
+        }
+        
+        .hero-description {
+            color: {$description_color} !important;
+        }
+        </style>
+        ";
+        
+        echo $css;
+    }
+    add_action('wp_head', 'mjpropiedades_hero_dynamic_css');
+    
+    // Limpiar caché cuando se cambien los colores del hero
+    function mjpropiedades_clear_cache_on_color_change() {
+        // Limpiar caché de WordPress si existe
+        if (function_exists('wp_cache_flush')) {
+            wp_cache_flush();
+        }
+        
+        // Limpiar caché de objetos si existe
+        if (function_exists('wp_cache_delete')) {
+            wp_cache_delete('mjpropiedades_hero_colors', 'theme_mods');
+        }
+    }
+    add_action('customize_save_after', 'mjpropiedades_clear_cache_on_color_change');
+    
+    // Agregar parámetros de versión para evitar caché
+    function mjpropiedades_add_version_to_css() {
+        return time(); // Cambia cada vez que se carga la página
+    }
+    add_filter('style_loader_src', function($src) {
+        if (strpos($src, 'style.css') !== false) {
+            $src = add_query_arg('v', mjpropiedades_add_version_to_css(), $src);
+        }
+        return $src;
+    });
     
     // Sección About
     $wp_customize->add_section('mjpropiedades_about', array(
         'title'    => __('Sección Quiénes Somos', 'mjpropiedades'),
         'priority' => 30,
+    ));
+    
+    // Sección Servicios
+    $wp_customize->add_section('mjpropiedades_services', array(
+        'title'    => __('Sección Nuestros Servicios', 'mjpropiedades'),
+        'priority' => 35,
     ));
     
     // Imagen de María José
@@ -1208,7 +1655,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Texto de María José
     $wp_customize->add_setting('mjpropiedades_about_text_1', array(
-        'default' => 'Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.',
+        'default' => 'Home Isa es una empresa inmobiliaria innovadora fundada en 2025, con alcance nacional en Chile. Nos especializamos en brindar servicios integrales de corretaje inmobiliario, asesoría y tasación de propiedades.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_about_text_1', array(
@@ -1218,7 +1665,7 @@ function mjpropiedades_customize_register($wp_customize) {
     ));
     
     $wp_customize->add_setting('mjpropiedades_about_text_2', array(
-        'default' => 'Mi compromiso es brindarte un servicio personalizado, transparente y profesional en cada paso del proceso. Desde la primera consulta hasta la firma del contrato, estaré contigo para hacer realidad tus objetivos inmobiliarios en La Serena, Coquimbo y Ovalle.',
+        'default' => 'Nuestro compromiso es facilitar el proceso inmobiliario para todo tipo de clientes: familias que buscan su primer hogar, inversionistas experimentados que buscan oportunidades de crecimiento, propietarios que desean vender sus propiedades al mejor precio, y personas que necesitan arrendar o encontrar inquilinos para sus inmuebles. Con sede en La Serena y cobertura nacional, combinamos la experiencia local con una visión moderna del mercado inmobiliario chileno.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_about_text_2', array(
@@ -1267,6 +1714,124 @@ function mjpropiedades_customize_register($wp_customize) {
         'section' => 'mjpropiedades_about',
         'type' => 'text',
     ));
+    
+    // Controles para Sección Servicios
+    // Tag de servicios
+    $wp_customize->add_setting('mjpropiedades_services_tag', array(
+        'default' => 'NUESTROS SERVICIOS',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_services_tag', array(
+        'label' => __('Tag de Servicios', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+        'type' => 'text',
+    ));
+    
+    // Título principal de servicios
+    $wp_customize->add_setting('mjpropiedades_services_title', array(
+        'default' => 'Te Acompañamos en Cada Paso',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_services_title', array(
+        'label' => __('Título Principal', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+        'type' => 'text',
+    ));
+    
+    // Subtítulo de servicios
+    $wp_customize->add_setting('mjpropiedades_services_subtitle', array(
+        'default' => 'Servicios profesionales diseñados para hacer realidad tus objetivos inmobiliarios',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_services_subtitle', array(
+        'label' => __('Subtítulo', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+        'type' => 'textarea',
+    ));
+    
+    // Color del título de servicios
+    $wp_customize->add_setting('mjpropiedades_services_title_color', array(
+        'default' => '#374151',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_services_title_color', array(
+        'label' => __('Color del Título', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+    )));
+    
+    // Color del subtítulo de servicios
+    $wp_customize->add_setting('mjpropiedades_services_subtitle_color', array(
+        'default' => '#6b7280',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_services_subtitle_color', array(
+        'label' => __('Color del Subtítulo', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+    )));
+    
+    // Servicios dinámicos (hasta 6 servicios)
+    $default_services = array(
+        1 => array(
+            'title' => 'Venta',
+            'description' => 'Te ayudamos a vender tu propiedad al mejor precio del mercado con estrategias personalizadas.',
+            'features' => "Marketing digital especializado\nFotografía profesional\nTours virtuales\nAsesoría de precios"
+        ),
+        2 => array(
+            'title' => 'Arriendo',
+            'description' => 'Encontramos el inquilino ideal para tu propiedad con procesos seguros y eficientes.',
+            'features' => "Selección de inquilinos\nVerificación de antecedentes\nContratos legales\nGestión de pagos"
+        ),
+        3 => array(
+            'title' => 'Tasaciones',
+            'description' => 'Valoramos tu propiedad con precisión profesional para tomar las mejores decisiones.',
+            'features' => "Análisis de mercado\nComparación de propiedades\nInforme detallado\nCertificación profesional"
+        ),
+        4 => array(
+            'title' => 'Asesoría Legal',
+            'description' => 'Te acompañamos en todo el proceso legal y administrativo para que no tengas que preocuparte por nada.',
+            'features' => "Tramitación de escrituras\nGestión de permisos\nSeguimiento legal\nAsesoría especializada"
+        )
+    );
+    
+    for ($i = 1; $i <= 6; $i++) {
+        $default_title = isset($default_services[$i]) ? $default_services[$i]['title'] : '';
+        $default_description = isset($default_services[$i]) ? $default_services[$i]['description'] : '';
+        $default_features = isset($default_services[$i]) ? $default_services[$i]['features'] : '';
+        
+        // Título del servicio
+        $wp_customize->add_setting("mjpropiedades_service_{$i}_title", array(
+            'default' => $default_title,
+            'sanitize_callback' => 'sanitize_text_field',
+        ));
+        $wp_customize->add_control("mjpropiedades_service_{$i}_title", array(
+            'label' => sprintf(__('Servicio %d - Título', 'mjpropiedades'), $i),
+            'section' => 'mjpropiedades_services',
+            'type' => 'text',
+        ));
+        
+        // Descripción del servicio
+        $wp_customize->add_setting("mjpropiedades_service_{$i}_description", array(
+            'default' => $default_description,
+            'sanitize_callback' => 'sanitize_textarea_field',
+        ));
+        $wp_customize->add_control("mjpropiedades_service_{$i}_description", array(
+            'label' => sprintf(__('Servicio %d - Descripción', 'mjpropiedades'), $i),
+            'section' => 'mjpropiedades_services',
+            'type' => 'textarea',
+        ));
+        
+        // Características del servicio (una por línea)
+        $wp_customize->add_setting("mjpropiedades_service_{$i}_features", array(
+            'default' => $default_features,
+            'sanitize_callback' => 'sanitize_textarea_field',
+        ));
+        $wp_customize->add_control("mjpropiedades_service_{$i}_features", array(
+            'label' => sprintf(__('Servicio %d - Características (una por línea)', 'mjpropiedades'), $i),
+            'section' => 'mjpropiedades_services',
+            'type' => 'textarea',
+        ));
+        
+    }
     
     // Sección Testimonios
     $wp_customize->add_section('mjpropiedades_testimonials', array(
@@ -1942,6 +2507,68 @@ function mjpropiedades_customize_register($wp_customize) {
         'label'    => __('Color de Línea Decorativa', 'mjpropiedades'),
         'section'  => 'mjpropiedades_section_titles',
     )));
+    // ===== CONFIGURACIÓN DE INFORMACIÓN DE CONTACTO =====
+    
+    // Sección de información de contacto
+    $wp_customize->add_section('mjpropiedades_contact_info', array(
+        'title'    => __('Información de Contacto', 'mjpropiedades'),
+        'priority' => 45,
+    ));
+    
+    // Email de contacto
+    $wp_customize->add_setting('mjpropiedades_contact_email', array(
+        'default' => 'consultas@homeisa.cl',
+        'sanitize_callback' => 'sanitize_email',
+    ));
+    $wp_customize->add_control('mjpropiedades_contact_email', array(
+        'label' => __('Email', 'mjpropiedades'),
+        'section' => 'mjpropiedades_contact_info',
+        'type' => 'email',
+    ));
+    
+    // Teléfono de contacto
+    $wp_customize->add_setting('mjpropiedades_contact_phone', array(
+        'default' => '+56 9 4927 6448',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_contact_phone', array(
+        'label' => __('Teléfono', 'mjpropiedades'),
+        'section' => 'mjpropiedades_contact_info',
+        'type' => 'text',
+    ));
+    
+    // Dirección de contacto
+    $wp_customize->add_setting('mjpropiedades_contact_address', array(
+        'default' => 'La Serena, Chile',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_contact_address', array(
+        'label' => __('Dirección', 'mjpropiedades'),
+        'section' => 'mjpropiedades_contact_info',
+        'type' => 'text',
+    ));
+    
+    // Horarios de atención
+    $wp_customize->add_setting('mjpropiedades_contact_hours_weekdays', array(
+        'default' => 'Lunes a Viernes: 9:00 - 18:00',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_contact_hours_weekdays', array(
+        'label' => __('Horarios de Lunes a Viernes', 'mjpropiedades'),
+        'section' => 'mjpropiedades_contact_info',
+        'type' => 'text',
+    ));
+    
+    // Horarios de sábados
+    $wp_customize->add_setting('mjpropiedades_contact_hours_saturday', array(
+        'default' => 'Sábados: 9:00 - 14:00',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_contact_hours_saturday', array(
+        'label' => __('Horarios de Sábados', 'mjpropiedades'),
+        'section' => 'mjpropiedades_contact_info',
+        'type' => 'text',
+    ));
 }
 add_action('customize_register', 'mjpropiedades_customize_register');
 
@@ -2823,6 +3450,122 @@ function mjpropiedades_save_page_template($post_id) {
 }
 add_action('save_post', 'mjpropiedades_save_page_template');
 
+// Agregar sección de colores para propiedades destacadas
+function mjpropiedades_add_property_colors_section($wp_customize) {
+    // Sección de colores para propiedades
+    $wp_customize->add_section('mjpropiedades_property_colors', array(
+        'title'    => __('Colores de Tarjetas de Propiedades', 'mjpropiedades'),
+        'priority' => 40,
+    ));
+    
+    // Color del precio
+    $wp_customize->add_setting('mjpropiedades_property_price_color', array(
+        'default' => '#8b4513',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_price_color', array(
+        'label' => __('Color del Precio', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del título
+    $wp_customize->add_setting('mjpropiedades_property_title_color', array(
+        'default' => '#1f2937',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_title_color', array(
+        'label' => __('Color del Título', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color de la ubicación
+    $wp_customize->add_setting('mjpropiedades_property_location_color', array(
+        'default' => '#6b7280',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_location_color', array(
+        'label' => __('Color de la Ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color de las características
+    $wp_customize->add_setting('mjpropiedades_property_features_color', array(
+        'default' => '#6b7280',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_features_color', array(
+        'label' => __('Color de las Características', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del botón
+    $wp_customize->add_setting('mjpropiedades_property_button_color', array(
+        'default' => '#8b4513',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_button_color', array(
+        'label' => __('Color del Botón', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del botón al hacer hover
+    $wp_customize->add_setting('mjpropiedades_property_button_hover_color', array(
+        'default' => '#6d3410',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_button_hover_color', array(
+        'label' => __('Color del Botón (Hover)', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del tag de venta
+    $wp_customize->add_setting('mjpropiedades_property_tag_venta_color', array(
+        'default' => '#10b981',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_tag_venta_color', array(
+        'label' => __('Color del Tag "Venta"', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del tag de arriendo
+    $wp_customize->add_setting('mjpropiedades_property_tag_arriendo_color', array(
+        'default' => '#3b82f6',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_tag_arriendo_color', array(
+        'label' => __('Color del Tag "Arriendo"', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+}
+add_action('customize_register', 'mjpropiedades_add_property_colors_section');
+
+// Agregar CSS dinámico para colores de propiedades
+function mjpropiedades_property_colors_css() {
+    $price_color = get_theme_mod('mjpropiedades_property_price_color', '#8b4513');
+    $title_color = get_theme_mod('mjpropiedades_property_title_color', '#1f2937');
+    $location_color = get_theme_mod('mjpropiedades_property_location_color', '#6b7280');
+    $features_color = get_theme_mod('mjpropiedades_property_features_color', '#6b7280');
+    $button_color = get_theme_mod('mjpropiedades_property_button_color', '#8b4513');
+    $button_hover_color = get_theme_mod('mjpropiedades_property_button_hover_color', '#6d3410');
+    $tag_venta_color = get_theme_mod('mjpropiedades_property_tag_venta_color', '#10b981');
+    $tag_arriendo_color = get_theme_mod('mjpropiedades_property_tag_arriendo_color', '#3b82f6');
+    
+    echo '<style type="text/css">';
+    echo ':root {';
+    echo '--property-price-color: ' . esc_attr($price_color) . ';';
+    echo '--property-title-color: ' . esc_attr($title_color) . ';';
+    echo '--property-location-color: ' . esc_attr($location_color) . ';';
+    echo '--property-features-color: ' . esc_attr($features_color) . ';';
+    echo '--property-button-color: ' . esc_attr($button_color) . ';';
+    echo '--property-button-hover-color: ' . esc_attr($button_hover_color) . ';';
+    echo '--property-tag-venta-color: ' . esc_attr($tag_venta_color) . ';';
+    echo '--property-tag-arriendo-color: ' . esc_attr($tag_arriendo_color) . ';';
+    echo '}';
+    echo '</style>';
+}
+add_action('wp_head', 'mjpropiedades_property_colors_css');
+
 // Generar sitemap XML
 function mjpropiedades_generate_sitemap() {
     if (isset($_GET['sitemap']) && $_GET['sitemap'] == 'xml') {
@@ -2890,4 +3633,489 @@ function mjpropiedades_generate_sitemap() {
     }
 }
 add_action('init', 'mjpropiedades_generate_sitemap');
+
+// Crear página de propiedades automáticamente
+function mjpropiedades_create_properties_page() {
+    $page_title = 'Propiedades';
+    $page_slug = 'propiedades';
+    
+    // Verificar si la página ya existe
+    $existing_page = get_page_by_path($page_slug);
+    
+    if (!$existing_page) {
+        // Crear la página
+        $page_data = array(
+            'post_title' => $page_title,
+            'post_name' => $page_slug,
+            'post_content' => '',
+            'post_status' => 'publish',
+            'post_type' => 'page',
+            'post_author' => 1,
+            'page_template' => 'page-propiedades.php'
+        );
+        
+        $page_id = wp_insert_post($page_data);
+        
+        if ($page_id) {
+            // Configurar la página para usar el template personalizado
+            update_post_meta($page_id, '_wp_page_template', 'page-propiedades.php');
+        }
+    }
+}
+add_action('after_setup_theme', 'mjpropiedades_create_properties_page');
+
+// Crear propiedades de prueba (solo si no existen)
+function mjpropiedades_create_sample_properties() {
+    // Verificar si ya existen propiedades
+    $existing_properties = get_posts(array(
+        'post_type' => 'propiedad',
+        'posts_per_page' => 1,
+        'post_status' => 'publish'
+    ));
+    
+    if (!empty($existing_properties)) {
+        return; // Ya existen propiedades, no crear más
+    }
+    
+    // Crear propiedades de prueba
+    $sample_properties = array(
+        array(
+            'title' => 'Casa en La Serena',
+            'precio' => 150000000,
+            'dormitorios' => 3,
+            'banos' => 2,
+            'comuna' => 'La Serena',
+            'tipo' => 'casa',
+            'operacion' => 'venta'
+        ),
+        array(
+            'title' => 'Departamento en Coquimbo',
+            'precio' => 120000000,
+            'dormitorios' => 2,
+            'banos' => 2,
+            'comuna' => 'Coquimbo',
+            'tipo' => 'departamento',
+            'operacion' => 'venta'
+        ),
+        array(
+            'title' => 'Casa en Ovalle',
+            'precio' => 80000000,
+            'dormitorios' => 4,
+            'banos' => 3,
+            'comuna' => 'Ovalle',
+            'tipo' => 'casa',
+            'operacion' => 'venta'
+        ),
+        array(
+            'title' => 'Departamento en La Serena Centro',
+            'precio' => 180000000,
+            'dormitorios' => 3,
+            'banos' => 2,
+            'comuna' => 'La Serena',
+            'tipo' => 'departamento',
+            'operacion' => 'venta'
+        )
+    );
+    
+    foreach ($sample_properties as $property) {
+        $post_id = wp_insert_post(array(
+            'post_title' => $property['title'],
+            'post_type' => 'propiedad',
+            'post_status' => 'publish',
+            'post_content' => 'Propiedad de prueba creada automáticamente.'
+        ));
+        
+        if ($post_id) {
+            // Agregar metadatos
+            update_post_meta($post_id, '_propiedad_precio', $property['precio']);
+            update_post_meta($post_id, '_propiedad_dormitorios', $property['dormitorios']);
+            update_post_meta($post_id, '_propiedad_banos', $property['banos']);
+            update_post_meta($post_id, '_propiedad_comuna', $property['comuna']);
+            update_post_meta($post_id, '_propiedad_tipo', $property['tipo']);
+            update_post_meta($post_id, '_propiedad_operacion', $property['operacion']);
+        }
+    }
+}
+add_action('after_setup_theme', 'mjpropiedades_create_sample_properties');
+
+// Configurar opciones por defecto para búsqueda
+function mjpropiedades_set_default_search_options() {
+    // Tipos de propiedad por defecto
+    if (!get_option('mjpropiedades_tipos_propiedad')) {
+        $tipos_propiedad = array(
+            'casa' => 'Casa',
+            'departamento' => 'Departamento',
+            'terreno' => 'Terreno',
+            'local' => 'Local Comercial',
+            'oficina' => 'Oficina'
+        );
+        update_option('mjpropiedades_tipos_propiedad', $tipos_propiedad);
+    }
+    
+    // Comunas por defecto
+    if (!get_option('mjpropiedades_comunas')) {
+        $comunas = array(
+            'la-serena' => 'La Serena',
+            'coquimbo' => 'Coquimbo',
+            'ovalle' => 'Ovalle',
+            'vicuna' => 'Vicuña',
+            'andacollo' => 'Andacollo',
+            'combarbala' => 'Combarbalá',
+            'monte-patria' => 'Monte Patria',
+            'punitaqui' => 'Punitaqui',
+            'rio-hurtado' => 'Río Hurtado',
+            'salamanca' => 'Salamanca'
+        );
+        update_option('mjpropiedades_comunas', $comunas);
+    }
+    
+    // Dormitorios por defecto
+    if (!get_option('mjpropiedades_dormitorios')) {
+        $dormitorios = array(
+            '1' => '1',
+            '2' => '2',
+            '3' => '3',
+            '4' => '4',
+            '5+' => '5+'
+        );
+        update_option('mjpropiedades_dormitorios', $dormitorios);
+    }
+    
+    // Baños por defecto
+    if (!get_option('mjpropiedades_banos')) {
+        $banos = array(
+            '1' => '1',
+            '2' => '2',
+            '3' => '3',
+            '4' => '4',
+            '5+' => '5+'
+        );
+        update_option('mjpropiedades_banos', $banos);
+    }
+}
+add_action('after_setup_theme', 'mjpropiedades_set_default_search_options');
+
+// Función para manejar búsqueda de propiedades
+function mjpropiedades_search_properties() {
+    $args = array(
+        'post_type' => 'propiedad',
+        'posts_per_page' => 12,
+        'paged' => isset($_GET['paged']) ? intval($_GET['paged']) : 1,
+        'meta_query' => array()
+    );
+    
+    // Aplicar filtros
+    if (isset($_GET['tipo_propiedad']) && !empty($_GET['tipo_propiedad'])) {
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_tipo',
+            'value' => sanitize_text_field($_GET['tipo_propiedad']),
+            'compare' => '='
+        );
+    }
+    
+    if (isset($_GET['ubicacion']) && !empty($_GET['ubicacion'])) {
+        // Convertir el valor de ubicación a formato de comuna
+        $comunas = get_option('mjpropiedades_comunas', array());
+        $comuna_label = isset($comunas[$_GET['ubicacion']]) ? $comunas[$_GET['ubicacion']] : $_GET['ubicacion'];
+        
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_comuna',
+            'value' => sanitize_text_field($comuna_label),
+            'compare' => 'LIKE'
+        );
+    }
+    
+    if (isset($_GET['dormitorios']) && !empty($_GET['dormitorios'])) {
+        $dormitorios_value = sanitize_text_field($_GET['dormitorios']);
+        if ($dormitorios_value === '5+') {
+            $args['meta_query'][] = array(
+                'key' => '_propiedad_dormitorios',
+                'value' => 5,
+                'compare' => '>=',
+                'type' => 'NUMERIC'
+            );
+        } else {
+            $args['meta_query'][] = array(
+                'key' => '_propiedad_dormitorios',
+                'value' => intval($dormitorios_value),
+                'compare' => '>=',
+                'type' => 'NUMERIC'
+            );
+        }
+    }
+    
+    if (isset($_GET['banos']) && !empty($_GET['banos'])) {
+        $banos_value = sanitize_text_field($_GET['banos']);
+        if ($banos_value === '5+') {
+            $args['meta_query'][] = array(
+                'key' => '_propiedad_banos',
+                'value' => 5,
+                'compare' => '>=',
+                'type' => 'NUMERIC'
+            );
+        } else {
+            $args['meta_query'][] = array(
+                'key' => '_propiedad_banos',
+                'value' => intval($banos_value),
+                'compare' => '>=',
+                'type' => 'NUMERIC'
+            );
+        }
+    }
+    
+    if (isset($_GET['precio_min']) && !empty($_GET['precio_min']) && $_GET['precio_min'] > 0) {
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_precio',
+            'value' => intval($_GET['precio_min']),
+            'compare' => '>=',
+            'type' => 'NUMERIC'
+        );
+    }
+    
+    if (isset($_GET['precio_max']) && !empty($_GET['precio_max']) && $_GET['precio_max'] < 1000000000) {
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_precio',
+            'value' => intval($_GET['precio_max']),
+            'compare' => '<=',
+            'type' => 'NUMERIC'
+        );
+    }
+    
+    return new WP_Query($args);
+}
+
+// ===== PANEL DE ADMINISTRACIÓN PARA OPCIONES DE BÚSQUEDA =====
+
+// Agregar página de administración para opciones de búsqueda
+function mjpropiedades_add_search_options_page() {
+    add_options_page(
+        'Opciones de Búsqueda',
+        'Opciones de Búsqueda',
+        'manage_options',
+        'mjpropiedades-search-options',
+        'mjpropiedades_search_options_page'
+    );
+}
+add_action('admin_menu', 'mjpropiedades_add_search_options_page');
+
+// Página de opciones de búsqueda
+function mjpropiedades_search_options_page() {
+    // Guardar opciones si se envió el formulario
+    if (isset($_POST['submit']) && wp_verify_nonce($_POST['search_options_nonce'], 'save_search_options')) {
+        // Guardar tipos de propiedad
+        if (isset($_POST['tipos_propiedad'])) {
+            $tipos = array();
+            foreach ($_POST['tipos_propiedad'] as $tipo) {
+                if (!empty($tipo['value']) && !empty($tipo['label'])) {
+                    $tipos[sanitize_text_field($tipo['value'])] = sanitize_text_field($tipo['label']);
+                }
+            }
+            update_option('mjpropiedades_tipos_propiedad', $tipos);
+        }
+        
+        // Guardar comunas
+        if (isset($_POST['comunas'])) {
+            $comunas = array();
+            foreach ($_POST['comunas'] as $comuna) {
+                if (!empty($comuna['value']) && !empty($comuna['label'])) {
+                    $comunas[sanitize_text_field($comuna['value'])] = sanitize_text_field($comuna['label']);
+                }
+            }
+            update_option('mjpropiedades_comunas', $comunas);
+        }
+        
+        // Guardar opciones de dormitorios
+        if (isset($_POST['dormitorios'])) {
+            $dormitorios = array();
+            foreach ($_POST['dormitorios'] as $dormitorio) {
+                if (!empty($dormitorio['value']) && !empty($dormitorio['label'])) {
+                    $dormitorios[sanitize_text_field($dormitorio['value'])] = sanitize_text_field($dormitorio['label']);
+                }
+            }
+            update_option('mjpropiedades_dormitorios', $dormitorios);
+        }
+        
+        // Guardar opciones de baños
+        if (isset($_POST['banos'])) {
+            $banos = array();
+            foreach ($_POST['banos'] as $bano) {
+                if (!empty($bano['value']) && !empty($bano['label'])) {
+                    $banos[sanitize_text_field($bano['value'])] = sanitize_text_field($bano['label']);
+                }
+            }
+            update_option('mjpropiedades_banos', $banos);
+        }
+        
+        echo '<div class="notice notice-success"><p>Opciones guardadas correctamente.</p></div>';
+    }
+    
+    // Obtener opciones actuales
+    $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array());
+    $comunas = get_option('mjpropiedades_comunas', array());
+    $dormitorios = get_option('mjpropiedades_dormitorios', array());
+    $banos = get_option('mjpropiedades_banos', array());
+    
+    ?>
+    <div class="wrap">
+        <h1>Opciones de Búsqueda de Propiedades</h1>
+        <p>Gestiona las opciones disponibles en los formularios de búsqueda.</p>
+        
+        <form method="post" action="">
+            <?php wp_nonce_field('save_search_options', 'search_options_nonce'); ?>
+            
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Tipos de Propiedad</th>
+                    <td>
+                        <div id="tipos-propiedad-container">
+                            <?php
+                            $counter = 0;
+                            foreach ($tipos_propiedad as $value => $label) {
+                                echo '<div class="option-row">';
+                                echo '<input type="text" name="tipos_propiedad[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: casa)" style="width: 150px; margin-right: 10px;">';
+                                echo '<input type="text" name="tipos_propiedad[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: Casa)" style="width: 200px; margin-right: 10px;">';
+                                echo '<button type="button" class="button remove-option">Eliminar</button>';
+                                echo '</div>';
+                                $counter++;
+                            }
+                            ?>
+                        </div>
+                        <button type="button" id="add-tipo-propiedad" class="button">Agregar Tipo de Propiedad</button>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Comunas</th>
+                    <td>
+                        <div id="comunas-container">
+                            <?php
+                            $counter = 0;
+                            foreach ($comunas as $value => $label) {
+                                echo '<div class="option-row">';
+                                echo '<input type="text" name="comunas[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: la-serena)" style="width: 150px; margin-right: 10px;">';
+                                echo '<input type="text" name="comunas[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: La Serena)" style="width: 200px; margin-right: 10px;">';
+                                echo '<button type="button" class="button remove-option">Eliminar</button>';
+                                echo '</div>';
+                                $counter++;
+                            }
+                            ?>
+                        </div>
+                        <button type="button" id="add-comuna" class="button">Agregar Comuna</button>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Dormitorios</th>
+                    <td>
+                        <div id="dormitorios-container">
+                            <?php
+                            $counter = 0;
+                            foreach ($dormitorios as $value => $label) {
+                                echo '<div class="option-row">';
+                                echo '<input type="text" name="dormitorios[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">';
+                                echo '<input type="text" name="dormitorios[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: 2 dormitorios)" style="width: 200px; margin-right: 10px;">';
+                                echo '<button type="button" class="button remove-option">Eliminar</button>';
+                                echo '</div>';
+                                $counter++;
+                            }
+                            ?>
+                        </div>
+                        <button type="button" id="add-dormitorio" class="button">Agregar Opción de Dormitorios</button>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Baños</th>
+                    <td>
+                        <div id="banos-container">
+                            <?php
+                            $counter = 0;
+                            foreach ($banos as $value => $label) {
+                                echo '<div class="option-row">';
+                                echo '<input type="text" name="banos[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">';
+                                echo '<input type="text" name="banos[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: 2 baños)" style="width: 200px; margin-right: 10px;">';
+                                echo '<button type="button" class="button remove-option">Eliminar</button>';
+                                echo '</div>';
+                                $counter++;
+                            }
+                            ?>
+                        </div>
+                        <button type="button" id="add-bano" class="button">Agregar Opción de Baños</button>
+                    </td>
+                </tr>
+            </table>
+            
+            <?php submit_button('Guardar Opciones'); ?>
+        </form>
+    </div>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        let tipoCounter = <?php echo count($tipos_propiedad); ?>;
+        let comunaCounter = <?php echo count($comunas); ?>;
+        let dormitorioCounter = <?php echo count($dormitorios); ?>;
+        let banoCounter = <?php echo count($banos); ?>;
+        
+        // Agregar tipo de propiedad
+        $('#add-tipo-propiedad').click(function() {
+            const html = '<div class="option-row">' +
+                '<input type="text" name="tipos_propiedad[' + tipoCounter + '][value]" placeholder="Valor (ej: casa)" style="width: 150px; margin-right: 10px;">' +
+                '<input type="text" name="tipos_propiedad[' + tipoCounter + '][label]" placeholder="Etiqueta (ej: Casa)" style="width: 200px; margin-right: 10px;">' +
+                '<button type="button" class="button remove-option">Eliminar</button>' +
+                '</div>';
+            $('#tipos-propiedad-container').append(html);
+            tipoCounter++;
+        });
+        
+        // Agregar comuna
+        $('#add-comuna').click(function() {
+            const html = '<div class="option-row">' +
+                '<input type="text" name="comunas[' + comunaCounter + '][value]" placeholder="Valor (ej: la-serena)" style="width: 150px; margin-right: 10px;">' +
+                '<input type="text" name="comunas[' + comunaCounter + '][label]" placeholder="Etiqueta (ej: La Serena)" style="width: 200px; margin-right: 10px;">' +
+                '<button type="button" class="button remove-option">Eliminar</button>' +
+                '</div>';
+            $('#comunas-container').append(html);
+            comunaCounter++;
+        });
+        
+        // Agregar dormitorio
+        $('#add-dormitorio').click(function() {
+            const html = '<div class="option-row">' +
+                '<input type="text" name="dormitorios[' + dormitorioCounter + '][value]" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">' +
+                '<input type="text" name="dormitorios[' + dormitorioCounter + '][label]" placeholder="Etiqueta (ej: 2 dormitorios)" style="width: 200px; margin-right: 10px;">' +
+                '<button type="button" class="button remove-option">Eliminar</button>' +
+                '</div>';
+            $('#dormitorios-container').append(html);
+            dormitorioCounter++;
+        });
+        
+        // Agregar baño
+        $('#add-bano').click(function() {
+            const html = '<div class="option-row">' +
+                '<input type="text" name="banos[' + banoCounter + '][value]" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">' +
+                '<input type="text" name="banos[' + banoCounter + '][label]" placeholder="Etiqueta (ej: 2 baños)" style="width: 200px; margin-right: 10px;">' +
+                '<button type="button" class="button remove-option">Eliminar</button>' +
+                '</div>';
+            $('#banos-container').append(html);
+            banoCounter++;
+        });
+        
+        // Eliminar opción
+        $(document).on('click', '.remove-option', function() {
+            $(this).closest('.option-row').remove();
+        });
+    });
+    </script>
+    
+    <style>
+    .option-row {
+        margin-bottom: 10px;
+        padding: 10px;
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    </style>
+    <?php
+}
 ?>
