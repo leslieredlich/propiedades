@@ -2549,25 +2549,14 @@ function mjpropiedades_customize_register($wp_customize) {
     ));
     
     // Horarios de atención
-    $wp_customize->add_setting('mjpropiedades_contact_hours_weekdays', array(
-        'default' => 'Lunes a Viernes: 9:00 - 18:00',
-        'sanitize_callback' => 'sanitize_text_field',
+    $wp_customize->add_setting('mjpropiedades_contact_hours', array(
+        'default' => 'Lunes a Viernes: 9:00 - 18:00<br>Sábados: 9:00 - 14:00',
+        'sanitize_callback' => 'sanitize_textarea_field',
     ));
-    $wp_customize->add_control('mjpropiedades_contact_hours_weekdays', array(
-        'label' => __('Horarios de Lunes a Viernes', 'mjpropiedades'),
+    $wp_customize->add_control('mjpropiedades_contact_hours', array(
+        'label' => __('Horarios', 'mjpropiedades'),
         'section' => 'mjpropiedades_contact_info',
-        'type' => 'text',
-    ));
-    
-    // Horarios de sábados
-    $wp_customize->add_setting('mjpropiedades_contact_hours_saturday', array(
-        'default' => 'Sábados: 9:00 - 14:00',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    $wp_customize->add_control('mjpropiedades_contact_hours_saturday', array(
-        'label' => __('Horarios de Sábados', 'mjpropiedades'),
-        'section' => 'mjpropiedades_contact_info',
-        'type' => 'text',
+        'type' => 'textarea',
     ));
 }
 add_action('customize_register', 'mjpropiedades_customize_register');

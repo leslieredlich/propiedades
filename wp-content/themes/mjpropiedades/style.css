@@ -2503,6 +2503,72 @@ body {
     color: var(--white);
 }
 
+/* Estilos específicos para la sección de contacto en el footer */
+.footer-section .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.footer-section .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.footer-section .contact-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.footer-section .contact-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.footer-section .contact-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-section .contact-details span {
+    color: #ccc;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.footer-section .contact-details strong {
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Responsive para footer contact */
+@media (max-width: 768px) {
+    .footer-section .contact-item {
+        gap: 0.5rem;
+    }
+    
+    .footer-section .contact-icon {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .footer-section .contact-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .footer-section .contact-details span {
+        font-size: 0.85rem;
+    }
+}
+
 .contact-info {
     display: flex;
     flex-direction: column;

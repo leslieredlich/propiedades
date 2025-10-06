@@ -837,8 +837,7 @@ get_header(); ?>
                     </div>
                     <div class="contact-details">
                         <strong>Horarios</strong>
-                        <span><?php echo esc_html(get_theme_mod('mjpropiedades_contact_hours_weekdays', 'Lunes a Viernes: 9:00 - 18:00')); ?></span>
-                        <span><?php echo esc_html(get_theme_mod('mjpropiedades_contact_hours_saturday', 'Sábados: 9:00 - 14:00')); ?></span>
+                        <span><?php echo wp_kses_post(get_theme_mod('mjpropiedades_contact_hours', 'Lunes a Viernes: 9:00 - 18:00<br>Sábados: 9:00 - 14:00')); ?></span>
                 </div>
                 </div>
             </div>
