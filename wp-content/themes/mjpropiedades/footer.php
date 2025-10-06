@@ -16,8 +16,39 @@
     <div class="container">
         <div class="footer-content">
             <div class="footer-brand">
-                <h3>HOME ISA</h3>
-                <p>Tu corredora de confianza especializada en la Cuarta Región de Chile.</p>
+                <?php 
+                // Logo específico del footer
+                $footer_logo_id = get_theme_mod('mjpropiedades_footer_logo_image', '');
+                $footer_logo_show_text = get_theme_mod('mjpropiedades_footer_logo_show_text', true);
+                $footer_logo_text = get_theme_mod('mjpropiedades_footer_logo_text', 'Tu corredora de confianza especializada en la Cuarta Región de Chile.');
+                
+                if ($footer_logo_id) {
+                    // Logo específico del footer desde medios
+                    echo '<div class="footer-logo">';
+                    echo '<a href="' . home_url() . '">';
+                    echo wp_get_attachment_image($footer_logo_id, 'full', false, array('alt' => get_bloginfo('name')));
+                    echo '</a>';
+                    echo '</div>';
+                } elseif (has_custom_logo()) {
+                    // Fallback: Logo del header si no hay logo específico del footer
+                    echo '<div class="footer-logo">';
+                    the_custom_logo();
+                    echo '</div>';
+                } else {
+                    // Fallback: Logo de texto si no hay ningún logo configurado
+                    echo '<div class="footer-logo-text">';
+                    echo '<a href="' . home_url() . '" class="logo-plus-propiedades">';
+                    echo '<span class="logo-plus">PLUS</span>';
+                    echo '<span class="logo-propiedades">PROPIEDADES</span>';
+                    echo '</a>';
+                    echo '</div>';
+                }
+                
+                // Mostrar texto descriptivo si está habilitado
+                if ($footer_logo_show_text) {
+                    echo '<p>' . esc_html($footer_logo_text) . '</p>';
+                }
+                ?>
                 <div class="social-icons">
                     <a href="https://facebook.com/Home isa spa" class="social-icon facebook" target="_blank">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">

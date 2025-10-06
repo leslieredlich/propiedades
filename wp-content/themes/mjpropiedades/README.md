@@ -1,6 +1,6 @@
-# María José Propiedades - Tema de WordPress
+# Home Isa Propiedades - Tema de WordPress
 
-Un tema profesional y moderno para corredores de propiedades, diseñado específicamente para María José Propiedades.
+Un tema profesional y moderno para corredores de propiedades, diseñado específicamente para Home Isa Propiedades.
 
 ## Características
 
@@ -26,7 +26,7 @@ Un tema profesional y moderno para corredores de propiedades, diseñado específ
 2. **Hero** - Sección principal con carrusel y call-to-action
 3. **Propiedades en Venta** - Grid de propiedades para venta
 4. **Propiedades en Arriendo** - Grid de propiedades para arriendo
-5. **Sobre María José** - Sección personal con estadísticas
+5. **Sobre Home Isa** - Sección personal con estadísticas
 6. **Formulario de Contacto** - Formulario completo de consultas
 7. **Call-to-Action** - Sección de conversión
 8. **Footer** - Enlaces, información de contacto y redes sociales
@@ -132,8 +132,8 @@ Para soporte técnico o personalizaciones adicionales, contactar al desarrollado
 
 ## Licencia
 
-Este tema está desarrollado específicamente para María José Propiedades. Todos los derechos reservados.
+Este tema está desarrollado específicamente para Home Isa Propiedades. Todos los derechos reservados.
 
 ---
 
-**Desarrollado con ❤️ para María José Propiedades**
+**Desarrollado con ❤️ para Home Isa Propiedades**

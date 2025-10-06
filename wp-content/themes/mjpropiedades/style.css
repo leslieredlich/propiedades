@@ -1,8 +1,8 @@
 /*
-Theme Name: María José Propiedades
-Description: Tema profesional para corredora de propiedades María José
+Theme Name: Home Isa Propiedades
+Description: Tema profesional para corredora de propiedades Home Isa especializada en la Cuarta Región de Chile
 Version: 1.0
-Author: María José Propiedades
+Author: Home Isa Propiedades
 */
 
 /* Reset y estilos base */
@@ -2092,6 +2092,47 @@ body {
     font-size: 2rem;
     color: var(--orange);
     margin-bottom: 1rem;
+}
+
+.footer-logo {
+    margin-bottom: 1rem;
+}
+
+.footer-logo .custom-logo {
+    max-height: 60px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) invert(1); /* Hacer el logo blanco en el footer */
+}
+
+.footer-logo-text {
+    margin-bottom: 1rem;
+}
+
+.footer-logo-text .logo-plus-propiedades {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.footer-logo-text .logo-plus {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1;
+    letter-spacing: 1px;
+}
+
+.footer-logo-text .logo-propiedades {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: #ffffff;
+    line-height: 1;
+    margin-top: -2px;
+    letter-spacing: 0.5px;
 }
 
 .footer-brand p {
@@ -4428,10 +4469,40 @@ body.admin-bar .hero {
     color: var(--dark-blue);
 }
 
-.author-location {
-    color: var(--gray-600);
-    font-size: 0.9rem;
-    font-weight: 500;
+/* Footer Responsive */
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        text-align: center;
+    }
+    
+    /* Ajustar logo del footer para móvil */
+    .footer-logo .custom-logo {
+        max-height: 50px;
+    }
+    
+    .footer-logo-text .logo-plus {
+        font-size: 24px;
+    }
+    
+    .footer-logo-text .logo-propiedades {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-logo .custom-logo {
+        max-height: 40px;
+    }
+    
+    .footer-logo-text .logo-plus {
+        font-size: 20px;
+    }
+    
+    .footer-logo-text .logo-propiedades {
+        font-size: 9px;
+    }
 }
 
 /* Testimonios Responsive */

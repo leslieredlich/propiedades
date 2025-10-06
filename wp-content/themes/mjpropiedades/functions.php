@@ -1,6 +1,6 @@
 <?php
 /**
- * María José Propiedades Theme Functions
+ * Home Isa Propiedades Theme Functions
  */
 
 // Evitar acceso directo
@@ -860,6 +860,245 @@ function mjpropiedades_display_properties($operacion = 'venta', $limit = 3) {
 
 // Agregar soporte para Customizer
 function mjpropiedades_customize_register($wp_customize) {
+    // ===== CONFIGURACIÓN DEL LOGO EN IDENTIDAD DEL SITIO =====
+    
+    // Altura máxima del logo en desktop
+    $wp_customize->add_setting('mjpropiedades_logo_height_desktop', array(
+        'default'           => '50',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_height_desktop', array(
+        'label'       => __('Altura del Logo en Desktop (px)', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 20,
+            'max'  => 150,
+            'step' => 5,
+        ),
+        'description' => __('Controla la altura máxima del logo en pantallas de escritorio (20-150px)', 'mjpropiedades'),
+        'priority'    => 8,
+    ));
+    
+    // Altura máxima del logo en tablet
+    $wp_customize->add_setting('mjpropiedades_logo_height_tablet', array(
+        'default'           => '45',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_height_tablet', array(
+        'label'       => __('Altura del Logo en Tablet (px)', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 15,
+            'max'  => 120,
+            'step' => 5,
+        ),
+        'description' => __('Controla la altura máxima del logo en tablets (15-120px)', 'mjpropiedades'),
+        'priority'    => 9,
+    ));
+    
+    // Altura máxima del logo en móvil
+    $wp_customize->add_setting('mjpropiedades_logo_height_mobile', array(
+        'default'           => '40',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_height_mobile', array(
+        'label'       => __('Altura del Logo en Móvil (px)', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 15,
+            'max'  => 80,
+            'step' => 5,
+        ),
+        'description' => __('Controla la altura máxima del logo en dispositivos móviles (15-80px)', 'mjpropiedades'),
+        'priority'    => 10,
+    ));
+    
+    // Ancho máximo del logo
+    $wp_customize->add_setting('mjpropiedades_logo_max_width', array(
+        'default'           => '200',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_max_width', array(
+        'label'       => __('Ancho Máximo del Logo (px)', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 50,
+            'max'  => 400,
+            'step' => 10,
+        ),
+        'description' => __('Controla el ancho máximo del logo en todas las pantallas (50-400px)', 'mjpropiedades'),
+        'priority'    => 11,
+    ));
+    
+    // Presets de tamaño de logo
+    $wp_customize->add_setting('mjpropiedades_logo_size_preset', array(
+        'default'           => 'medium',
+        'sanitize_callback' => 'mjpropiedades_sanitize_logo_size_preset',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_size_preset', array(
+        'label'       => __('Presets de Tamaño de Logo', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'select',
+        'choices'     => array(
+            'small'  => __('Pequeño (30px)', 'mjpropiedades'),
+            'medium' => __('Mediano (50px)', 'mjpropiedades'),
+            'large'  => __('Grande (70px)', 'mjpropiedades'),
+            'custom' => __('Personalizado', 'mjpropiedades'),
+        ),
+        'description' => __('Selecciona un tamaño predefinido o personaliza manualmente', 'mjpropiedades'),
+        'priority'    => 12,
+    ));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_logo_separator', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_separator', array(
+        'label' => '',
+        'section' => 'title_tagline',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+        'priority' => 13,
+    ));
+    
+    // ===== SECCIÓN DE LOGO DEL FOOTER =====
+    $wp_customize->add_section('mjpropiedades_footer_logo', array(
+        'title'    => __('Logo del Footer', 'mjpropiedades'),
+        'priority' => 28,
+        'description' => __('Configura el logo específico para el footer, independiente del logo del header', 'mjpropiedades'),
+    ));
+    
+    // Logo del footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Media_Control($wp_customize, 'mjpropiedades_footer_logo_image', array(
+        'label'     => __('Logo del Footer', 'mjpropiedades'),
+        'section'   => 'mjpropiedades_footer_logo',
+        'mime_type' => 'image',
+        'description' => __('Selecciona una imagen para el logo del footer. Si no se selecciona, se usará el logo del header.', 'mjpropiedades'),
+    )));
+    
+    // Posicionamiento del logo en el footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_position', array(
+        'default'           => 'left',
+        'sanitize_callback' => 'mjpropiedades_sanitize_logo_position',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_position', array(
+        'label'       => __('Posición del Logo en el Footer', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'select',
+        'choices'     => array(
+            'left'   => __('Izquierda', 'mjpropiedades'),
+            'center' => __('Centro', 'mjpropiedades'),
+            'right'  => __('Derecha', 'mjpropiedades'),
+        ),
+        'description' => __('Selecciona dónde quieres que aparezca el logo en el footer', 'mjpropiedades'),
+    ));
+    
+    // Tamaño del logo del footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_size', array(
+        'default'           => 'medium',
+        'sanitize_callback' => 'mjpropiedades_sanitize_footer_logo_size',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_size', array(
+        'label'       => __('Tamaño del Logo del Footer', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'select',
+        'choices'     => array(
+            'small'  => __('Pequeño (60px)', 'mjpropiedades'),
+            'medium' => __('Mediano (80px)', 'mjpropiedades'),
+            'large'  => __('Grande (120px)', 'mjpropiedades'),
+            'custom' => __('Personalizado', 'mjpropiedades'),
+        ),
+        'description' => __('Selecciona el tamaño del logo en el footer', 'mjpropiedades'),
+    ));
+    
+    // Tamaño personalizado del logo del footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_custom_size', array(
+        'default'           => '80',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_custom_size', array(
+        'label'       => __('Tamaño Personalizado (px)', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 30,
+            'max'  => 200,
+            'step' => 5,
+        ),
+        'description' => __('Especifica el tamaño exacto del logo en píxeles (30-200px)', 'mjpropiedades'),
+    ));
+    
+    // Mostrar texto alternativo junto al logo
+    $wp_customize->add_setting('mjpropiedades_footer_logo_show_text', array(
+        'default'           => true,
+        'sanitize_callback' => 'wp_validate_boolean',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_show_text', array(
+        'label'       => __('Mostrar Texto Descriptivo', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'checkbox',
+        'description' => __('Muestra el texto descriptivo debajo del logo', 'mjpropiedades'),
+    ));
+    
+    // Texto personalizado del footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_text', array(
+        'default'           => 'Tu corredora de confianza especializada en la Cuarta Región de Chile.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_text', array(
+        'label'       => __('Texto Descriptivo del Footer', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'textarea',
+        'description' => __('Texto que aparece debajo del logo en el footer', 'mjpropiedades'),
+    ));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_footer_logo_separator', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_separator', array(
+        'label' => '',
+        'section' => 'mjpropiedades_footer_logo',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
     // Sección de información de contacto
     $wp_customize->add_section('mjpropiedades_contact', array(
         'title'    => __('Información de Contacto', 'mjpropiedades'),
@@ -1312,6 +1551,102 @@ function mjpropiedades_customize_register($wp_customize) {
             'center' => __('Centro', 'mjpropiedades'),
             'right'  => __('Derecha', 'mjpropiedades'),
         ),
+    ));
+    
+    // Color de fondo de la barra superior del menú
+    $wp_customize->add_setting('mjpropiedades_header_background_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_header_background_color', array(
+        'label'    => __('Color de Fondo de la Barra Superior', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color de fondo para la barra superior del menú', 'mjpropiedades'),
+    )));
+    
+    // Color del texto del menú
+    $wp_customize->add_setting('mjpropiedades_menu_text_color', array(
+        'default'           => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_menu_text_color', array(
+        'label'    => __('Color del Texto del Menú', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color del texto para los enlaces del menú', 'mjpropiedades'),
+    )));
+    
+    // Color del texto del menú al pasar el mouse
+    $wp_customize->add_setting('mjpropiedades_menu_hover_color', array(
+        'default'           => '#1e40af',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_menu_hover_color', array(
+        'label'    => __('Color del Menú al Pasar el Mouse', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color cuando pasas el mouse sobre los enlaces del menú', 'mjpropiedades'),
+    )));
+    
+    // Color del botón "Contactar"
+    $wp_customize->add_setting('mjpropiedades_contact_button_color', array(
+        'default'           => '#1e40af',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_contact_button_color', array(
+        'label'    => __('Color del Botón "Contactar"', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color de fondo del botón "Contactar"', 'mjpropiedades'),
+    )));
+    
+    // Color del texto del botón "Contactar"
+    $wp_customize->add_setting('mjpropiedades_contact_button_text_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_contact_button_text_color', array(
+        'label'    => __('Color del Texto del Botón "Contactar"', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color del texto del botón "Contactar"', 'mjpropiedades'),
+    )));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_menu_separator_1', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_menu_separator_1', array(
+        'label' => '',
+        'section' => 'mjpropiedades_menu',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
+    // Presets de colores para el menú
+    $wp_customize->add_setting('mjpropiedades_menu_color_preset', array(
+        'default'           => 'default',
+        'sanitize_callback' => 'mjpropiedades_sanitize_color_preset',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_menu_color_preset', array(
+        'label'    => __('Presets de Colores Rápidos', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'type'     => 'select',
+        'choices'  => array(
+            'default' => __('Personalizado (Actual)', 'mjpropiedades'),
+            'blue'    => __('Azul Profesional', 'mjpropiedades'),
+            'dark'    => __('Oscuro Elegante', 'mjpropiedades'),
+            'light'   => __('Claro Minimalista', 'mjpropiedades'),
+            'green'   => __('Verde Naturaleza', 'mjpropiedades'),
+            'purple'  => __('Morado Creativo', 'mjpropiedades'),
+            'orange'  => __('Naranja Energético', 'mjpropiedades'),
+        ),
+        'description' => __('Selecciona un preset para aplicar automáticamente una combinación de colores', 'mjpropiedades'),
     ));
     
     // ===== SECCIÓN DE TIPOGRAFÍA =====
@@ -1784,6 +2119,492 @@ function mjpropiedades_typography_css() {
 }
 add_action('wp_head', 'mjpropiedades_typography_css');
 
+// Agregar CSS dinámico para colores del menú
+function mjpropiedades_menu_colors_css() {
+    $header_bg_color = get_theme_mod('mjpropiedades_header_background_color', '#ffffff');
+    $menu_text_color = get_theme_mod('mjpropiedades_menu_text_color', '#333333');
+    $menu_hover_color = get_theme_mod('mjpropiedades_menu_hover_color', '#1e40af');
+    $contact_button_color = get_theme_mod('mjpropiedades_contact_button_color', '#1e40af');
+    $contact_button_text_color = get_theme_mod('mjpropiedades_contact_button_text_color', '#ffffff');
+    
+    ?>
+    <style type="text/css">
+        /* Color de fondo de la barra superior */
+        .header {
+            background-color: <?php echo esc_attr($header_bg_color); ?> !important;
+        }
+        
+        /* Color del texto del menú */
+        .nav-menu a {
+            color: <?php echo esc_attr($menu_text_color); ?> !important;
+        }
+        
+        /* Color del menú al pasar el mouse */
+        .nav-menu a:hover {
+            color: <?php echo esc_attr($menu_hover_color); ?> !important;
+        }
+        
+        /* Color del botón "Contactar" */
+        .contact-btn {
+            background-color: <?php echo esc_attr($contact_button_color); ?> !important;
+            color: <?php echo esc_attr($contact_button_text_color); ?> !important;
+        }
+        
+        /* Color del botón "Contactar" al pasar el mouse */
+        .contact-btn:hover {
+            background-color: <?php echo esc_attr($contact_button_color); ?> !important;
+            opacity: 0.9;
+        }
+        
+        /* Aplicar colores también al menú móvil */
+        .mobile-nav-menu a {
+            color: <?php echo esc_attr($menu_text_color); ?> !important;
+        }
+        
+        .mobile-nav-menu a:hover {
+            color: <?php echo esc_attr($menu_hover_color); ?> !important;
+        }
+        
+        .mobile-contact-btn {
+            background-color: <?php echo esc_attr($contact_button_color); ?> !important;
+            color: <?php echo esc_attr($contact_button_text_color); ?> !important;
+        }
+        
+        .mobile-contact-btn:hover {
+            background-color: <?php echo esc_attr($contact_button_color); ?> !important;
+            opacity: 0.9;
+        }
+        
+        /* Ajustar la sombra si el fondo es muy claro */
+        <?php if (in_array($header_bg_color, ['#ffffff', '#fff', 'white', '#f8f9fa'])): ?>
+        .header {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        <?php else: ?>
+        .header {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        <?php endif; ?>
+        
+        /* Asegurar contraste adecuado para el logo */
+        .header .custom-logo-link,
+        .header .logo-plus-propiedades {
+            filter: none;
+        }
+        
+        /* Ajustar el logo si el fondo es oscuro */
+        <?php 
+        // Función para determinar si un color es oscuro
+        $rgb = array_map('hexdec', str_split(ltrim($header_bg_color, '#'), 2));
+        $brightness = ($rgb[0] * 299 + $rgb[1] * 587 + $rgb[2] * 114) / 1000;
+        if ($brightness < 128): // Color oscuro
+        ?>
+        .header .custom-logo-link,
+        .header .logo-plus-propiedades {
+            filter: brightness(1.2);
+        }
+        <?php endif; ?>
+    </style>
+    <?php
+}
+add_action('wp_head', 'mjpropiedades_menu_colors_css');
+
+// Agregar CSS dinámico para tamaños del logo
+function mjpropiedades_logo_sizes_css() {
+    $logo_height_desktop = get_theme_mod('mjpropiedades_logo_height_desktop', '50');
+    $logo_height_tablet = get_theme_mod('mjpropiedades_logo_height_tablet', '45');
+    $logo_height_mobile = get_theme_mod('mjpropiedades_logo_height_mobile', '40');
+    $logo_max_width = get_theme_mod('mjpropiedades_logo_max_width', '200');
+    
+    ?>
+    <style type="text/css">
+        /* Tamaño del logo en desktop */
+        .header .custom-logo {
+            max-height: <?php echo esc_attr($logo_height_desktop); ?>px !important;
+            width: auto !important;
+            max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+            height: auto !important;
+        }
+        
+        /* Tamaño del logo en tablet */
+        @media (max-width: 1024px) {
+            .header .custom-logo {
+                max-height: <?php echo esc_attr($logo_height_tablet); ?>px !important;
+                max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+            }
+        }
+        
+        /* Tamaño del logo en móvil */
+        @media (max-width: 768px) {
+            .header .custom-logo {
+                max-height: <?php echo esc_attr($logo_height_mobile); ?>px !important;
+                max-width: calc(100vw - 80px) !important;
+            }
+        }
+        
+        /* Ajustes para el contenedor del logo */
+        .header .custom-logo-link {
+            max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+            height: auto !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        
+        /* Asegurar que el logo se centre verticalmente */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* Ajustes responsive para el contenedor del logo */
+        @media (max-width: 1024px) {
+            .header .custom-logo-link {
+                max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header .custom-logo-link {
+                max-width: calc(100vw - 80px) !important;
+            }
+        }
+        
+        /* Ajustes para móviles pequeños */
+        @media (max-width: 480px) {
+            .header .custom-logo {
+                max-height: <?php echo esc_attr($logo_height_mobile - 5); ?>px !important;
+                max-width: calc(100vw - 60px) !important;
+            }
+            
+            .header .custom-logo-link {
+                max-width: calc(100vw - 60px) !important;
+            }
+        }
+        
+        /* Asegurar que el logo mantenga su proporción */
+        .header .custom-logo {
+            object-fit: contain !important;
+            object-position: left center !important;
+        }
+        
+        /* Fallback para el logo de texto (PLUS PROPIEDADES) */
+        .header .logo-plus-propiedades {
+            font-size: calc(<?php echo esc_attr($logo_height_desktop); ?>px * 0.6) !important;
+            line-height: 1 !important;
+            height: auto !important;
+            max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+        }
+        
+        @media (max-width: 1024px) {
+            .header .logo-plus-propiedades {
+                font-size: calc(<?php echo esc_attr($logo_height_tablet); ?>px * 0.6) !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header .logo-plus-propiedades {
+                font-size: calc(<?php echo esc_attr($logo_height_mobile); ?>px * 0.6) !important;
+                max-width: calc(100vw - 80px) !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header .logo-plus-propiedades {
+                font-size: calc(<?php echo esc_attr($logo_height_mobile - 5); ?>px * 0.6) !important;
+                max-width: calc(100vw - 60px) !important;
+            }
+        }
+    </style>
+    <?php
+}
+add_action('wp_head', 'mjpropiedades_logo_sizes_css');
+
+// Agregar CSS dinámico para el logo del footer
+function mjpropiedades_footer_logo_css() {
+    $footer_logo_size = get_theme_mod('mjpropiedades_footer_logo_size', 'medium');
+    $footer_logo_custom_size = get_theme_mod('mjpropiedades_footer_logo_custom_size', '80');
+    $footer_logo_position = get_theme_mod('mjpropiedades_footer_logo_position', 'left');
+    $footer_logo_show_text = get_theme_mod('mjpropiedades_footer_logo_show_text', true);
+    
+    // Determinar el tamaño final
+    $final_size = $footer_logo_size === 'custom' ? $footer_logo_custom_size : 
+                  ($footer_logo_size === 'small' ? 60 : 
+                   ($footer_logo_size === 'large' ? 120 : 80));
+    
+    ?>
+    <style type="text/css">
+        /* Estilos para el logo del footer */
+        .footer-brand {
+            text-align: <?php echo esc_attr($footer_logo_position); ?> !important;
+        }
+        
+        .footer-logo img,
+        .footer-logo-text {
+            max-height: <?php echo esc_attr($final_size); ?>px !important;
+            width: auto !important;
+            max-width: <?php echo esc_attr($final_size * 2); ?>px !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+        
+        /* Ajustes para el texto descriptivo */
+        <?php if (!$footer_logo_show_text): ?>
+        .footer-brand p {
+            display: none !important;
+        }
+        <?php endif; ?>
+        
+        /* Centrado del contenido del footer-brand cuando está centrado */
+        <?php if ($footer_logo_position === 'center'): ?>
+        .footer-brand {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+        }
+        
+        .footer-brand .social-icons {
+            justify-content: center !important;
+        }
+        <?php elseif ($footer_logo_position === 'right'): ?>
+        .footer-brand {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-end !important;
+        }
+        
+        .footer-brand .social-icons {
+            justify-content: flex-end !important;
+        }
+        <?php else: ?>
+        .footer-brand {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        
+        .footer-brand .social-icons {
+            justify-content: flex-start !important;
+        }
+        <?php endif; ?>
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .footer-logo img,
+            .footer-logo-text {
+                max-height: <?php echo esc_attr($final_size * 0.8); ?>px !important;
+                max-width: <?php echo esc_attr($final_size * 1.6); ?>px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .footer-logo img,
+            .footer-logo-text {
+                max-height: <?php echo esc_attr($final_size * 0.7); ?>px !important;
+                max-width: <?php echo esc_attr($final_size * 1.4); ?>px !important;
+            }
+            
+            /* En móviles, siempre centrar el logo */
+            .footer-brand {
+                text-align: center !important;
+                align-items: center !important;
+            }
+            
+            .footer-brand .social-icons {
+                justify-content: center !important;
+            }
+        }
+        
+        /* Asegurar que el logo mantenga proporciones */
+        .footer-logo img {
+            object-fit: contain !important;
+            object-position: <?php echo esc_attr($footer_logo_position); ?> center !important;
+        }
+        
+        /* Estilos para el fallback de texto */
+        .footer-logo-text .logo-plus-propiedades {
+            font-size: <?php echo esc_attr($final_size * 0.3); ?>px !important;
+            line-height: 1 !important;
+            height: auto !important;
+            max-width: <?php echo esc_attr($final_size * 2); ?>px !important;
+            display: inline-block !important;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-logo-text .logo-plus-propiedades {
+                font-size: <?php echo esc_attr($final_size * 0.25); ?>px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .footer-logo-text .logo-plus-propiedades {
+                font-size: <?php echo esc_attr($final_size * 0.2); ?>px !important;
+            }
+        }
+    </style>
+    <?php
+}
+add_action('wp_head', 'mjpropiedades_footer_logo_css');
+
+// Agregar JavaScript para vista previa en tiempo real en el Customizer
+function mjpropiedades_customizer_preview_js() {
+    ?>
+    <script type="text/javascript">
+    (function($) {
+        'use strict';
+        
+        // Vista previa de tamaños de logo
+        wp.customize('mjpropiedades_logo_height_desktop', function(value) {
+            value.bind(function(newval) {
+                $('.header .custom-logo').css('max-height', newval + 'px');
+                $('.header .logo-plus-propiedades').css('font-size', 'calc(' + newval + 'px * 0.6)');
+            });
+        });
+        
+        wp.customize('mjpropiedades_logo_height_tablet', function(value) {
+            value.bind(function(newval) {
+                if ($(window).width() <= 1024) {
+                    $('.header .custom-logo').css('max-height', newval + 'px');
+                    $('.header .logo-plus-propiedades').css('font-size', 'calc(' + newval + 'px * 0.6)');
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_logo_height_mobile', function(value) {
+            value.bind(function(newval) {
+                if ($(window).width() <= 768) {
+                    $('.header .custom-logo').css('max-height', newval + 'px');
+                    $('.header .logo-plus-propiedades').css('font-size', 'calc(' + newval + 'px * 0.6)');
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_logo_max_width', function(value) {
+            value.bind(function(newval) {
+                $('.header .custom-logo, .header .custom-logo-link, .header .logo-plus-propiedades').css('max-width', newval + 'px');
+            });
+        });
+        
+        // Vista previa de colores del menú
+        wp.customize('mjpropiedades_header_background_color', function(value) {
+            value.bind(function(newval) {
+                $('.header').css('background-color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_menu_text_color', function(value) {
+            value.bind(function(newval) {
+                $('.nav-menu a, .mobile-nav-menu a').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_menu_hover_color', function(value) {
+            value.bind(function(newval) {
+                $('.nav-menu a:hover, .mobile-nav-menu a:hover').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_contact_button_color', function(value) {
+            value.bind(function(newval) {
+                $('.contact-btn, .mobile-contact-btn').css('background-color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_contact_button_text_color', function(value) {
+            value.bind(function(newval) {
+                $('.contact-btn, .mobile-contact-btn').css('color', newval);
+            });
+        });
+        
+        // Vista previa del logo del footer
+        wp.customize('mjpropiedades_footer_logo_image', function(value) {
+            value.bind(function(newval) {
+                if (newval) {
+                    // Si hay una imagen seleccionada, actualizar el logo del footer
+                    var logoUrl = wp.media.attachment(newval).get('url');
+                    $('.footer-logo img').attr('src', logoUrl);
+                    $('.footer-logo').show();
+                    $('.footer-logo-text').hide();
+                } else {
+                    // Si no hay imagen, mostrar el texto del logo
+                    $('.footer-logo').hide();
+                    $('.footer-logo-text').show();
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_position', function(value) {
+            value.bind(function(newval) {
+                $('.footer-brand').css('text-align', newval);
+                if (newval === 'center') {
+                    $('.footer-brand').css({
+                        'display': 'flex',
+                        'flex-direction': 'column',
+                        'align-items': 'center'
+                    });
+                    $('.footer-brand .social-icons').css('justify-content', 'center');
+                } else if (newval === 'right') {
+                    $('.footer-brand').css({
+                        'display': 'flex',
+                        'flex-direction': 'column',
+                        'align-items': 'flex-end'
+                    });
+                    $('.footer-brand .social-icons').css('justify-content', 'flex-end');
+                } else {
+                    $('.footer-brand').css({
+                        'display': 'flex',
+                        'flex-direction': 'column',
+                        'align-items': 'flex-start'
+                    });
+                    $('.footer-brand .social-icons').css('justify-content', 'flex-start');
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_size', function(value) {
+            value.bind(function(newval) {
+                var size = newval === 'small' ? 60 : newval === 'large' ? 120 : 80;
+                $('.footer-logo img, .footer-logo-text').css({
+                    'max-height': size + 'px',
+                    'max-width': (size * 2) + 'px'
+                });
+                $('.footer-logo-text .logo-plus-propiedades').css('font-size', (size * 0.3) + 'px');
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_custom_size', function(value) {
+            value.bind(function(newval) {
+                var size = parseInt(newval);
+                $('.footer-logo img, .footer-logo-text').css({
+                    'max-height': size + 'px',
+                    'max-width': (size * 2) + 'px'
+                });
+                $('.footer-logo-text .logo-plus-propiedades').css('font-size', (size * 0.3) + 'px');
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_show_text', function(value) {
+            value.bind(function(newval) {
+                if (newval) {
+                    $('.footer-brand p').show();
+                } else {
+                    $('.footer-brand p').hide();
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_text', function(value) {
+            value.bind(function(newval) {
+                $('.footer-brand p').text(newval);
+            });
+        });
+        
+    })(jQuery);
+    </script>
+    <?php
+}
+add_action('customize_preview_init', 'mjpropiedades_customizer_preview_js');
+
 
 // Función de sanitización para la alineación del menú
 function mjpropiedades_sanitize_menu_alignment($input) {
@@ -1796,6 +2617,153 @@ function mjpropiedades_sanitize_text_alignment($input) {
     $valid = array('left', 'center', 'right');
     return in_array($input, $valid) ? $input : 'center';
 }
+
+// Función de sanitización para los presets de colores
+function mjpropiedades_sanitize_color_preset($input) {
+    $valid = array('default', 'blue', 'dark', 'light', 'green', 'purple', 'orange');
+    return in_array($input, $valid) ? $input : 'default';
+}
+
+// Función de sanitización para los presets de tamaño de logo
+function mjpropiedades_sanitize_logo_size_preset($input) {
+    $valid = array('small', 'medium', 'large', 'custom');
+    return in_array($input, $valid) ? $input : 'medium';
+}
+
+// Función de sanitización para la posición del logo del footer
+function mjpropiedades_sanitize_logo_position($input) {
+    $valid = array('left', 'center', 'right');
+    return in_array($input, $valid) ? $input : 'left';
+}
+
+// Función de sanitización para el tamaño del logo del footer
+function mjpropiedades_sanitize_footer_logo_size($input) {
+    $valid = array('small', 'medium', 'large', 'custom');
+    return in_array($input, $valid) ? $input : 'medium';
+}
+
+// Función para aplicar presets de colores automáticamente
+function mjpropiedades_apply_color_preset() {
+    $preset = get_theme_mod('mjpropiedades_menu_color_preset', 'default');
+    
+    if ($preset === 'default') {
+        return; // No aplicar cambios si es personalizado
+    }
+    
+    $color_schemes = array(
+        'blue' => array(
+            'header_bg' => '#1e40af',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#93c5fd',
+            'button_bg' => '#3b82f6',
+            'button_text' => '#ffffff'
+        ),
+        'dark' => array(
+            'header_bg' => '#1f2937',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#60a5fa',
+            'button_bg' => '#374151',
+            'button_text' => '#ffffff'
+        ),
+        'light' => array(
+            'header_bg' => '#f8fafc',
+            'menu_text' => '#475569',
+            'menu_hover' => '#1e40af',
+            'button_bg' => '#64748b',
+            'button_text' => '#ffffff'
+        ),
+        'green' => array(
+            'header_bg' => '#059669',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#a7f3d0',
+            'button_bg' => '#10b981',
+            'button_text' => '#ffffff'
+        ),
+        'purple' => array(
+            'header_bg' => '#7c3aed',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#c4b5fd',
+            'button_bg' => '#8b5cf6',
+            'button_text' => '#ffffff'
+        ),
+        'orange' => array(
+            'header_bg' => '#ea580c',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#fed7aa',
+            'button_bg' => '#f97316',
+            'button_text' => '#ffffff'
+        )
+    );
+    
+    if (isset($color_schemes[$preset])) {
+        $scheme = $color_schemes[$preset];
+        set_theme_mod('mjpropiedades_header_background_color', $scheme['header_bg']);
+        set_theme_mod('mjpropiedades_menu_text_color', $scheme['menu_text']);
+        set_theme_mod('mjpropiedades_menu_hover_color', $scheme['menu_hover']);
+        set_theme_mod('mjpropiedades_contact_button_color', $scheme['button_bg']);
+        set_theme_mod('mjpropiedades_contact_button_text_color', $scheme['button_text']);
+    }
+}
+add_action('customize_save_after', 'mjpropiedades_apply_color_preset');
+
+// Función para aplicar presets de tamaño de logo automáticamente
+function mjpropiedades_apply_logo_size_preset() {
+    $preset = get_theme_mod('mjpropiedades_logo_size_preset', 'medium');
+    
+    if ($preset === 'custom') {
+        return; // No aplicar cambios si es personalizado
+    }
+    
+    $size_schemes = array(
+        'small' => array(
+            'desktop' => 30,
+            'tablet'  => 28,
+            'mobile'  => 25,
+            'width'   => 120
+        ),
+        'medium' => array(
+            'desktop' => 50,
+            'tablet'  => 45,
+            'mobile'  => 40,
+            'width'   => 200
+        ),
+        'large' => array(
+            'desktop' => 70,
+            'tablet'  => 60,
+            'mobile'  => 50,
+            'width'   => 280
+        )
+    );
+    
+    if (isset($size_schemes[$preset])) {
+        $scheme = $size_schemes[$preset];
+        set_theme_mod('mjpropiedades_logo_height_desktop', $scheme['desktop']);
+        set_theme_mod('mjpropiedades_logo_height_tablet', $scheme['tablet']);
+        set_theme_mod('mjpropiedades_logo_height_mobile', $scheme['mobile']);
+        set_theme_mod('mjpropiedades_logo_max_width', $scheme['width']);
+    }
+}
+add_action('customize_save_after', 'mjpropiedades_apply_logo_size_preset');
+
+// Función para aplicar presets de tamaño del logo del footer automáticamente
+function mjpropiedades_apply_footer_logo_size_preset() {
+    $preset = get_theme_mod('mjpropiedades_footer_logo_size', 'medium');
+    
+    if ($preset === 'custom') {
+        return; // No aplicar cambios si es personalizado
+    }
+    
+    $size_schemes = array(
+        'small' => 60,
+        'medium' => 80,
+        'large' => 120
+    );
+    
+    if (isset($size_schemes[$preset])) {
+        set_theme_mod('mjpropiedades_footer_logo_custom_size', $size_schemes[$preset]);
+    }
+}
+add_action('customize_save_after', 'mjpropiedades_apply_footer_logo_size_preset');
 
 // Función para manejar plantillas de página
 function mjpropiedades_page_template($template) {
