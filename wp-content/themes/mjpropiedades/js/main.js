@@ -15,23 +15,67 @@ jQuery(document).ready(function($) {
         }
     });
     
+    // Funcionalidad de los sliders de precio
+    function formatPrice(value) {
+        return '$' + parseInt(value).toLocaleString('es-CL');
+    }
+    
+    // Slider precio mínimo
+    $('#search-precio-min').on('input', function() {
+        const value = $(this).val();
+        $('#precio-min-value').text(formatPrice(value));
+        
+        // Asegurar que el precio mínimo no sea mayor que el máximo
+        const maxValue = $('#search-precio-max').val();
+        if (parseInt(value) > parseInt(maxValue)) {
+            $('#search-precio-max').val(value);
+            $('#precio-max-value').text(formatPrice(value));
+        }
+    });
+    
+    // Slider precio máximo
+    $('#search-precio-max').on('input', function() {
+        const value = $(this).val();
+        $('#precio-max-value').text(formatPrice(value));
+        
+        // Asegurar que el precio máximo no sea menor que el mínimo
+        const minValue = $('#search-precio-min').val();
+        if (parseInt(value) < parseInt(minValue)) {
+            $('#search-precio-min').val(value);
+            $('#precio-min-value').text(formatPrice(value));
+        }
+    });
+    
+    // Inicializar valores de los sliders
+    $('#precio-min-value').text(formatPrice($('#search-precio-min').val()));
+    $('#precio-max-value').text(formatPrice($('#search-precio-max').val()));
+    
     // Carousel functionality
 let currentSlide = 0;
 const $dots = $('.dot');
 const $slides = $('.hero-slide');
+const $slideContents = $('.slide-content');
 const totalSlides = $dots.length;
 
 function updateCarousel() {
     // Actualizar dots
     $dots.removeClass('active').eq(currentSlide).addClass('active');
     
-    // Actualizar slides
+    // Actualizar slides de fondo
     $slides.removeClass('active').eq(currentSlide).addClass('active');
+    
+    // Actualizar contenido de las diapositivas
+    $slideContents.removeClass('active').eq(currentSlide).addClass('active');
 }
 
 if ($dots.length > 0) {
     $dots.on('click', function() {
-        currentSlide = $(this).index();
+        const slideIndex = $(this).data('slide');
+        if (slideIndex !== undefined) {
+            currentSlide = slideIndex;
+        } else {
+            currentSlide = $(this).index();
+        }
         updateCarousel();
     });
     
@@ -50,7 +94,7 @@ if ($dots.length > 0) {
     setInterval(() => {
         currentSlide = (currentSlide + 1) % totalSlides;
         updateCarousel();
-    }, 5000);
+    }, 6000); // Aumentado a 6 segundos para mejor experiencia
 }
     
     // Form submission con AJAX
@@ -403,5 +447,210 @@ jQuery(document).ready(function($) {
                 location.reload();
             }
         }, 1000);
+    }
+});
+
+// Funcionalidades específicas para la página de propiedades
+jQuery(document).ready(function($) {
+    
+    // Solo ejecutar si estamos en la página de propiedades
+    if ($('.properties-page').length) {
+        
+        // Toggle de filtros en mobile
+        $('.filters-toggle').on('click', function() {
+            $(this).toggleClass('active');
+            $('.filters-content').toggleClass('active');
+        });
+        
+        // Cambio de vista (grid/list)
+        $('.view-btn').on('click', function() {
+            $('.view-btn').removeClass('active');
+            $(this).addClass('active');
+            
+            const view = $(this).data('view');
+            const grid = $('#properties-grid');
+            
+            if (view === 'list') {
+                grid.addClass('list-view');
+            } else {
+                grid.removeClass('list-view');
+            }
+        });
+        
+        // Ordenamiento
+        $('#sort-by').on('change', function() {
+            const sortValue = $(this).val();
+            const url = new URL(window.location);
+            url.searchParams.set('sort', sortValue);
+            window.location.href = url.toString();
+        });
+        
+        // Favoritos
+        $('.property-favorite').on('click', function(e) {
+            e.preventDefault();
+            $(this).toggleClass('active');
+            
+            if ($(this).hasClass('active')) {
+                $(this).find('svg').css('fill', '#ff6b35');
+                // Aquí podrías agregar lógica para guardar en localStorage o enviar al servidor
+                localStorage.setItem('favorite_' + $(this).closest('.property-card').data('id'), 'true');
+            } else {
+                $(this).find('svg').css('fill', 'currentColor');
+                localStorage.removeItem('favorite_' + $(this).closest('.property-card').data('id'));
+            }
+        });
+        
+        // Compartir
+        $('.property-share').on('click', function(e) {
+            e.preventDefault();
+            
+            const propertyCard = $(this).closest('.property-card');
+            const title = propertyCard.find('.property-title a').text();
+            const url = propertyCard.find('.property-title a').attr('href');
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    url: url
+                });
+            } else {
+                // Fallback: copiar URL al portapapeles
+                navigator.clipboard.writeText(url).then(function() {
+                    alert('URL copiada al portapapeles');
+                });
+            }
+        });
+        
+        // Auto-submit del formulario de filtros cuando cambian los selects
+        $('.filter-select').on('change', function() {
+            $(this).closest('form').submit();
+        });
+        
+        // Sliders de rango de precio mejorados
+        function formatPrice(value) {
+            return '$' + parseInt(value).toLocaleString('es-CL');
+        }
+        
+        // Slider precio mínimo
+        $('#precio-min-slider').on('input', function() {
+            const value = $(this).val();
+            $('#filter-precio-min').val(value);
+            $('.price-min-label').text(formatPrice(value));
+            
+            // Asegurar que el precio mínimo no sea mayor que el máximo
+            const maxValue = $('#precio-max-slider').val();
+            if (parseInt(value) > parseInt(maxValue)) {
+                $('#precio-max-slider').val(value);
+                $('#filter-precio-max').val(value);
+                $('.price-max-label').text(formatPrice(value));
+            }
+        });
+        
+        // Slider precio máximo
+        $('#precio-max-slider').on('input', function() {
+            const value = $(this).val();
+            $('#filter-precio-max').val(value);
+            $('.price-max-label').text(formatPrice(value));
+            
+            // Asegurar que el precio máximo no sea menor que el mínimo
+            const minValue = $('#precio-min-slider').val();
+            if (parseInt(value) < parseInt(minValue)) {
+                $('#precio-min-slider').val(value);
+                $('#filter-precio-min').val(value);
+                $('.price-min-label').text(formatPrice(value));
+            }
+        });
+        
+        // Inputs de precio
+        $('#filter-precio-min').on('input', function() {
+            const value = $(this).val();
+            $('#precio-min-slider').val(value);
+            $('.price-min-label').text(formatPrice(value));
+        });
+        
+        $('#filter-precio-max').on('input', function() {
+            const value = $(this).val();
+            $('#precio-max-slider').val(value);
+            $('.price-max-label').text(formatPrice(value));
+        });
+        
+        // Inicializar valores de los sliders
+        if ($('#precio-min-slider').length) {
+            $('.price-min-label').text(formatPrice($('#precio-min-slider').val()));
+            $('.price-max-label').text(formatPrice($('#precio-max-slider').val()));
+        }
+        
+        // Cargar favoritos guardados
+        $('.property-card').each(function() {
+            const cardId = $(this).data('id');
+            if (cardId && localStorage.getItem('favorite_' + cardId)) {
+                $(this).find('.property-favorite').addClass('active').find('svg').css('fill', '#ff6b35');
+            }
+        });
+        
+        // Animaciones de entrada para las tarjetas
+        const propertyObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+        
+        $('.property-card').each(function(index) {
+            $(this).css({
+                'opacity': '0',
+                'transform': 'translateY(20px)',
+                'transition': 'opacity 0.6s ease, transform 0.6s ease',
+                'transition-delay': (index * 0.1) + 's'
+            });
+            propertyObserver.observe(this);
+        });
+        
+        // Mejorar accesibilidad
+        $('.property-card').attr('tabindex', '0').on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                $(this).find('.property-title a')[0].click();
+            }
+        });
+        
+        // Loading state para el formulario de filtros
+        $('.filters-form').on('submit', function() {
+            const $form = $(this);
+            const $submitBtn = $form.find('.filter-btn.primary');
+            const originalText = $submitBtn.text();
+            
+            $submitBtn.text('Buscando...').prop('disabled', true);
+            
+            // Re-habilitar después de un tiempo
+            setTimeout(() => {
+                $submitBtn.text(originalText).prop('disabled', false);
+            }, 2000);
+        });
+        
+        // Smooth scroll para paginación
+        $('.pagination a').on('click', function(e) {
+            e.preventDefault();
+            const href = $(this).attr('href');
+            
+            $('html, body').animate({
+                scrollTop: $('.properties-results').offset().top - 100
+            }, 500, function() {
+                window.location.href = href;
+            });
+        });
+        
+        // Mejorar UX en móviles
+        if ($(window).width() < 768) {
+            // Hacer que las tarjetas sean más táctiles
+            $('.property-card').on('touchstart', function() {
+                $(this).addClass('touch-active');
+            }).on('touchend', function() {
+                $(this).removeClass('touch-active');
+            });
+        }
     }
 });

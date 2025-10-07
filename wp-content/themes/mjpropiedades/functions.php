@@ -1,6 +1,6 @@
 <?php
 /**
- * María José Propiedades Theme Functions
+ * Home Isa Propiedades Theme Functions
  */
 
 // Evitar acceso directo
@@ -320,6 +320,33 @@ function mjpropiedades_add_property_meta_boxes() {
     );
 }
 add_action('add_meta_boxes', 'mjpropiedades_add_property_meta_boxes');
+
+// Agregar meta box para propiedades destacadas
+function mjpropiedades_add_featured_property_meta_box() {
+    add_meta_box(
+        'featured_property',
+        'Propiedad Destacada',
+        'mjpropiedades_featured_property_callback',
+        'propiedad',
+        'side',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'mjpropiedades_add_featured_property_meta_box');
+
+// Callback para propiedad destacada
+function mjpropiedades_featured_property_callback($post) {
+    wp_nonce_field('mjpropiedades_featured_property_nonce', 'featured_property_nonce');
+    
+    $featured = get_post_meta($post->ID, '_featured_property', true);
+    $featured_checked = $featured ? 'checked' : '';
+    
+    echo '<p><label for="featured_property">';
+    echo '<input type="checkbox" id="featured_property" name="featured_property" value="1" ' . $featured_checked . '> ';
+    echo '⭐ Marcar como Propiedad Destacada';
+    echo '</label></p>';
+    echo '<p class="description">Las propiedades destacadas aparecerán en la página principal.</p>';
+}
 
 // Callback para información básica
 function mjpropiedades_property_basic_info_callback($post) {
@@ -761,6 +788,84 @@ function mjpropiedades_save_property_meta($post_id) {
 }
 add_action('save_post', 'mjpropiedades_save_property_meta');
 
+// Guardar campo destacada
+function mjpropiedades_save_featured_property($post_id) {
+    // Verificar nonce
+    if (!isset($_POST['featured_property_nonce']) || !wp_verify_nonce($_POST['featured_property_nonce'], 'mjpropiedades_featured_property_nonce')) {
+        return;
+    }
+    
+    // Verificar permisos
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+    
+    // Solo para propiedades
+    if (get_post_type($post_id) !== 'propiedad') {
+        return;
+    }
+    
+    // Guardar campo destacada
+    if (isset($_POST['featured_property'])) {
+        update_post_meta($post_id, '_featured_property', '1');
+    } else {
+        delete_post_meta($post_id, '_featured_property');
+    }
+}
+add_action('save_post', 'mjpropiedades_save_featured_property');
+
+// Función para obtener propiedades destacadas
+function mjpropiedades_get_featured_properties($limit = 6) {
+    $args = array(
+        'post_type' => 'propiedad',
+        'posts_per_page' => $limit,
+        'post_status' => 'publish',
+        'meta_query' => array(
+            array(
+                'key' => '_featured_property',
+                'value' => '1',
+                'compare' => '='
+            )
+        ),
+        'orderby' => 'date',
+        'order' => 'DESC'
+    );
+    
+    return get_posts($args);
+}
+
+// Función para obtener propiedades destacadas por operación
+function mjpropiedades_get_featured_properties_by_operation($operacion = '', $limit = 6) {
+    $meta_query = array(
+        'relation' => 'AND',
+        array(
+            'key' => '_featured_property',
+            'value' => '1',
+            'compare' => '='
+        )
+    );
+    
+    // Si se especifica operación, agregar filtro
+    if (!empty($operacion)) {
+        $meta_query[] = array(
+            'key' => '_propiedad_operacion',
+            'value' => $operacion,
+            'compare' => '='
+        );
+    }
+    
+    $args = array(
+        'post_type' => 'propiedad',
+        'posts_per_page' => $limit,
+        'post_status' => 'publish',
+        'meta_query' => $meta_query,
+        'orderby' => 'date',
+        'order' => 'DESC'
+    );
+    
+    return get_posts($args);
+}
+
 // Función para obtener propiedades
 function mjpropiedades_get_properties($operacion = '', $limit = -1) {
     $args = array(
@@ -860,99 +965,674 @@ function mjpropiedades_display_properties($operacion = 'venta', $limit = 3) {
 
 // Agregar soporte para Customizer
 function mjpropiedades_customize_register($wp_customize) {
-    // Sección de información de contacto
-    $wp_customize->add_section('mjpropiedades_contact', array(
-        'title'    => __('Información de Contacto', 'mjpropiedades'),
-        'priority' => 30,
+    // ===== CONFIGURACIÓN DEL LOGO EN IDENTIDAD DEL SITIO =====
+    
+    // Altura máxima del logo en desktop
+    $wp_customize->add_setting('mjpropiedades_logo_height_desktop', array(
+        'default'           => '50',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
     ));
     
-    // Sección de imágenes del hero
+    $wp_customize->add_control('mjpropiedades_logo_height_desktop', array(
+        'label'       => __('Altura del Logo en Desktop (px)', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 20,
+            'max'  => 150,
+            'step' => 5,
+        ),
+        'description' => __('Controla la altura máxima del logo en pantallas de escritorio (20-150px)', 'mjpropiedades'),
+        'priority'    => 8,
+    ));
+    
+    // Altura máxima del logo en tablet
+    $wp_customize->add_setting('mjpropiedades_logo_height_tablet', array(
+        'default'           => '45',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_height_tablet', array(
+        'label'       => __('Altura del Logo en Tablet (px)', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 15,
+            'max'  => 120,
+            'step' => 5,
+        ),
+        'description' => __('Controla la altura máxima del logo en tablets (15-120px)', 'mjpropiedades'),
+        'priority'    => 9,
+    ));
+    
+    // Altura máxima del logo en móvil
+    $wp_customize->add_setting('mjpropiedades_logo_height_mobile', array(
+        'default'           => '40',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_height_mobile', array(
+        'label'       => __('Altura del Logo en Móvil (px)', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 15,
+            'max'  => 80,
+            'step' => 5,
+        ),
+        'description' => __('Controla la altura máxima del logo en dispositivos móviles (15-80px)', 'mjpropiedades'),
+        'priority'    => 10,
+    ));
+    
+    // Ancho máximo del logo
+    $wp_customize->add_setting('mjpropiedades_logo_max_width', array(
+        'default'           => '200',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_max_width', array(
+        'label'       => __('Ancho Máximo del Logo (px)', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 50,
+            'max'  => 400,
+            'step' => 10,
+        ),
+        'description' => __('Controla el ancho máximo del logo en todas las pantallas (50-400px)', 'mjpropiedades'),
+        'priority'    => 11,
+    ));
+    
+    // Presets de tamaño de logo
+    $wp_customize->add_setting('mjpropiedades_logo_size_preset', array(
+        'default'           => 'medium',
+        'sanitize_callback' => 'mjpropiedades_sanitize_logo_size_preset',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_size_preset', array(
+        'label'       => __('Presets de Tamaño de Logo', 'mjpropiedades'),
+        'section'     => 'title_tagline',
+        'type'        => 'select',
+        'choices'     => array(
+            'small'  => __('Pequeño (30px)', 'mjpropiedades'),
+            'medium' => __('Mediano (50px)', 'mjpropiedades'),
+            'large'  => __('Grande (70px)', 'mjpropiedades'),
+            'custom' => __('Personalizado', 'mjpropiedades'),
+        ),
+        'description' => __('Selecciona un tamaño predefinido o personaliza manualmente', 'mjpropiedades'),
+        'priority'    => 12,
+    ));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_logo_separator', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_logo_separator', array(
+        'label' => '',
+        'section' => 'title_tagline',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+        'priority' => 13,
+    ));
+    
+    // ===== SECCIÓN DE LOGO DEL FOOTER =====
+    $wp_customize->add_section('mjpropiedades_footer_logo', array(
+        'title'    => __('Logo del Footer', 'mjpropiedades'),
+        'priority' => 28,
+        'description' => __('Configura el logo específico para el footer, independiente del logo del header', 'mjpropiedades'),
+    ));
+    
+    // Logo del footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Media_Control($wp_customize, 'mjpropiedades_footer_logo_image', array(
+        'label'     => __('Logo del Footer', 'mjpropiedades'),
+        'section'   => 'mjpropiedades_footer_logo',
+        'mime_type' => 'image',
+        'description' => __('Selecciona una imagen para el logo del footer. Si no se selecciona, se usará el logo del header.', 'mjpropiedades'),
+    )));
+    
+    // Posicionamiento del logo en el footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_position', array(
+        'default'           => 'left',
+        'sanitize_callback' => 'mjpropiedades_sanitize_logo_position',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_position', array(
+        'label'       => __('Posición del Logo en el Footer', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'select',
+        'choices'     => array(
+            'left'   => __('Izquierda', 'mjpropiedades'),
+            'center' => __('Centro', 'mjpropiedades'),
+            'right'  => __('Derecha', 'mjpropiedades'),
+        ),
+        'description' => __('Selecciona dónde quieres que aparezca el logo en el footer', 'mjpropiedades'),
+    ));
+    
+    // Tamaño del logo del footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_size', array(
+        'default'           => 'medium',
+        'sanitize_callback' => 'mjpropiedades_sanitize_footer_logo_size',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_size', array(
+        'label'       => __('Tamaño del Logo del Footer', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'select',
+        'choices'     => array(
+            'small'  => __('Pequeño (60px)', 'mjpropiedades'),
+            'medium' => __('Mediano (80px)', 'mjpropiedades'),
+            'large'  => __('Grande (120px)', 'mjpropiedades'),
+            'custom' => __('Personalizado', 'mjpropiedades'),
+        ),
+        'description' => __('Selecciona el tamaño del logo en el footer', 'mjpropiedades'),
+    ));
+    
+    // Tamaño personalizado del logo del footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_custom_size', array(
+        'default'           => '80',
+        'sanitize_callback' => 'absint',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_custom_size', array(
+        'label'       => __('Tamaño Personalizado (px)', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 30,
+            'max'  => 200,
+            'step' => 5,
+        ),
+        'description' => __('Especifica el tamaño exacto del logo en píxeles (30-200px)', 'mjpropiedades'),
+    ));
+    
+    // Mostrar texto alternativo junto al logo
+    $wp_customize->add_setting('mjpropiedades_footer_logo_show_text', array(
+        'default'           => true,
+        'sanitize_callback' => 'wp_validate_boolean',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_show_text', array(
+        'label'       => __('Mostrar Texto Descriptivo', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'checkbox',
+        'description' => __('Muestra el texto descriptivo debajo del logo', 'mjpropiedades'),
+    ));
+    
+    // Texto personalizado del footer
+    $wp_customize->add_setting('mjpropiedades_footer_logo_text', array(
+        'default'           => 'Tu corredora de confianza especializada en la Cuarta Región de Chile.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'transport'         => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_text', array(
+        'label'       => __('Texto Descriptivo del Footer', 'mjpropiedades'),
+        'section'     => 'mjpropiedades_footer_logo',
+        'type'        => 'textarea',
+        'description' => __('Texto que aparece debajo del logo en el footer', 'mjpropiedades'),
+    ));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_footer_logo_separator', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_footer_logo_separator', array(
+        'label' => '',
+        'section' => 'mjpropiedades_footer_logo',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
+    // Sección del Hero Slider
     $wp_customize->add_section('mjpropiedades_hero', array(
-        'title'    => __('Imágenes del Hero', 'mjpropiedades'),
+        'title'    => __('Hero Slider', 'mjpropiedades'),
         'priority' => 25,
     ));
     
-    // Hero Image 1
+    // Hero Image 1 - Compra de Propiedades
     $wp_customize->add_setting('mjpropiedades_hero_1', array(
         'default'           => '',
         'sanitize_callback' => 'absint',
     ));
     
     $wp_customize->add_control(new WP_Customize_Media_Control($wp_customize, 'mjpropiedades_hero_1', array(
-        'label'   => __('Imagen Hero 1', 'mjpropiedades'),
+        'label'   => __('Diapositiva 1 - Imagen de Fondo (Compra)', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'mime_type' => 'image',
     )));
     
-    // Hero Image 2
+    // Contenido Diapositiva 1
+    $wp_customize->add_setting('mjpropiedades_slide_1_tag', array(
+        'default' => 'Compra de Propiedades',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_tag', array(
+        'label' => __('Diapositiva 1 - Tag', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_1_title', array(
+        'default' => 'Encuentra tu Hogar Ideal en Chile',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_title', array(
+        'label' => __('Diapositiva 1 - Título', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_1_description', array(
+        'default' => 'Atendemos en Copiapó, Viña del Mar, La Serena y nos expandimos a más ciudades. Descubre propiedades exclusivas con asesoría personalizada y certificada en todo el proceso de compra.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_description', array(
+        'label' => __('Diapositiva 1 - Descripción', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_1_btn_primary', array(
+        'default' => 'Ver Propiedades',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_btn_primary', array(
+        'label' => __('Diapositiva 1 - Botón Primario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_1_btn_secondary', array(
+        'default' => 'Solicitar Tasación',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_1_btn_secondary', array(
+        'label' => __('Diapositiva 1 - Botón Secundario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_hero_separator_1', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_hero_separator_1', array(
+        'label' => '',
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
+    // Hero Image 2 - Venta de Propiedades
     $wp_customize->add_setting('mjpropiedades_hero_2', array(
         'default'           => '',
         'sanitize_callback' => 'absint',
     ));
     
     $wp_customize->add_control(new WP_Customize_Media_Control($wp_customize, 'mjpropiedades_hero_2', array(
-        'label'   => __('Imagen Hero 2', 'mjpropiedades'),
+        'label'   => __('Diapositiva 2 - Imagen de Fondo (Venta)', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'mime_type' => 'image',
     )));
     
-    // Hero Image 3
+    // Contenido Diapositiva 2
+    $wp_customize->add_setting('mjpropiedades_slide_2_tag', array(
+        'default' => 'Venta de Propiedades',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_tag', array(
+        'label' => __('Diapositiva 2 - Tag', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_2_title', array(
+        'default' => 'Vende tu Propiedad al Mejor Precio',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_title', array(
+        'label' => __('Diapositiva 2 - Título', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_2_description', array(
+        'default' => '¿Tienes una propiedad para vender? Te ayudamos a obtener el mejor valor de mercado. Servicios profesionales de tasación y comercialización en Copiapó, Viña del Mar, La Serena y próximamente en más ciudades.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_description', array(
+        'label' => __('Diapositiva 2 - Descripción', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'textarea',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_2_btn_primary', array(
+        'default' => 'Solicitar Tasación',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_btn_primary', array(
+        'label' => __('Diapositiva 2 - Botón Primario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_2_btn_secondary', array(
+        'default' => 'Ver Propiedades',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_2_btn_secondary', array(
+        'label' => __('Diapositiva 2 - Botón Secundario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_hero_separator_2', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_hero_separator_2', array(
+        'label' => '',
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
+    // Hero Image 3 - Arriendo de Propiedades
     $wp_customize->add_setting('mjpropiedades_hero_3', array(
         'default'           => '',
         'sanitize_callback' => 'absint',
     ));
     
     $wp_customize->add_control(new WP_Customize_Media_Control($wp_customize, 'mjpropiedades_hero_3', array(
-        'label'   => __('Imagen Hero 3', 'mjpropiedades'),
+        'label'   => __('Diapositiva 3 - Imagen de Fondo (Arriendo)', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'mime_type' => 'image',
     )));
     
-    // Contenido del Hero
-    $wp_customize->add_setting('mjpropiedades_hero_tag', array(
-        'default' => 'Compra de Propiedades',
+    // Contenido Diapositiva 3
+    $wp_customize->add_setting('mjpropiedades_slide_3_tag', array(
+        'default' => 'Arriendo de Propiedades',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('mjpropiedades_hero_tag', array(
-        'label' => __('Tag del Hero', 'mjpropiedades'),
+    $wp_customize->add_control('mjpropiedades_slide_3_tag', array(
+        'label' => __('Diapositiva 3 - Tag', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'type' => 'text',
     ));
     
-    $wp_customize->add_setting('mjpropiedades_hero_title', array(
-        'default' => 'Encuentra el Hogar de tus Sueños en la Región de Coquimbo',
+    $wp_customize->add_setting('mjpropiedades_slide_3_title', array(
+        'default' => 'Arrienda o Arrienda tu Propiedad',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('mjpropiedades_hero_title', array(
-        'label' => __('Título del Hero', 'mjpropiedades'),
+    $wp_customize->add_control('mjpropiedades_slide_3_title', array(
+        'label' => __('Diapositiva 3 - Título', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'type' => 'text',
     ));
     
-    $wp_customize->add_setting('mjpropiedades_hero_description', array(
-        'default' => 'Descubre propiedades exclusivas en La Serena, Coquimbo y Ovalle. Asesoría personalizada y certificada en todo el proceso de compra y arriendo.',
+    $wp_customize->add_setting('mjpropiedades_slide_3_description', array(
+        'default' => 'Ya sea que busques arrendar o tengas una propiedad para arrendar, te conectamos con las mejores opciones. Servicio profesional en Copiapó, Viña del Mar, La Serena con expansión continua a nuevas ciudades.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
-    $wp_customize->add_control('mjpropiedades_hero_description', array(
-        'label' => __('Descripción del Hero', 'mjpropiedades'),
+    $wp_customize->add_control('mjpropiedades_slide_3_description', array(
+        'label' => __('Diapositiva 3 - Descripción', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'type' => 'textarea',
     ));
     
-    $wp_customize->add_setting('mjpropiedades_hero_button', array(
-        'default' => 'Buscar Propiedades',
+    $wp_customize->add_setting('mjpropiedades_slide_3_btn_primary', array(
+        'default' => 'Ver Arriendos',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('mjpropiedades_hero_button', array(
-        'label' => __('Texto del Botón', 'mjpropiedades'),
+    $wp_customize->add_control('mjpropiedades_slide_3_btn_primary', array(
+        'label' => __('Diapositiva 3 - Botón Primario', 'mjpropiedades'),
         'section' => 'mjpropiedades_hero',
         'type' => 'text',
     ));
+    
+    $wp_customize->add_setting('mjpropiedades_slide_3_btn_secondary', array(
+        'default' => 'Arrendar Propiedad',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_slide_3_btn_secondary', array(
+        'label' => __('Diapositiva 3 - Botón Secundario', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+    ));
+    
+    // Separador visual para colores
+    $wp_customize->add_setting('mjpropiedades_hero_colors_separator', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_hero_colors_separator', array(
+        'label' => '',
+        'section' => 'mjpropiedades_hero',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
+    // Color de las viñetas (tags)
+    $wp_customize->add_setting('mjpropiedades_hero_tag_color', array(
+        'default' => '#1e40af',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_hero_tag_color', array(
+        'label' => __('Color de las Viñetas (Tags)', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'description' => __('Selecciona el color de fondo de las viñetas que aparecen arriba de los títulos', 'mjpropiedades'),
+    )));
+    
+    // Color del texto de las viñetas
+    $wp_customize->add_setting('mjpropiedades_hero_tag_text_color', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_hero_tag_text_color', array(
+        'label' => __('Color del Texto de las Viñetas', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'description' => __('Selecciona el color del texto dentro de las viñetas', 'mjpropiedades'),
+    )));
+    
+    // Color de los títulos
+    $wp_customize->add_setting('mjpropiedades_hero_title_color', array(
+        'default' => '#1e293b',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_hero_title_color', array(
+        'label' => __('Color de los Títulos', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'description' => __('Selecciona el color de los títulos principales del slider', 'mjpropiedades'),
+    )));
+    
+    // Color de las descripciones
+    $wp_customize->add_setting('mjpropiedades_hero_description_color', array(
+        'default' => '#64748b',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_hero_description_color', array(
+        'label' => __('Color de las Descripciones', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'description' => __('Selecciona el color del texto de las descripciones', 'mjpropiedades'),
+    )));
+    
+    // Botón para resetear valores por defecto
+    $wp_customize->add_setting('mjpropiedades_hero_reset', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_hero_reset', array(
+        'label' => __('Resetear a Valores por Defecto', 'mjpropiedades'),
+        'section' => 'mjpropiedades_hero',
+        'type' => 'button',
+        'input_attrs' => array(
+            'value' => 'Resetear Valores',
+            'class' => 'button button-secondary',
+            'onclick' => 'mjpropiedadesResetHeroValues()',
+        ),
+    ));
+    
+    // Función para resetear valores del hero
+    function mjpropiedades_reset_hero_values() {
+        if (isset($_POST['action']) && $_POST['action'] === 'reset_hero_values') {
+            check_ajax_referer('reset_hero_values', 'nonce');
+            
+            // Valores por defecto
+            $default_values = array(
+                'mjpropiedades_slide_1_tag' => 'Compra de Propiedades',
+                'mjpropiedades_slide_1_title' => 'Encuentra tu Hogar Ideal en Chile',
+                'mjpropiedades_slide_1_description' => 'Atendemos en Copiapó, Viña del Mar, La Serena y nos expandimos a más ciudades. Descubre propiedades exclusivas con asesoría personalizada y certificada en todo el proceso de compra.',
+                'mjpropiedades_slide_1_btn_primary' => 'Ver Propiedades',
+                'mjpropiedades_slide_1_btn_secondary' => 'Solicitar Tasación',
+                
+                'mjpropiedades_slide_2_tag' => 'Venta de Propiedades',
+                'mjpropiedades_slide_2_title' => 'Vende tu Propiedad al Mejor Precio',
+                'mjpropiedades_slide_2_description' => '¿Tienes una propiedad para vender? Te ayudamos a obtener el mejor valor de mercado. Servicios profesionales de tasación y comercialización en Copiapó, Viña del Mar, La Serena y próximamente en más ciudades.',
+                'mjpropiedades_slide_2_btn_primary' => 'Solicitar Tasación',
+                'mjpropiedades_slide_2_btn_secondary' => 'Ver Propiedades',
+                
+                'mjpropiedades_slide_3_tag' => 'Arriendo de Propiedades',
+                'mjpropiedades_slide_3_title' => 'Arrienda o Arrienda tu Propiedad',
+                'mjpropiedades_slide_3_description' => 'Ya sea que busques arrendar o tengas una propiedad para arrendar, te conectamos con las mejores opciones. Servicio profesional en Copiapó, Viña del Mar, La Serena con expansión continua a nuevas ciudades.',
+                'mjpropiedades_slide_3_btn_primary' => 'Ver Arriendos',
+                'mjpropiedades_slide_3_btn_secondary' => 'Arrendar Propiedad',
+                
+                // Colores por defecto
+                'mjpropiedades_hero_tag_color' => '#1e40af',
+                'mjpropiedades_hero_tag_text_color' => '#ffffff',
+                'mjpropiedades_hero_title_color' => '#1e293b',
+                'mjpropiedades_hero_description_color' => '#64748b',
+            );
+            
+            // Actualizar valores
+            foreach ($default_values as $key => $value) {
+                set_theme_mod($key, $value);
+            }
+            
+            wp_send_json_success('Valores reseteados correctamente');
+        }
+    }
+    add_action('wp_ajax_reset_hero_values', 'mjpropiedades_reset_hero_values');
+    
+    // Agregar JavaScript al Customizer
+    function mjpropiedades_customizer_scripts() {
+        ?>
+        <script type="text/javascript">
+        function mjpropiedadesResetHeroValues() {
+            if (confirm('¿Estás seguro de que quieres resetear todos los valores del Hero Slider a los valores por defecto?')) {
+                jQuery.post(ajaxurl, {
+                    action: 'reset_hero_values',
+                    nonce: '<?php echo wp_create_nonce('reset_hero_values'); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        alert('Valores reseteados correctamente. Recarga la página para ver los cambios.');
+                        location.reload();
+                    } else {
+                        alert('Error al resetear los valores.');
+                    }
+                });
+            }
+        }
+        </script>
+        <?php
+    }
+    add_action('customize_controls_print_scripts', 'mjpropiedades_customizer_scripts');
+    
+    // Agregar CSS dinámico para los colores del hero
+    function mjpropiedades_hero_dynamic_css() {
+        $tag_color = get_theme_mod('mjpropiedades_hero_tag_color', '#1e40af');
+        $tag_text_color = get_theme_mod('mjpropiedades_hero_tag_text_color', '#ffffff');
+        $title_color = get_theme_mod('mjpropiedades_hero_title_color', '#1e293b');
+        $description_color = get_theme_mod('mjpropiedades_hero_description_color', '#64748b');
+        
+        $css = "
+        <style type='text/css' id='mjpropiedades-hero-colors'>
+        :root {
+            --hero-tag-color: {$tag_color} !important;
+            --hero-tag-text-color: {$tag_text_color} !important;
+            --hero-title-color: {$title_color} !important;
+            --hero-description-color: {$description_color} !important;
+        }
+        
+        .hero-tag {
+            background-color: {$tag_color} !important;
+            color: {$tag_text_color} !important;
+        }
+        
+        .hero-content h1 {
+            color: {$title_color} !important;
+        }
+        
+        .hero-description {
+            color: {$description_color} !important;
+        }
+        </style>
+        ";
+        
+        echo $css;
+    }
+    add_action('wp_head', 'mjpropiedades_hero_dynamic_css');
+    
+    // Limpiar caché cuando se cambien los colores del hero
+    function mjpropiedades_clear_cache_on_color_change() {
+        // Limpiar caché de WordPress si existe
+        if (function_exists('wp_cache_flush')) {
+            wp_cache_flush();
+        }
+        
+        // Limpiar caché de objetos si existe
+        if (function_exists('wp_cache_delete')) {
+            wp_cache_delete('mjpropiedades_hero_colors', 'theme_mods');
+        }
+    }
+    add_action('customize_save_after', 'mjpropiedades_clear_cache_on_color_change');
+    
+    // Agregar parámetros de versión para evitar caché
+    function mjpropiedades_add_version_to_css() {
+        return time(); // Cambia cada vez que se carga la página
+    }
+    add_filter('style_loader_src', function($src) {
+        if (strpos($src, 'style.css') !== false) {
+            $src = add_query_arg('v', mjpropiedades_add_version_to_css(), $src);
+        }
+        return $src;
+    });
     
     // Sección About
     $wp_customize->add_section('mjpropiedades_about', array(
         'title'    => __('Sección Quiénes Somos', 'mjpropiedades'),
         'priority' => 30,
+    ));
+    
+    // Sección Servicios
+    $wp_customize->add_section('mjpropiedades_services', array(
+        'title'    => __('Sección Nuestros Servicios', 'mjpropiedades'),
+        'priority' => 35,
     ));
     
     // Imagen de María José
@@ -969,7 +1649,7 @@ function mjpropiedades_customize_register($wp_customize) {
     
     // Texto de María José
     $wp_customize->add_setting('mjpropiedades_about_text_1', array(
-        'default' => 'Especialistas N°1 en la Cuarta Región. Con más de 8 años de experiencia, me especializo en inversión en La Serena, arriendos en Coquimbo y propiedades en Ovalle, ayudando a familias a encontrar su hogar ideal.',
+        'default' => 'Home Isa es una empresa inmobiliaria innovadora fundada en 2025, con alcance nacional en Chile. Nos especializamos en brindar servicios integrales de corretaje inmobiliario, asesoría y tasación de propiedades.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_about_text_1', array(
@@ -979,7 +1659,7 @@ function mjpropiedades_customize_register($wp_customize) {
     ));
     
     $wp_customize->add_setting('mjpropiedades_about_text_2', array(
-        'default' => 'Mi compromiso es brindarte un servicio personalizado, transparente y profesional en cada paso del proceso. Desde la primera consulta hasta la firma del contrato, estaré contigo para hacer realidad tus objetivos inmobiliarios en La Serena, Coquimbo y Ovalle.',
+        'default' => 'Nuestro compromiso es facilitar el proceso inmobiliario para todo tipo de clientes: familias que buscan su primer hogar, inversionistas experimentados que buscan oportunidades de crecimiento, propietarios que desean vender sus propiedades al mejor precio, y personas que necesitan arrendar o encontrar inquilinos para sus inmuebles. Con sede en La Serena y cobertura nacional, combinamos la experiencia local con una visión moderna del mercado inmobiliario chileno.',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
     $wp_customize->add_control('mjpropiedades_about_text_2', array(
@@ -1028,6 +1708,124 @@ function mjpropiedades_customize_register($wp_customize) {
         'section' => 'mjpropiedades_about',
         'type' => 'text',
     ));
+    
+    // Controles para Sección Servicios
+    // Tag de servicios
+    $wp_customize->add_setting('mjpropiedades_services_tag', array(
+        'default' => 'NUESTROS SERVICIOS',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_services_tag', array(
+        'label' => __('Tag de Servicios', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+        'type' => 'text',
+    ));
+    
+    // Título principal de servicios
+    $wp_customize->add_setting('mjpropiedades_services_title', array(
+        'default' => 'Te Acompañamos en Cada Paso',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_services_title', array(
+        'label' => __('Título Principal', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+        'type' => 'text',
+    ));
+    
+    // Subtítulo de servicios
+    $wp_customize->add_setting('mjpropiedades_services_subtitle', array(
+        'default' => 'Servicios profesionales diseñados para hacer realidad tus objetivos inmobiliarios',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_services_subtitle', array(
+        'label' => __('Subtítulo', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+        'type' => 'textarea',
+    ));
+    
+    // Color del título de servicios
+    $wp_customize->add_setting('mjpropiedades_services_title_color', array(
+        'default' => '#374151',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_services_title_color', array(
+        'label' => __('Color del Título', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+    )));
+    
+    // Color del subtítulo de servicios
+    $wp_customize->add_setting('mjpropiedades_services_subtitle_color', array(
+        'default' => '#6b7280',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_services_subtitle_color', array(
+        'label' => __('Color del Subtítulo', 'mjpropiedades'),
+        'section' => 'mjpropiedades_services',
+    )));
+    
+    // Servicios dinámicos (hasta 6 servicios)
+    $default_services = array(
+        1 => array(
+            'title' => 'Venta',
+            'description' => 'Te ayudamos a vender tu propiedad al mejor precio del mercado con estrategias personalizadas.',
+            'features' => "Marketing digital especializado\nFotografía profesional\nTours virtuales\nAsesoría de precios"
+        ),
+        2 => array(
+            'title' => 'Arriendo',
+            'description' => 'Encontramos el inquilino ideal para tu propiedad con procesos seguros y eficientes.',
+            'features' => "Selección de inquilinos\nVerificación de antecedentes\nContratos legales\nGestión de pagos"
+        ),
+        3 => array(
+            'title' => 'Tasaciones',
+            'description' => 'Valoramos tu propiedad con precisión profesional para tomar las mejores decisiones.',
+            'features' => "Análisis de mercado\nComparación de propiedades\nInforme detallado\nCertificación profesional"
+        ),
+        4 => array(
+            'title' => 'Asesoría Legal',
+            'description' => 'Te acompañamos en todo el proceso legal y administrativo para que no tengas que preocuparte por nada.',
+            'features' => "Tramitación de escrituras\nGestión de permisos\nSeguimiento legal\nAsesoría especializada"
+        )
+    );
+    
+    for ($i = 1; $i <= 6; $i++) {
+        $default_title = isset($default_services[$i]) ? $default_services[$i]['title'] : '';
+        $default_description = isset($default_services[$i]) ? $default_services[$i]['description'] : '';
+        $default_features = isset($default_services[$i]) ? $default_services[$i]['features'] : '';
+        
+        // Título del servicio
+        $wp_customize->add_setting("mjpropiedades_service_{$i}_title", array(
+            'default' => $default_title,
+            'sanitize_callback' => 'sanitize_text_field',
+        ));
+        $wp_customize->add_control("mjpropiedades_service_{$i}_title", array(
+            'label' => sprintf(__('Servicio %d - Título', 'mjpropiedades'), $i),
+            'section' => 'mjpropiedades_services',
+            'type' => 'text',
+        ));
+        
+        // Descripción del servicio
+        $wp_customize->add_setting("mjpropiedades_service_{$i}_description", array(
+            'default' => $default_description,
+            'sanitize_callback' => 'sanitize_textarea_field',
+        ));
+        $wp_customize->add_control("mjpropiedades_service_{$i}_description", array(
+            'label' => sprintf(__('Servicio %d - Descripción', 'mjpropiedades'), $i),
+            'section' => 'mjpropiedades_services',
+            'type' => 'textarea',
+        ));
+        
+        // Características del servicio (una por línea)
+        $wp_customize->add_setting("mjpropiedades_service_{$i}_features", array(
+            'default' => $default_features,
+            'sanitize_callback' => 'sanitize_textarea_field',
+        ));
+        $wp_customize->add_control("mjpropiedades_service_{$i}_features", array(
+            'label' => sprintf(__('Servicio %d - Características (una por línea)', 'mjpropiedades'), $i),
+            'section' => 'mjpropiedades_services',
+            'type' => 'textarea',
+        ));
+        
+    }
     
     // Sección Testimonios
     $wp_customize->add_section('mjpropiedades_testimonials', array(
@@ -1255,42 +2053,6 @@ function mjpropiedades_customize_register($wp_customize) {
         'mime_type' => 'image',
     )));
     
-    // Teléfono
-    $wp_customize->add_setting('mjpropiedades_phone', array(
-        'default'           => '+56 9 4927 6448',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    
-    $wp_customize->add_control('mjpropiedades_phone', array(
-        'label'   => __('Teléfono', 'mjpropiedades'),
-        'section' => 'mjpropiedades_contact',
-        'type'    => 'text',
-    ));
-    
-    // Email
-    $wp_customize->add_setting('mjpropiedades_email', array(
-        'default'           => 'homeisaspa@gmail.com',
-        'sanitize_callback' => 'sanitize_email',
-    ));
-    
-    $wp_customize->add_control('mjpropiedades_email', array(
-        'label'   => __('Email', 'mjpropiedades'),
-        'section' => 'mjpropiedades_contact',
-        'type'    => 'email',
-    ));
-    
-    // Dirección
-    $wp_customize->add_setting('mjpropiedades_address', array(
-        'default'           => 'Santiago, Chile',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    
-    $wp_customize->add_control('mjpropiedades_address', array(
-        'label'   => __('Dirección', 'mjpropiedades'),
-        'section' => 'mjpropiedades_contact',
-        'type'    => 'text',
-    ));
-    
     // Sección de configuración del menú
     $wp_customize->add_section('mjpropiedades_menu', array(
         'title'    => __('Configuración del Menú', 'mjpropiedades'),
@@ -1312,6 +2074,102 @@ function mjpropiedades_customize_register($wp_customize) {
             'center' => __('Centro', 'mjpropiedades'),
             'right'  => __('Derecha', 'mjpropiedades'),
         ),
+    ));
+    
+    // Color de fondo de la barra superior del menú
+    $wp_customize->add_setting('mjpropiedades_header_background_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_header_background_color', array(
+        'label'    => __('Color de Fondo de la Barra Superior', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color de fondo para la barra superior del menú', 'mjpropiedades'),
+    )));
+    
+    // Color del texto del menú
+    $wp_customize->add_setting('mjpropiedades_menu_text_color', array(
+        'default'           => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_menu_text_color', array(
+        'label'    => __('Color del Texto del Menú', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color del texto para los enlaces del menú', 'mjpropiedades'),
+    )));
+    
+    // Color del texto del menú al pasar el mouse
+    $wp_customize->add_setting('mjpropiedades_menu_hover_color', array(
+        'default'           => '#1e40af',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_menu_hover_color', array(
+        'label'    => __('Color del Menú al Pasar el Mouse', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color cuando pasas el mouse sobre los enlaces del menú', 'mjpropiedades'),
+    )));
+    
+    // Color del botón "Contactar"
+    $wp_customize->add_setting('mjpropiedades_contact_button_color', array(
+        'default'           => '#1e40af',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_contact_button_color', array(
+        'label'    => __('Color del Botón "Contactar"', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color de fondo del botón "Contactar"', 'mjpropiedades'),
+    )));
+    
+    // Color del texto del botón "Contactar"
+    $wp_customize->add_setting('mjpropiedades_contact_button_text_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_contact_button_text_color', array(
+        'label'    => __('Color del Texto del Botón "Contactar"', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'description' => __('Selecciona el color del texto del botón "Contactar"', 'mjpropiedades'),
+    )));
+    
+    // Separador visual
+    $wp_customize->add_setting('mjpropiedades_menu_separator_1', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_menu_separator_1', array(
+        'label' => '',
+        'section' => 'mjpropiedades_menu',
+        'type' => 'text',
+        'input_attrs' => array(
+            'style' => 'display: none;',
+        ),
+    ));
+    
+    // Presets de colores para el menú
+    $wp_customize->add_setting('mjpropiedades_menu_color_preset', array(
+        'default'           => 'default',
+        'sanitize_callback' => 'mjpropiedades_sanitize_color_preset',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_menu_color_preset', array(
+        'label'    => __('Presets de Colores Rápidos', 'mjpropiedades'),
+        'section'  => 'mjpropiedades_menu',
+        'type'     => 'select',
+        'choices'  => array(
+            'default' => __('Personalizado (Actual)', 'mjpropiedades'),
+            'blue'    => __('Azul Profesional', 'mjpropiedades'),
+            'dark'    => __('Oscuro Elegante', 'mjpropiedades'),
+            'light'   => __('Claro Minimalista', 'mjpropiedades'),
+            'green'   => __('Verde Naturaleza', 'mjpropiedades'),
+            'purple'  => __('Morado Creativo', 'mjpropiedades'),
+            'orange'  => __('Naranja Energético', 'mjpropiedades'),
+        ),
+        'description' => __('Selecciona un preset para aplicar automáticamente una combinación de colores', 'mjpropiedades'),
     ));
     
     // ===== SECCIÓN DE TIPOGRAFÍA =====
@@ -1607,6 +2465,57 @@ function mjpropiedades_customize_register($wp_customize) {
         'label'    => __('Color de Línea Decorativa', 'mjpropiedades'),
         'section'  => 'mjpropiedades_section_titles',
     )));
+    // ===== CONFIGURACIÓN DE INFORMACIÓN DE CONTACTO =====
+    
+    // Sección de información de contacto
+    $wp_customize->add_section('mjpropiedades_contact_info', array(
+        'title'    => __('Información de Contacto', 'mjpropiedades'),
+        'priority' => 45,
+    ));
+    
+    // Email de contacto
+    $wp_customize->add_setting('mjpropiedades_contact_email', array(
+        'default' => 'consultas@homeisa.cl',
+        'sanitize_callback' => 'sanitize_email',
+    ));
+    $wp_customize->add_control('mjpropiedades_contact_email', array(
+        'label' => __('Email', 'mjpropiedades'),
+        'section' => 'mjpropiedades_contact_info',
+        'type' => 'email',
+    ));
+    
+    // Teléfono de contacto
+    $wp_customize->add_setting('mjpropiedades_contact_phone', array(
+        'default' => '+56 9 4927 6448',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_contact_phone', array(
+        'label' => __('Teléfono', 'mjpropiedades'),
+        'section' => 'mjpropiedades_contact_info',
+        'type' => 'text',
+    ));
+    
+    // Dirección de contacto
+    $wp_customize->add_setting('mjpropiedades_contact_address', array(
+        'default' => 'La Serena, Chile',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_contact_address', array(
+        'label' => __('Dirección', 'mjpropiedades'),
+        'section' => 'mjpropiedades_contact_info',
+        'type' => 'text',
+    ));
+    
+    // Horarios de atención
+    $wp_customize->add_setting('mjpropiedades_contact_hours', array(
+        'default' => 'Lunes a Viernes: 9:00 - 18:00<br>Sábados: 9:00 - 14:00',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('mjpropiedades_contact_hours', array(
+        'label' => __('Horarios', 'mjpropiedades'),
+        'section' => 'mjpropiedades_contact_info',
+        'type' => 'textarea',
+    ));
 }
 add_action('customize_register', 'mjpropiedades_customize_register');
 
@@ -1784,6 +2693,492 @@ function mjpropiedades_typography_css() {
 }
 add_action('wp_head', 'mjpropiedades_typography_css');
 
+// Agregar CSS dinámico para colores del menú
+function mjpropiedades_menu_colors_css() {
+    $header_bg_color = get_theme_mod('mjpropiedades_header_background_color', '#ffffff');
+    $menu_text_color = get_theme_mod('mjpropiedades_menu_text_color', '#333333');
+    $menu_hover_color = get_theme_mod('mjpropiedades_menu_hover_color', '#1e40af');
+    $contact_button_color = get_theme_mod('mjpropiedades_contact_button_color', '#1e40af');
+    $contact_button_text_color = get_theme_mod('mjpropiedades_contact_button_text_color', '#ffffff');
+    
+    ?>
+    <style type="text/css">
+        /* Color de fondo de la barra superior */
+        .header {
+            background-color: <?php echo esc_attr($header_bg_color); ?> !important;
+        }
+        
+        /* Color del texto del menú */
+        .nav-menu a {
+            color: <?php echo esc_attr($menu_text_color); ?> !important;
+        }
+        
+        /* Color del menú al pasar el mouse */
+        .nav-menu a:hover {
+            color: <?php echo esc_attr($menu_hover_color); ?> !important;
+        }
+        
+        /* Color del botón "Contactar" */
+        .contact-btn {
+            background-color: <?php echo esc_attr($contact_button_color); ?> !important;
+            color: <?php echo esc_attr($contact_button_text_color); ?> !important;
+        }
+        
+        /* Color del botón "Contactar" al pasar el mouse */
+        .contact-btn:hover {
+            background-color: <?php echo esc_attr($contact_button_color); ?> !important;
+            opacity: 0.9;
+        }
+        
+        /* Aplicar colores también al menú móvil */
+        .mobile-nav-menu a {
+            color: <?php echo esc_attr($menu_text_color); ?> !important;
+        }
+        
+        .mobile-nav-menu a:hover {
+            color: <?php echo esc_attr($menu_hover_color); ?> !important;
+        }
+        
+        .mobile-contact-btn {
+            background-color: <?php echo esc_attr($contact_button_color); ?> !important;
+            color: <?php echo esc_attr($contact_button_text_color); ?> !important;
+        }
+        
+        .mobile-contact-btn:hover {
+            background-color: <?php echo esc_attr($contact_button_color); ?> !important;
+            opacity: 0.9;
+        }
+        
+        /* Ajustar la sombra si el fondo es muy claro */
+        <?php if (in_array($header_bg_color, ['#ffffff', '#fff', 'white', '#f8f9fa'])): ?>
+        .header {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        <?php else: ?>
+        .header {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        <?php endif; ?>
+        
+        /* Asegurar contraste adecuado para el logo */
+        .header .custom-logo-link,
+        .header .logo-plus-propiedades {
+            filter: none;
+        }
+        
+        /* Ajustar el logo si el fondo es oscuro */
+        <?php 
+        // Función para determinar si un color es oscuro
+        $rgb = array_map('hexdec', str_split(ltrim($header_bg_color, '#'), 2));
+        $brightness = ($rgb[0] * 299 + $rgb[1] * 587 + $rgb[2] * 114) / 1000;
+        if ($brightness < 128): // Color oscuro
+        ?>
+        .header .custom-logo-link,
+        .header .logo-plus-propiedades {
+            filter: brightness(1.2);
+        }
+        <?php endif; ?>
+    </style>
+    <?php
+}
+add_action('wp_head', 'mjpropiedades_menu_colors_css');
+
+// Agregar CSS dinámico para tamaños del logo
+function mjpropiedades_logo_sizes_css() {
+    $logo_height_desktop = get_theme_mod('mjpropiedades_logo_height_desktop', '50');
+    $logo_height_tablet = get_theme_mod('mjpropiedades_logo_height_tablet', '45');
+    $logo_height_mobile = get_theme_mod('mjpropiedades_logo_height_mobile', '40');
+    $logo_max_width = get_theme_mod('mjpropiedades_logo_max_width', '200');
+    
+    ?>
+    <style type="text/css">
+        /* Tamaño del logo en desktop */
+        .header .custom-logo {
+            max-height: <?php echo esc_attr($logo_height_desktop); ?>px !important;
+            width: auto !important;
+            max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+            height: auto !important;
+        }
+        
+        /* Tamaño del logo en tablet */
+        @media (max-width: 1024px) {
+            .header .custom-logo {
+                max-height: <?php echo esc_attr($logo_height_tablet); ?>px !important;
+                max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+            }
+        }
+        
+        /* Tamaño del logo en móvil */
+        @media (max-width: 768px) {
+            .header .custom-logo {
+                max-height: <?php echo esc_attr($logo_height_mobile); ?>px !important;
+                max-width: calc(100vw - 80px) !important;
+            }
+        }
+        
+        /* Ajustes para el contenedor del logo */
+        .header .custom-logo-link {
+            max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+            height: auto !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        
+        /* Asegurar que el logo se centre verticalmente */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* Ajustes responsive para el contenedor del logo */
+        @media (max-width: 1024px) {
+            .header .custom-logo-link {
+                max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header .custom-logo-link {
+                max-width: calc(100vw - 80px) !important;
+            }
+        }
+        
+        /* Ajustes para móviles pequeños */
+        @media (max-width: 480px) {
+            .header .custom-logo {
+                max-height: <?php echo esc_attr($logo_height_mobile - 5); ?>px !important;
+                max-width: calc(100vw - 60px) !important;
+            }
+            
+            .header .custom-logo-link {
+                max-width: calc(100vw - 60px) !important;
+            }
+        }
+        
+        /* Asegurar que el logo mantenga su proporción */
+        .header .custom-logo {
+            object-fit: contain !important;
+            object-position: left center !important;
+        }
+        
+        /* Fallback para el logo de texto (PLUS PROPIEDADES) */
+        .header .logo-plus-propiedades {
+            font-size: calc(<?php echo esc_attr($logo_height_desktop); ?>px * 0.6) !important;
+            line-height: 1 !important;
+            height: auto !important;
+            max-width: <?php echo esc_attr($logo_max_width); ?>px !important;
+        }
+        
+        @media (max-width: 1024px) {
+            .header .logo-plus-propiedades {
+                font-size: calc(<?php echo esc_attr($logo_height_tablet); ?>px * 0.6) !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header .logo-plus-propiedades {
+                font-size: calc(<?php echo esc_attr($logo_height_mobile); ?>px * 0.6) !important;
+                max-width: calc(100vw - 80px) !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header .logo-plus-propiedades {
+                font-size: calc(<?php echo esc_attr($logo_height_mobile - 5); ?>px * 0.6) !important;
+                max-width: calc(100vw - 60px) !important;
+            }
+        }
+    </style>
+    <?php
+}
+add_action('wp_head', 'mjpropiedades_logo_sizes_css');
+
+// Agregar CSS dinámico para el logo del footer
+function mjpropiedades_footer_logo_css() {
+    $footer_logo_size = get_theme_mod('mjpropiedades_footer_logo_size', 'medium');
+    $footer_logo_custom_size = get_theme_mod('mjpropiedades_footer_logo_custom_size', '80');
+    $footer_logo_position = get_theme_mod('mjpropiedades_footer_logo_position', 'left');
+    $footer_logo_show_text = get_theme_mod('mjpropiedades_footer_logo_show_text', true);
+    
+    // Determinar el tamaño final
+    $final_size = $footer_logo_size === 'custom' ? $footer_logo_custom_size : 
+                  ($footer_logo_size === 'small' ? 60 : 
+                   ($footer_logo_size === 'large' ? 120 : 80));
+    
+    ?>
+    <style type="text/css">
+        /* Estilos para el logo del footer */
+        .footer-brand {
+            text-align: <?php echo esc_attr($footer_logo_position); ?> !important;
+        }
+        
+        .footer-logo img,
+        .footer-logo-text {
+            max-height: <?php echo esc_attr($final_size); ?>px !important;
+            width: auto !important;
+            max-width: <?php echo esc_attr($final_size * 2); ?>px !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+        
+        /* Ajustes para el texto descriptivo */
+        <?php if (!$footer_logo_show_text): ?>
+        .footer-brand p {
+            display: none !important;
+        }
+        <?php endif; ?>
+        
+        /* Centrado del contenido del footer-brand cuando está centrado */
+        <?php if ($footer_logo_position === 'center'): ?>
+        .footer-brand {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+        }
+        
+        .footer-brand .social-icons {
+            justify-content: center !important;
+        }
+        <?php elseif ($footer_logo_position === 'right'): ?>
+        .footer-brand {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-end !important;
+        }
+        
+        .footer-brand .social-icons {
+            justify-content: flex-end !important;
+        }
+        <?php else: ?>
+        .footer-brand {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        
+        .footer-brand .social-icons {
+            justify-content: flex-start !important;
+        }
+        <?php endif; ?>
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .footer-logo img,
+            .footer-logo-text {
+                max-height: <?php echo esc_attr($final_size * 0.8); ?>px !important;
+                max-width: <?php echo esc_attr($final_size * 1.6); ?>px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .footer-logo img,
+            .footer-logo-text {
+                max-height: <?php echo esc_attr($final_size * 0.7); ?>px !important;
+                max-width: <?php echo esc_attr($final_size * 1.4); ?>px !important;
+            }
+            
+            /* En móviles, siempre centrar el logo */
+            .footer-brand {
+                text-align: center !important;
+                align-items: center !important;
+            }
+            
+            .footer-brand .social-icons {
+                justify-content: center !important;
+            }
+        }
+        
+        /* Asegurar que el logo mantenga proporciones */
+        .footer-logo img {
+            object-fit: contain !important;
+            object-position: <?php echo esc_attr($footer_logo_position); ?> center !important;
+        }
+        
+        /* Estilos para el fallback de texto */
+        .footer-logo-text .logo-plus-propiedades {
+            font-size: <?php echo esc_attr($final_size * 0.3); ?>px !important;
+            line-height: 1 !important;
+            height: auto !important;
+            max-width: <?php echo esc_attr($final_size * 2); ?>px !important;
+            display: inline-block !important;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-logo-text .logo-plus-propiedades {
+                font-size: <?php echo esc_attr($final_size * 0.25); ?>px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .footer-logo-text .logo-plus-propiedades {
+                font-size: <?php echo esc_attr($final_size * 0.2); ?>px !important;
+            }
+        }
+    </style>
+    <?php
+}
+add_action('wp_head', 'mjpropiedades_footer_logo_css');
+
+// Agregar JavaScript para vista previa en tiempo real en el Customizer
+function mjpropiedades_customizer_preview_js() {
+    ?>
+    <script type="text/javascript">
+    (function($) {
+        'use strict';
+        
+        // Vista previa de tamaños de logo
+        wp.customize('mjpropiedades_logo_height_desktop', function(value) {
+            value.bind(function(newval) {
+                $('.header .custom-logo').css('max-height', newval + 'px');
+                $('.header .logo-plus-propiedades').css('font-size', 'calc(' + newval + 'px * 0.6)');
+            });
+        });
+        
+        wp.customize('mjpropiedades_logo_height_tablet', function(value) {
+            value.bind(function(newval) {
+                if ($(window).width() <= 1024) {
+                    $('.header .custom-logo').css('max-height', newval + 'px');
+                    $('.header .logo-plus-propiedades').css('font-size', 'calc(' + newval + 'px * 0.6)');
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_logo_height_mobile', function(value) {
+            value.bind(function(newval) {
+                if ($(window).width() <= 768) {
+                    $('.header .custom-logo').css('max-height', newval + 'px');
+                    $('.header .logo-plus-propiedades').css('font-size', 'calc(' + newval + 'px * 0.6)');
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_logo_max_width', function(value) {
+            value.bind(function(newval) {
+                $('.header .custom-logo, .header .custom-logo-link, .header .logo-plus-propiedades').css('max-width', newval + 'px');
+            });
+        });
+        
+        // Vista previa de colores del menú
+        wp.customize('mjpropiedades_header_background_color', function(value) {
+            value.bind(function(newval) {
+                $('.header').css('background-color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_menu_text_color', function(value) {
+            value.bind(function(newval) {
+                $('.nav-menu a, .mobile-nav-menu a').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_menu_hover_color', function(value) {
+            value.bind(function(newval) {
+                $('.nav-menu a:hover, .mobile-nav-menu a:hover').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_contact_button_color', function(value) {
+            value.bind(function(newval) {
+                $('.contact-btn, .mobile-contact-btn').css('background-color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_contact_button_text_color', function(value) {
+            value.bind(function(newval) {
+                $('.contact-btn, .mobile-contact-btn').css('color', newval);
+            });
+        });
+        
+        // Vista previa del logo del footer
+        wp.customize('mjpropiedades_footer_logo_image', function(value) {
+            value.bind(function(newval) {
+                if (newval) {
+                    // Si hay una imagen seleccionada, actualizar el logo del footer
+                    var logoUrl = wp.media.attachment(newval).get('url');
+                    $('.footer-logo img').attr('src', logoUrl);
+                    $('.footer-logo').show();
+                    $('.footer-logo-text').hide();
+                } else {
+                    // Si no hay imagen, mostrar el texto del logo
+                    $('.footer-logo').hide();
+                    $('.footer-logo-text').show();
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_position', function(value) {
+            value.bind(function(newval) {
+                $('.footer-brand').css('text-align', newval);
+                if (newval === 'center') {
+                    $('.footer-brand').css({
+                        'display': 'flex',
+                        'flex-direction': 'column',
+                        'align-items': 'center'
+                    });
+                    $('.footer-brand .social-icons').css('justify-content', 'center');
+                } else if (newval === 'right') {
+                    $('.footer-brand').css({
+                        'display': 'flex',
+                        'flex-direction': 'column',
+                        'align-items': 'flex-end'
+                    });
+                    $('.footer-brand .social-icons').css('justify-content', 'flex-end');
+                } else {
+                    $('.footer-brand').css({
+                        'display': 'flex',
+                        'flex-direction': 'column',
+                        'align-items': 'flex-start'
+                    });
+                    $('.footer-brand .social-icons').css('justify-content', 'flex-start');
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_size', function(value) {
+            value.bind(function(newval) {
+                var size = newval === 'small' ? 60 : newval === 'large' ? 120 : 80;
+                $('.footer-logo img, .footer-logo-text').css({
+                    'max-height': size + 'px',
+                    'max-width': (size * 2) + 'px'
+                });
+                $('.footer-logo-text .logo-plus-propiedades').css('font-size', (size * 0.3) + 'px');
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_custom_size', function(value) {
+            value.bind(function(newval) {
+                var size = parseInt(newval);
+                $('.footer-logo img, .footer-logo-text').css({
+                    'max-height': size + 'px',
+                    'max-width': (size * 2) + 'px'
+                });
+                $('.footer-logo-text .logo-plus-propiedades').css('font-size', (size * 0.3) + 'px');
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_show_text', function(value) {
+            value.bind(function(newval) {
+                if (newval) {
+                    $('.footer-brand p').show();
+                } else {
+                    $('.footer-brand p').hide();
+                }
+            });
+        });
+        
+        wp.customize('mjpropiedades_footer_logo_text', function(value) {
+            value.bind(function(newval) {
+                $('.footer-brand p').text(newval);
+            });
+        });
+        
+    })(jQuery);
+    </script>
+    <?php
+}
+add_action('customize_preview_init', 'mjpropiedades_customizer_preview_js');
+
 
 // Función de sanitización para la alineación del menú
 function mjpropiedades_sanitize_menu_alignment($input) {
@@ -1796,6 +3191,153 @@ function mjpropiedades_sanitize_text_alignment($input) {
     $valid = array('left', 'center', 'right');
     return in_array($input, $valid) ? $input : 'center';
 }
+
+// Función de sanitización para los presets de colores
+function mjpropiedades_sanitize_color_preset($input) {
+    $valid = array('default', 'blue', 'dark', 'light', 'green', 'purple', 'orange');
+    return in_array($input, $valid) ? $input : 'default';
+}
+
+// Función de sanitización para los presets de tamaño de logo
+function mjpropiedades_sanitize_logo_size_preset($input) {
+    $valid = array('small', 'medium', 'large', 'custom');
+    return in_array($input, $valid) ? $input : 'medium';
+}
+
+// Función de sanitización para la posición del logo del footer
+function mjpropiedades_sanitize_logo_position($input) {
+    $valid = array('left', 'center', 'right');
+    return in_array($input, $valid) ? $input : 'left';
+}
+
+// Función de sanitización para el tamaño del logo del footer
+function mjpropiedades_sanitize_footer_logo_size($input) {
+    $valid = array('small', 'medium', 'large', 'custom');
+    return in_array($input, $valid) ? $input : 'medium';
+}
+
+// Función para aplicar presets de colores automáticamente
+function mjpropiedades_apply_color_preset() {
+    $preset = get_theme_mod('mjpropiedades_menu_color_preset', 'default');
+    
+    if ($preset === 'default') {
+        return; // No aplicar cambios si es personalizado
+    }
+    
+    $color_schemes = array(
+        'blue' => array(
+            'header_bg' => '#1e40af',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#93c5fd',
+            'button_bg' => '#3b82f6',
+            'button_text' => '#ffffff'
+        ),
+        'dark' => array(
+            'header_bg' => '#1f2937',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#60a5fa',
+            'button_bg' => '#374151',
+            'button_text' => '#ffffff'
+        ),
+        'light' => array(
+            'header_bg' => '#f8fafc',
+            'menu_text' => '#475569',
+            'menu_hover' => '#1e40af',
+            'button_bg' => '#64748b',
+            'button_text' => '#ffffff'
+        ),
+        'green' => array(
+            'header_bg' => '#059669',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#a7f3d0',
+            'button_bg' => '#10b981',
+            'button_text' => '#ffffff'
+        ),
+        'purple' => array(
+            'header_bg' => '#7c3aed',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#c4b5fd',
+            'button_bg' => '#8b5cf6',
+            'button_text' => '#ffffff'
+        ),
+        'orange' => array(
+            'header_bg' => '#ea580c',
+            'menu_text' => '#ffffff',
+            'menu_hover' => '#fed7aa',
+            'button_bg' => '#f97316',
+            'button_text' => '#ffffff'
+        )
+    );
+    
+    if (isset($color_schemes[$preset])) {
+        $scheme = $color_schemes[$preset];
+        set_theme_mod('mjpropiedades_header_background_color', $scheme['header_bg']);
+        set_theme_mod('mjpropiedades_menu_text_color', $scheme['menu_text']);
+        set_theme_mod('mjpropiedades_menu_hover_color', $scheme['menu_hover']);
+        set_theme_mod('mjpropiedades_contact_button_color', $scheme['button_bg']);
+        set_theme_mod('mjpropiedades_contact_button_text_color', $scheme['button_text']);
+    }
+}
+add_action('customize_save_after', 'mjpropiedades_apply_color_preset');
+
+// Función para aplicar presets de tamaño de logo automáticamente
+function mjpropiedades_apply_logo_size_preset() {
+    $preset = get_theme_mod('mjpropiedades_logo_size_preset', 'medium');
+    
+    if ($preset === 'custom') {
+        return; // No aplicar cambios si es personalizado
+    }
+    
+    $size_schemes = array(
+        'small' => array(
+            'desktop' => 30,
+            'tablet'  => 28,
+            'mobile'  => 25,
+            'width'   => 120
+        ),
+        'medium' => array(
+            'desktop' => 50,
+            'tablet'  => 45,
+            'mobile'  => 40,
+            'width'   => 200
+        ),
+        'large' => array(
+            'desktop' => 70,
+            'tablet'  => 60,
+            'mobile'  => 50,
+            'width'   => 280
+        )
+    );
+    
+    if (isset($size_schemes[$preset])) {
+        $scheme = $size_schemes[$preset];
+        set_theme_mod('mjpropiedades_logo_height_desktop', $scheme['desktop']);
+        set_theme_mod('mjpropiedades_logo_height_tablet', $scheme['tablet']);
+        set_theme_mod('mjpropiedades_logo_height_mobile', $scheme['mobile']);
+        set_theme_mod('mjpropiedades_logo_max_width', $scheme['width']);
+    }
+}
+add_action('customize_save_after', 'mjpropiedades_apply_logo_size_preset');
+
+// Función para aplicar presets de tamaño del logo del footer automáticamente
+function mjpropiedades_apply_footer_logo_size_preset() {
+    $preset = get_theme_mod('mjpropiedades_footer_logo_size', 'medium');
+    
+    if ($preset === 'custom') {
+        return; // No aplicar cambios si es personalizado
+    }
+    
+    $size_schemes = array(
+        'small' => 60,
+        'medium' => 80,
+        'large' => 120
+    );
+    
+    if (isset($size_schemes[$preset])) {
+        set_theme_mod('mjpropiedades_footer_logo_custom_size', $size_schemes[$preset]);
+    }
+}
+add_action('customize_save_after', 'mjpropiedades_apply_footer_logo_size_preset');
 
 // Función para manejar plantillas de página
 function mjpropiedades_page_template($template) {
@@ -1854,6 +3396,122 @@ function mjpropiedades_save_page_template($post_id) {
     }
 }
 add_action('save_post', 'mjpropiedades_save_page_template');
+
+// Agregar sección de colores para propiedades destacadas
+function mjpropiedades_add_property_colors_section($wp_customize) {
+    // Sección de colores para propiedades
+    $wp_customize->add_section('mjpropiedades_property_colors', array(
+        'title'    => __('Colores de Tarjetas de Propiedades', 'mjpropiedades'),
+        'priority' => 40,
+    ));
+    
+    // Color del precio
+    $wp_customize->add_setting('mjpropiedades_property_price_color', array(
+        'default' => '#8b4513',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_price_color', array(
+        'label' => __('Color del Precio', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del título
+    $wp_customize->add_setting('mjpropiedades_property_title_color', array(
+        'default' => '#1f2937',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_title_color', array(
+        'label' => __('Color del Título', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color de la ubicación
+    $wp_customize->add_setting('mjpropiedades_property_location_color', array(
+        'default' => '#6b7280',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_location_color', array(
+        'label' => __('Color de la Ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color de las características
+    $wp_customize->add_setting('mjpropiedades_property_features_color', array(
+        'default' => '#6b7280',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_features_color', array(
+        'label' => __('Color de las Características', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del botón
+    $wp_customize->add_setting('mjpropiedades_property_button_color', array(
+        'default' => '#8b4513',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_button_color', array(
+        'label' => __('Color del Botón', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del botón al hacer hover
+    $wp_customize->add_setting('mjpropiedades_property_button_hover_color', array(
+        'default' => '#6d3410',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_button_hover_color', array(
+        'label' => __('Color del Botón (Hover)', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del tag de venta
+    $wp_customize->add_setting('mjpropiedades_property_tag_venta_color', array(
+        'default' => '#10b981',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_tag_venta_color', array(
+        'label' => __('Color del Tag "Venta"', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+    
+    // Color del tag de arriendo
+    $wp_customize->add_setting('mjpropiedades_property_tag_arriendo_color', array(
+        'default' => '#3b82f6',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_tag_arriendo_color', array(
+        'label' => __('Color del Tag "Arriendo"', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_colors',
+    )));
+}
+add_action('customize_register', 'mjpropiedades_add_property_colors_section');
+
+// Agregar CSS dinámico para colores de propiedades
+function mjpropiedades_property_colors_css() {
+    $price_color = get_theme_mod('mjpropiedades_property_price_color', '#8b4513');
+    $title_color = get_theme_mod('mjpropiedades_property_title_color', '#1f2937');
+    $location_color = get_theme_mod('mjpropiedades_property_location_color', '#6b7280');
+    $features_color = get_theme_mod('mjpropiedades_property_features_color', '#6b7280');
+    $button_color = get_theme_mod('mjpropiedades_property_button_color', '#8b4513');
+    $button_hover_color = get_theme_mod('mjpropiedades_property_button_hover_color', '#6d3410');
+    $tag_venta_color = get_theme_mod('mjpropiedades_property_tag_venta_color', '#10b981');
+    $tag_arriendo_color = get_theme_mod('mjpropiedades_property_tag_arriendo_color', '#3b82f6');
+    
+    echo '<style type="text/css">';
+    echo ':root {';
+    echo '--property-price-color: ' . esc_attr($price_color) . ';';
+    echo '--property-title-color: ' . esc_attr($title_color) . ';';
+    echo '--property-location-color: ' . esc_attr($location_color) . ';';
+    echo '--property-features-color: ' . esc_attr($features_color) . ';';
+    echo '--property-button-color: ' . esc_attr($button_color) . ';';
+    echo '--property-button-hover-color: ' . esc_attr($button_hover_color) . ';';
+    echo '--property-tag-venta-color: ' . esc_attr($tag_venta_color) . ';';
+    echo '--property-tag-arriendo-color: ' . esc_attr($tag_arriendo_color) . ';';
+    echo '}';
+    echo '</style>';
+}
+add_action('wp_head', 'mjpropiedades_property_colors_css');
 
 // Generar sitemap XML
 function mjpropiedades_generate_sitemap() {
@@ -1922,4 +3580,1019 @@ function mjpropiedades_generate_sitemap() {
     }
 }
 add_action('init', 'mjpropiedades_generate_sitemap');
+
+// Crear página de propiedades automáticamente
+function mjpropiedades_create_properties_page() {
+    $page_title = 'Propiedades';
+    $page_slug = 'propiedades';
+    
+    // Verificar si la página ya existe
+    $existing_page = get_page_by_path($page_slug);
+    
+    if (!$existing_page) {
+        // Crear la página
+        $page_data = array(
+            'post_title' => $page_title,
+            'post_name' => $page_slug,
+            'post_content' => '',
+            'post_status' => 'publish',
+            'post_type' => 'page',
+            'post_author' => 1,
+            'page_template' => 'page-propiedades.php'
+        );
+        
+        $page_id = wp_insert_post($page_data);
+        
+        if ($page_id) {
+            // Configurar la página para usar el template personalizado
+            update_post_meta($page_id, '_wp_page_template', 'page-propiedades.php');
+        }
+    }
+}
+add_action('after_setup_theme', 'mjpropiedades_create_properties_page');
+
+// Crear propiedades de prueba (solo si no existen)
+function mjpropiedades_create_sample_properties() {
+    // Verificar si ya existen propiedades
+    $existing_properties = get_posts(array(
+        'post_type' => 'propiedad',
+        'posts_per_page' => 1,
+        'post_status' => 'publish'
+    ));
+    
+    if (!empty($existing_properties)) {
+        return; // Ya existen propiedades, no crear más
+    }
+    
+    // Crear propiedades de prueba
+    $sample_properties = array(
+        array(
+            'title' => 'Casa en La Serena',
+            'precio' => 150000000,
+            'dormitorios' => 3,
+            'banos' => 2,
+            'comuna' => 'La Serena',
+            'tipo' => 'casa',
+            'operacion' => 'venta'
+        ),
+        array(
+            'title' => 'Departamento en Coquimbo',
+            'precio' => 120000000,
+            'dormitorios' => 2,
+            'banos' => 2,
+            'comuna' => 'Coquimbo',
+            'tipo' => 'departamento',
+            'operacion' => 'venta'
+        ),
+        array(
+            'title' => 'Casa en Ovalle',
+            'precio' => 80000000,
+            'dormitorios' => 4,
+            'banos' => 3,
+            'comuna' => 'Ovalle',
+            'tipo' => 'casa',
+            'operacion' => 'venta'
+        ),
+        array(
+            'title' => 'Departamento en La Serena Centro',
+            'precio' => 180000000,
+            'dormitorios' => 3,
+            'banos' => 2,
+            'comuna' => 'La Serena',
+            'tipo' => 'departamento',
+            'operacion' => 'venta'
+        )
+    );
+    
+    foreach ($sample_properties as $property) {
+        $post_id = wp_insert_post(array(
+            'post_title' => $property['title'],
+            'post_type' => 'propiedad',
+            'post_status' => 'publish',
+            'post_content' => 'Propiedad de prueba creada automáticamente.'
+        ));
+        
+        if ($post_id) {
+            // Agregar metadatos
+            update_post_meta($post_id, '_propiedad_precio', $property['precio']);
+            update_post_meta($post_id, '_propiedad_dormitorios', $property['dormitorios']);
+            update_post_meta($post_id, '_propiedad_banos', $property['banos']);
+            update_post_meta($post_id, '_propiedad_comuna', $property['comuna']);
+            update_post_meta($post_id, '_propiedad_tipo', $property['tipo']);
+            update_post_meta($post_id, '_propiedad_operacion', $property['operacion']);
+        }
+    }
+}
+add_action('after_setup_theme', 'mjpropiedades_create_sample_properties');
+
+// Configurar opciones por defecto para búsqueda
+function mjpropiedades_set_default_search_options() {
+    // Tipos de propiedad por defecto
+    if (!get_option('mjpropiedades_tipos_propiedad')) {
+        $tipos_propiedad = array(
+            'casa' => 'Casa',
+            'departamento' => 'Departamento',
+            'terreno' => 'Terreno',
+            'local' => 'Local Comercial',
+            'oficina' => 'Oficina'
+        );
+        update_option('mjpropiedades_tipos_propiedad', $tipos_propiedad);
+    }
+    
+    // Comunas por defecto
+    if (!get_option('mjpropiedades_comunas')) {
+        $comunas = array(
+            'la-serena' => 'La Serena',
+            'coquimbo' => 'Coquimbo',
+            'ovalle' => 'Ovalle',
+            'vicuna' => 'Vicuña',
+            'andacollo' => 'Andacollo',
+            'combarbala' => 'Combarbalá',
+            'monte-patria' => 'Monte Patria',
+            'punitaqui' => 'Punitaqui',
+            'rio-hurtado' => 'Río Hurtado',
+            'salamanca' => 'Salamanca'
+        );
+        update_option('mjpropiedades_comunas', $comunas);
+    }
+    
+    // Dormitorios por defecto
+    if (!get_option('mjpropiedades_dormitorios')) {
+        $dormitorios = array(
+            '1' => '1',
+            '2' => '2',
+            '3' => '3',
+            '4' => '4',
+            '5+' => '5+'
+        );
+        update_option('mjpropiedades_dormitorios', $dormitorios);
+    }
+    
+    // Baños por defecto
+    if (!get_option('mjpropiedades_banos')) {
+        $banos = array(
+            '1' => '1',
+            '2' => '2',
+            '3' => '3',
+            '4' => '4',
+            '5+' => '5+'
+        );
+        update_option('mjpropiedades_banos', $banos);
+    }
+}
+add_action('after_setup_theme', 'mjpropiedades_set_default_search_options');
+
+// Función para manejar búsqueda de propiedades
+function mjpropiedades_search_properties() {
+    $args = array(
+        'post_type' => 'propiedad',
+        'posts_per_page' => 12,
+        'paged' => isset($_GET['paged']) ? intval($_GET['paged']) : 1,
+        'meta_query' => array()
+    );
+    
+    // Aplicar ordenamiento
+    if (isset($_GET['sort']) && !empty($_GET['sort'])) {
+        $sort = sanitize_text_field($_GET['sort']);
+        
+        switch ($sort) {
+            case 'price-asc':
+                $args['meta_key'] = '_propiedad_precio';
+                $args['orderby'] = 'meta_value_num';
+                $args['order'] = 'ASC';
+                break;
+            case 'price-desc':
+                $args['meta_key'] = '_propiedad_precio';
+                $args['orderby'] = 'meta_value_num';
+                $args['order'] = 'DESC';
+                break;
+            case 'title-asc':
+                $args['orderby'] = 'title';
+                $args['order'] = 'ASC';
+                break;
+            case 'date-desc':
+            default:
+                $args['orderby'] = 'date';
+                $args['order'] = 'DESC';
+                break;
+        }
+    } else {
+        // Ordenamiento por defecto: más recientes primero
+        $args['orderby'] = 'date';
+        $args['order'] = 'DESC';
+    }
+    
+    // Aplicar filtros
+    if (isset($_GET['tipo_propiedad']) && !empty($_GET['tipo_propiedad'])) {
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_tipo',
+            'value' => sanitize_text_field($_GET['tipo_propiedad']),
+            'compare' => '='
+        );
+    }
+    
+    if (isset($_GET['ubicacion']) && !empty($_GET['ubicacion'])) {
+        // Convertir el valor de ubicación a formato de comuna
+        $comunas = get_option('mjpropiedades_comunas', array());
+        $comuna_label = isset($comunas[$_GET['ubicacion']]) ? $comunas[$_GET['ubicacion']] : $_GET['ubicacion'];
+        
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_comuna',
+            'value' => sanitize_text_field($comuna_label),
+            'compare' => 'LIKE'
+        );
+    }
+    
+    if (isset($_GET['dormitorios']) && !empty($_GET['dormitorios'])) {
+        $dormitorios_value = sanitize_text_field($_GET['dormitorios']);
+        if ($dormitorios_value === '5+') {
+            $args['meta_query'][] = array(
+                'key' => '_propiedad_dormitorios',
+                'value' => 5,
+                'compare' => '>=',
+                'type' => 'NUMERIC'
+            );
+        } else {
+            $args['meta_query'][] = array(
+                'key' => '_propiedad_dormitorios',
+                'value' => intval($dormitorios_value),
+                'compare' => '>=',
+                'type' => 'NUMERIC'
+            );
+        }
+    }
+    
+    if (isset($_GET['banos']) && !empty($_GET['banos'])) {
+        $banos_value = sanitize_text_field($_GET['banos']);
+        if ($banos_value === '5+') {
+            $args['meta_query'][] = array(
+                'key' => '_propiedad_banos',
+                'value' => 5,
+                'compare' => '>=',
+                'type' => 'NUMERIC'
+            );
+        } else {
+            $args['meta_query'][] = array(
+                'key' => '_propiedad_banos',
+                'value' => intval($banos_value),
+                'compare' => '>=',
+                'type' => 'NUMERIC'
+            );
+        }
+    }
+    
+    if (isset($_GET['precio_min']) && !empty($_GET['precio_min']) && $_GET['precio_min'] > 0) {
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_precio',
+            'value' => intval($_GET['precio_min']),
+            'compare' => '>=',
+            'type' => 'NUMERIC'
+        );
+    }
+    
+    if (isset($_GET['precio_max']) && !empty($_GET['precio_max']) && $_GET['precio_max'] < 1000000000) {
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_precio',
+            'value' => intval($_GET['precio_max']),
+            'compare' => '<=',
+            'type' => 'NUMERIC'
+        );
+    }
+    
+    return new WP_Query($args);
+}
+
+// ===== CONFIGURACIÓN DE COLORES PARA TARJETAS DE PROPIEDADES =====
+
+// Agregar sección de colores de tarjetas al Customizer
+function mjpropiedades_property_cards_customizer($wp_customize) {
+    
+    // Sección para colores de tarjetas de propiedades
+    $wp_customize->add_section('mjpropiedades_property_cards_colors', array(
+        'title' => __('Colores de Tarjetas de Propiedades', 'mjpropiedades'),
+        'description' => __('Configura los colores para las tarjetas de propiedades', 'mjpropiedades'),
+        'priority' => 30,
+        'capability' => 'edit_theme_options',
+    ));
+    
+    // Color de fondo de la tarjeta
+    $wp_customize->add_setting('mjpropiedades_card_background', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_background', array(
+        'label' => __('Color de Fondo de la Tarjeta', 'mjpropiedades'),
+        'description' => __('Color de fondo principal de las tarjetas de propiedades', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_background',
+    )));
+    
+    // Color del título de la propiedad
+    $wp_customize->add_setting('mjpropiedades_card_title_color', array(
+        'default' => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_title_color', array(
+        'label' => __('Color del Título', 'mjpropiedades'),
+        'description' => __('Color del título de la propiedad', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_title_color',
+    )));
+    
+    // Color de la ubicación
+    $wp_customize->add_setting('mjpropiedades_card_location_color', array(
+        'default' => '#666666',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_location_color', array(
+        'label' => __('Color de Ubicación', 'mjpropiedades'),
+        'description' => __('Color del texto de ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_location_color',
+    )));
+    
+    // Color del precio
+    $wp_customize->add_setting('mjpropiedades_card_price_color', array(
+        'default' => '#ff6b35',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_price_color', array(
+        'label' => __('Color del Precio', 'mjpropiedades'),
+        'description' => __('Color del precio de la propiedad', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_price_color',
+    )));
+    
+    // Color del botón "Ver Detalles"
+    $wp_customize->add_setting('mjpropiedades_card_button_bg', array(
+        'default' => '#FFC107',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_button_bg', array(
+        'label' => __('Color de Fondo del Botón', 'mjpropiedades'),
+        'description' => __('Color de fondo del botón "Ver Detalles"', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_button_bg',
+    )));
+    
+    // Color del texto del botón
+    $wp_customize->add_setting('mjpropiedades_card_button_text', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_button_text', array(
+        'label' => __('Color del Texto del Botón', 'mjpropiedades'),
+        'description' => __('Color del texto del botón "Ver Detalles"', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_button_text',
+    )));
+    
+    // Color del botón al hacer hover
+    $wp_customize->add_setting('mjpropiedades_card_button_hover', array(
+        'default' => '#ff6b35',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_button_hover', array(
+        'label' => __('Color del Botón al Hover', 'mjpropiedades'),
+        'description' => __('Color del botón cuando se pasa el mouse por encima', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_button_hover',
+    )));
+    
+    // Color del texto del botón al hacer hover
+    $wp_customize->add_setting('mjpropiedades_card_button_text_hover', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_button_text_hover', array(
+        'label' => __('Color del Texto del Botón al Hover', 'mjpropiedades'),
+        'description' => __('Color del texto del botón al hacer hover', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_button_text_hover',
+    )));
+    
+    // Color de los detalles (dormitorios, baños, etc.)
+    $wp_customize->add_setting('mjpropiedades_card_details_color', array(
+        'default' => '#666666',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_details_color', array(
+        'label' => __('Color de los Detalles', 'mjpropiedades'),
+        'description' => __('Color del texto de dormitorios, baños, metros cuadrados', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_details_color',
+    )));
+    
+    // Color de los iconos de detalles
+    $wp_customize->add_setting('mjpropiedades_card_icons_color', array(
+        'default' => '#ff6b35',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_icons_color', array(
+        'label' => __('Color de los Iconos', 'mjpropiedades'),
+        'description' => __('Color de los iconos de dormitorios, baños, metros cuadrados', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_icons_color',
+    )));
+    
+    // Color de la etiqueta de operación (VENTA)
+    $wp_customize->add_setting('mjpropiedades_card_tag_bg', array(
+        'default' => '#00d4aa',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_tag_bg', array(
+        'label' => __('Color de Fondo de la Etiqueta VENTA', 'mjpropiedades'),
+        'description' => __('Color de fondo de la etiqueta VENTA', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_tag_bg',
+    )));
+    
+    // Color de la etiqueta de operación (ARRIENDO)
+    $wp_customize->add_setting('mjpropiedades_card_arriendo_tag_bg', array(
+        'default' => '#4285F4',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_arriendo_tag_bg', array(
+        'label' => __('Color de Fondo de la Etiqueta ARRIENDO', 'mjpropiedades'),
+        'description' => __('Color de fondo de la etiqueta ARRIENDO', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_arriendo_tag_bg',
+    )));
+    
+    // Color del texto de la etiqueta
+    $wp_customize->add_setting('mjpropiedades_card_tag_text', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_tag_text', array(
+        'label' => __('Color del Texto de la Etiqueta', 'mjpropiedades'),
+        'description' => __('Color del texto de la etiqueta VENTA/ARRIENDO', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_tag_text',
+    )));
+    
+    // Color de la sombra de la tarjeta
+    $wp_customize->add_setting('mjpropiedades_card_shadow', array(
+        'default' => 'rgba(0, 0, 0, 0.1)',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_card_shadow', array(
+        'label' => __('Color de la Sombra', 'mjpropiedades'),
+        'description' => __('Color de la sombra de las tarjetas (formato: rgba(0, 0, 0, 0.1))', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'type' => 'text',
+    ));
+    
+    // Color de la sombra al hacer hover
+    $wp_customize->add_setting('mjpropiedades_card_shadow_hover', array(
+        'default' => 'rgba(0, 0, 0, 0.15)',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_card_shadow_hover', array(
+        'label' => __('Color de la Sombra al Hover', 'mjpropiedades'),
+        'description' => __('Color de la sombra cuando se pasa el mouse por encima', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'type' => 'text',
+    ));
+}
+add_action('customize_register', 'mjpropiedades_property_cards_customizer');
+
+// Generar CSS dinámico para los colores de las tarjetas
+function mjpropiedades_property_cards_dynamic_css() {
+    // Obtener valores con fallback a valores por defecto
+    $card_bg = get_theme_mod('mjpropiedades_card_background');
+    if (empty($card_bg)) $card_bg = '#ffffff';
+    
+    $card_title = get_theme_mod('mjpropiedades_card_title_color');
+    if (empty($card_title)) $card_title = '#333333';
+    
+    $card_location = get_theme_mod('mjpropiedades_card_location_color');
+    if (empty($card_location)) $card_location = '#666666';
+    
+    $card_price = get_theme_mod('mjpropiedades_card_price_color');
+    if (empty($card_price)) $card_price = '#ff6b35';
+    
+    $card_button_bg = get_theme_mod('mjpropiedades_card_button_bg');
+    if (empty($card_button_bg)) $card_button_bg = '#FFC107';
+    
+    $card_button_text = get_theme_mod('mjpropiedades_card_button_text');
+    if (empty($card_button_text)) $card_button_text = '#ffffff';
+    
+    $card_button_hover = get_theme_mod('mjpropiedades_card_button_hover');
+    if (empty($card_button_hover)) $card_button_hover = '#ff6b35';
+    
+    $card_button_text_hover = get_theme_mod('mjpropiedades_card_button_text_hover');
+    if (empty($card_button_text_hover)) $card_button_text_hover = '#ffffff';
+    
+    $card_details = get_theme_mod('mjpropiedades_card_details_color');
+    if (empty($card_details)) $card_details = '#666666';
+    
+    $card_icons = get_theme_mod('mjpropiedades_card_icons_color');
+    if (empty($card_icons)) $card_icons = '#ff6b35';
+    
+    $card_tag_bg = get_theme_mod('mjpropiedades_card_tag_bg');
+    if (empty($card_tag_bg)) $card_tag_bg = '#00d4aa';
+    
+    $card_arriendo_tag_bg = get_theme_mod('mjpropiedades_card_arriendo_tag_bg');
+    if (empty($card_arriendo_tag_bg)) $card_arriendo_tag_bg = '#4285F4';
+    
+    $card_tag_text = get_theme_mod('mjpropiedades_card_tag_text');
+    if (empty($card_tag_text)) $card_tag_text = '#ffffff';
+    
+    $card_shadow = get_theme_mod('mjpropiedades_card_shadow');
+    if (empty($card_shadow)) $card_shadow = 'rgba(0, 0, 0, 0.1)';
+    
+    $card_shadow_hover = get_theme_mod('mjpropiedades_card_shadow_hover');
+    if (empty($card_shadow_hover)) $card_shadow_hover = 'rgba(0, 0, 0, 0.15)';
+    
+    $css = "
+    /* Colores dinámicos para tarjetas de propiedades */
+    .property-card {
+        background: {$card_bg} !important;
+        box-shadow: 0 2px 8px {$card_shadow} !important;
+    }
+    
+    .property-card:hover {
+        box-shadow: 0 8px 25px {$card_shadow_hover} !important;
+    }
+    
+    .property-title a {
+        color: {$card_title} !important;
+    }
+    
+    .property-title a:hover {
+        color: {$card_price} !important;
+    }
+    
+    .property-location {
+        color: {$card_location} !important;
+    }
+    
+    .property-price {
+        color: {$card_price} !important;
+    }
+    
+    .property-btn {
+        background: {$card_button_bg} !important;
+        color: {$card_button_text} !important;
+    }
+    
+    .property-btn:hover {
+        background: {$card_button_hover} !important;
+        color: {$card_button_text_hover} !important;
+    }
+    
+    .detail-item {
+        color: {$card_details} !important;
+    }
+    
+    .detail-item svg {
+        color: {$card_icons} !important;
+    }
+    
+    .property-tag {
+        color: {$card_tag_text} !important;
+    }
+    
+    /* Etiqueta específica para VENTA */
+    .property-tag.venta {
+        background: {$card_tag_bg} !important;
+        box-shadow: 0 1px 3px {$card_tag_bg}66 !important;
+    }
+    
+    /* Etiqueta específica para ARRIENDO */
+    .property-tag.arriendo {
+        background: {$card_arriendo_tag_bg} !important;
+        box-shadow: 0 1px 3px {$card_arriendo_tag_bg}66 !important;
+    }
+    ";
+    
+    return $css;
+}
+
+// Agregar CSS dinámico al head
+function mjpropiedades_property_cards_css() {
+    // Verificar si estamos en la página de propiedades o en cualquier página que muestre propiedades
+    $should_load = false;
+    
+    // Verificar página específica por slug
+    if (is_page('propiedades')) {
+        $should_load = true;
+    }
+    
+    // Verificar por ID de página
+    $propiedades_page = get_page_by_path('propiedades');
+    if ($propiedades_page && is_page($propiedades_page->ID)) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en home o front page (donde también pueden aparecer propiedades)
+    if (is_home() || is_front_page()) {
+        $should_load = true;
+    }
+    
+    // Verificar si hay propiedades en la consulta actual
+    global $wp_query;
+    if ($wp_query && $wp_query->get('post_type') === 'propiedad') {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en cualquier página que contenga el template de propiedades
+    if (is_page_template('page-propiedades.php')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos usando el template de inicio (page-inicio.php)
+    if (is_page_template('page-inicio.php')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en la página de inicio por slug
+    if (is_page('inicio')) {
+        $should_load = true;
+    }
+    
+    if ($should_load) {
+        echo '<style type="text/css" id="mjpropiedades-property-cards-colors">' . mjpropiedades_property_cards_dynamic_css() . '</style>';
+    }
+}
+add_action('wp_head', 'mjpropiedades_property_cards_css');
+
+// Función adicional para cargar CSS específicamente en el template de propiedades
+function mjpropiedades_load_property_cards_css_in_template() {
+    // Solo ejecutar si estamos usando el template de propiedades
+    if (is_page_template('page-propiedades.php')) {
+        echo '<style type="text/css" id="mjpropiedades-property-cards-colors-template">' . mjpropiedades_property_cards_dynamic_css() . '</style>';
+    }
+}
+add_action('wp_head', 'mjpropiedades_load_property_cards_css_in_template', 5);
+
+// Agregar CSS dinámico para el Customizer (preview en tiempo real)
+function mjpropiedades_property_cards_customizer_css() {
+    wp_add_inline_style('customize-preview', mjpropiedades_property_cards_dynamic_css());
+}
+add_action('customize_preview_init', function() {
+    add_action('wp_enqueue_scripts', 'mjpropiedades_property_cards_customizer_css');
+});
+
+// JavaScript para preview en tiempo real en el Customizer
+function mjpropiedades_property_cards_customizer_js() {
+    ?>
+    <script type="text/javascript">
+    (function($) {
+        // Preview en tiempo real para colores de tarjetas
+        wp.customize('mjpropiedades_card_background', function(value) {
+            value.bind(function(newval) {
+                $('.property-card').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_title_color', function(value) {
+            value.bind(function(newval) {
+                $('.property-title a').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_location_color', function(value) {
+            value.bind(function(newval) {
+                $('.property-location').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_price_color', function(value) {
+            value.bind(function(newval) {
+                $('.property-price').css('color', newval);
+                $('.property-title a:hover').css('color', newval);
+                $('.property-tag[style*="background: #ff6b35"]').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_button_bg', function(value) {
+            value.bind(function(newval) {
+                $('.property-btn').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_button_text', function(value) {
+            value.bind(function(newval) {
+                $('.property-btn').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_button_hover', function(value) {
+            value.bind(function(newval) {
+                $('.property-btn:hover').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_button_text_hover', function(value) {
+            value.bind(function(newval) {
+                $('.property-btn:hover').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_details_color', function(value) {
+            value.bind(function(newval) {
+                $('.detail-item').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_icons_color', function(value) {
+            value.bind(function(newval) {
+                $('.detail-item svg').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_tag_bg', function(value) {
+            value.bind(function(newval) {
+                $('.property-tag').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_tag_text', function(value) {
+            value.bind(function(newval) {
+                $('.property-tag').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_shadow', function(value) {
+            value.bind(function(newval) {
+                $('.property-card').css('box-shadow', '0 2px 8px ' + newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_shadow_hover', function(value) {
+            value.bind(function(newval) {
+                $('.property-card:hover').css('box-shadow', '0 8px 25px ' + newval);
+            });
+        });
+        
+    })(jQuery);
+    </script>
+    <?php
+}
+add_action('customize_controls_print_scripts', 'mjpropiedades_property_cards_customizer_js');
+
+// Agregar página de administración para opciones de búsqueda
+function mjpropiedades_add_search_options_page() {
+    add_options_page(
+        'Opciones de Búsqueda',
+        'Opciones de Búsqueda',
+        'manage_options',
+        'mjpropiedades-search-options',
+        'mjpropiedades_search_options_page'
+    );
+}
+add_action('admin_menu', 'mjpropiedades_add_search_options_page');
+
+// Página de opciones de búsqueda
+function mjpropiedades_search_options_page() {
+    // Guardar opciones si se envió el formulario
+    if (isset($_POST['submit']) && wp_verify_nonce($_POST['search_options_nonce'], 'save_search_options')) {
+        // Guardar tipos de propiedad
+        if (isset($_POST['tipos_propiedad'])) {
+            $tipos = array();
+            foreach ($_POST['tipos_propiedad'] as $tipo) {
+                if (!empty($tipo['value']) && !empty($tipo['label'])) {
+                    $tipos[sanitize_text_field($tipo['value'])] = sanitize_text_field($tipo['label']);
+                }
+            }
+            update_option('mjpropiedades_tipos_propiedad', $tipos);
+        }
+        
+        // Guardar comunas
+        if (isset($_POST['comunas'])) {
+            $comunas = array();
+            foreach ($_POST['comunas'] as $comuna) {
+                if (!empty($comuna['value']) && !empty($comuna['label'])) {
+                    $comunas[sanitize_text_field($comuna['value'])] = sanitize_text_field($comuna['label']);
+                }
+            }
+            update_option('mjpropiedades_comunas', $comunas);
+        }
+        
+        // Guardar opciones de dormitorios
+        if (isset($_POST['dormitorios'])) {
+            $dormitorios = array();
+            foreach ($_POST['dormitorios'] as $dormitorio) {
+                if (!empty($dormitorio['value']) && !empty($dormitorio['label'])) {
+                    $dormitorios[sanitize_text_field($dormitorio['value'])] = sanitize_text_field($dormitorio['label']);
+                }
+            }
+            update_option('mjpropiedades_dormitorios', $dormitorios);
+        }
+        
+        // Guardar opciones de baños
+        if (isset($_POST['banos'])) {
+            $banos = array();
+            foreach ($_POST['banos'] as $bano) {
+                if (!empty($bano['value']) && !empty($bano['label'])) {
+                    $banos[sanitize_text_field($bano['value'])] = sanitize_text_field($bano['label']);
+                }
+            }
+            update_option('mjpropiedades_banos', $banos);
+        }
+        
+        echo '<div class="notice notice-success"><p>Opciones guardadas correctamente.</p></div>';
+    }
+    
+    // Obtener opciones actuales
+    $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array());
+    $comunas = get_option('mjpropiedades_comunas', array());
+    $dormitorios = get_option('mjpropiedades_dormitorios', array());
+    $banos = get_option('mjpropiedades_banos', array());
+    
+    ?>
+    <div class="wrap">
+        <h1>Opciones de Búsqueda de Propiedades</h1>
+        <p>Gestiona las opciones disponibles en los formularios de búsqueda.</p>
+        
+        <form method="post" action="">
+            <?php wp_nonce_field('save_search_options', 'search_options_nonce'); ?>
+            
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Tipos de Propiedad</th>
+                    <td>
+                        <div id="tipos-propiedad-container">
+                            <?php
+                            $counter = 0;
+                            foreach ($tipos_propiedad as $value => $label) {
+                                echo '<div class="option-row">';
+                                echo '<input type="text" name="tipos_propiedad[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: casa)" style="width: 150px; margin-right: 10px;">';
+                                echo '<input type="text" name="tipos_propiedad[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: Casa)" style="width: 200px; margin-right: 10px;">';
+                                echo '<button type="button" class="button remove-option">Eliminar</button>';
+                                echo '</div>';
+                                $counter++;
+                            }
+                            ?>
+                        </div>
+                        <button type="button" id="add-tipo-propiedad" class="button">Agregar Tipo de Propiedad</button>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Comunas</th>
+                    <td>
+                        <div id="comunas-container">
+                            <?php
+                            $counter = 0;
+                            foreach ($comunas as $value => $label) {
+                                echo '<div class="option-row">';
+                                echo '<input type="text" name="comunas[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: la-serena)" style="width: 150px; margin-right: 10px;">';
+                                echo '<input type="text" name="comunas[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: La Serena)" style="width: 200px; margin-right: 10px;">';
+                                echo '<button type="button" class="button remove-option">Eliminar</button>';
+                                echo '</div>';
+                                $counter++;
+                            }
+                            ?>
+                        </div>
+                        <button type="button" id="add-comuna" class="button">Agregar Comuna</button>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Dormitorios</th>
+                    <td>
+                        <div id="dormitorios-container">
+                            <?php
+                            $counter = 0;
+                            foreach ($dormitorios as $value => $label) {
+                                echo '<div class="option-row">';
+                                echo '<input type="text" name="dormitorios[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">';
+                                echo '<input type="text" name="dormitorios[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: 2 dormitorios)" style="width: 200px; margin-right: 10px;">';
+                                echo '<button type="button" class="button remove-option">Eliminar</button>';
+                                echo '</div>';
+                                $counter++;
+                            }
+                            ?>
+                        </div>
+                        <button type="button" id="add-dormitorio" class="button">Agregar Opción de Dormitorios</button>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Baños</th>
+                    <td>
+                        <div id="banos-container">
+                            <?php
+                            $counter = 0;
+                            foreach ($banos as $value => $label) {
+                                echo '<div class="option-row">';
+                                echo '<input type="text" name="banos[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">';
+                                echo '<input type="text" name="banos[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: 2 baños)" style="width: 200px; margin-right: 10px;">';
+                                echo '<button type="button" class="button remove-option">Eliminar</button>';
+                                echo '</div>';
+                                $counter++;
+                            }
+                            ?>
+                        </div>
+                        <button type="button" id="add-bano" class="button">Agregar Opción de Baños</button>
+                    </td>
+                </tr>
+            </table>
+            
+            <?php submit_button('Guardar Opciones'); ?>
+        </form>
+    </div>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        let tipoCounter = <?php echo count($tipos_propiedad); ?>;
+        let comunaCounter = <?php echo count($comunas); ?>;
+        let dormitorioCounter = <?php echo count($dormitorios); ?>;
+        let banoCounter = <?php echo count($banos); ?>;
+        
+        // Agregar tipo de propiedad
+        $('#add-tipo-propiedad').click(function() {
+            const html = '<div class="option-row">' +
+                '<input type="text" name="tipos_propiedad[' + tipoCounter + '][value]" placeholder="Valor (ej: casa)" style="width: 150px; margin-right: 10px;">' +
+                '<input type="text" name="tipos_propiedad[' + tipoCounter + '][label]" placeholder="Etiqueta (ej: Casa)" style="width: 200px; margin-right: 10px;">' +
+                '<button type="button" class="button remove-option">Eliminar</button>' +
+                '</div>';
+            $('#tipos-propiedad-container').append(html);
+            tipoCounter++;
+        });
+        
+        // Agregar comuna
+        $('#add-comuna').click(function() {
+            const html = '<div class="option-row">' +
+                '<input type="text" name="comunas[' + comunaCounter + '][value]" placeholder="Valor (ej: la-serena)" style="width: 150px; margin-right: 10px;">' +
+                '<input type="text" name="comunas[' + comunaCounter + '][label]" placeholder="Etiqueta (ej: La Serena)" style="width: 200px; margin-right: 10px;">' +
+                '<button type="button" class="button remove-option">Eliminar</button>' +
+                '</div>';
+            $('#comunas-container').append(html);
+            comunaCounter++;
+        });
+        
+        // Agregar dormitorio
+        $('#add-dormitorio').click(function() {
+            const html = '<div class="option-row">' +
+                '<input type="text" name="dormitorios[' + dormitorioCounter + '][value]" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">' +
+                '<input type="text" name="dormitorios[' + dormitorioCounter + '][label]" placeholder="Etiqueta (ej: 2 dormitorios)" style="width: 200px; margin-right: 10px;">' +
+                '<button type="button" class="button remove-option">Eliminar</button>' +
+                '</div>';
+            $('#dormitorios-container').append(html);
+            dormitorioCounter++;
+        });
+        
+        // Agregar baño
+        $('#add-bano').click(function() {
+            const html = '<div class="option-row">' +
+                '<input type="text" name="banos[' + banoCounter + '][value]" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">' +
+                '<input type="text" name="banos[' + banoCounter + '][label]" placeholder="Etiqueta (ej: 2 baños)" style="width: 200px; margin-right: 10px;">' +
+                '<button type="button" class="button remove-option">Eliminar</button>' +
+                '</div>';
+            $('#banos-container').append(html);
+            banoCounter++;
+        });
+        
+        // Eliminar opción
+        $(document).on('click', '.remove-option', function() {
+            $(this).closest('.option-row').remove();
+        });
+    });
+    </script>
+    
+    <style>
+    .option-row {
+        margin-bottom: 10px;
+        padding: 10px;
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    </style>
+    <?php
+}
 ?>
