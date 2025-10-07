@@ -325,7 +325,7 @@ get_header(); ?>
 }
 
 .property-details span {
-    background: #f8f9fa;
+    background: #1e40af;
     padding: 4px 8px;
     border-radius: 12px;
 }
