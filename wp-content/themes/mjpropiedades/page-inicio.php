@@ -104,6 +104,7 @@ get_header(); ?>
 
 <!-- Search Section -->
 <section id="buscar" class="search-section section">
+    <br><br><br><br>
     <div class="container">
         <div class="search-header">
             <h2 class="section-title">Encuentra tu Propiedad Ideal</h2>
@@ -229,6 +230,7 @@ get_header(); ?>
             </form>
         </div>
     </div>
+    <br><br><br><br><br><br>
 </section>
 
 <!-- Servicios -->
@@ -236,6 +238,7 @@ get_header(); ?>
     <div class="container">
         <div class="services-header">
             <span class="services-tag"><?php echo esc_html(get_theme_mod('mjpropiedades_services_tag', 'NUESTROS SERVICIOS')); ?></span>
+            <br><br><br><br>
             <h2 class="section-title" style="color: <?php echo esc_attr(get_theme_mod('mjpropiedades_services_title_color', '#374151')); ?>">
                 <?php echo esc_html(get_theme_mod('mjpropiedades_services_title', 'Te Acompañamos en Cada Paso')); ?>
             </h2>
@@ -347,26 +350,31 @@ get_header(); ?>
                 </div>
         
             </div>
+    <br><br><br><br>
 </section>
 
 <!-- Propiedades en Venta -->
 <section id="venta" class="section">
+    <br><br>
     <div class="container">
         <div class="section-header">
-            <div class="section-tag venta-tag">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M9 22V12H15V22" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 6V12" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M9 9L12 6L15 9" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Propiedades en Venta</span>
-            </div>
+            
             <h2 class="section-title">Propiedades Destacadas</h2>
             <p class="section-subtitle">Descubre las mejores oportunidades inmobiliarias disponibles</p>
         </div>
+        <br><br>
         
-                    <?php
+
+        <div class="section-tag venta-tag">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 22V12H15V22" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 6V12" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 9L12 6L15 9" stroke="#90ee90" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Propiedades en Venta</span>
+        </div>
+        <?php
         // Obtener propiedades destacadas en venta
         $featured_properties = mjpropiedades_get_featured_properties_by_operation('venta', 6);
         
@@ -472,7 +480,7 @@ get_header(); ?>
         <!-- Ver todas button -->
         <div class="section-footer">
             <a href="<?php echo home_url('/propiedades/?operacion=venta'); ?>" class="view-all-btn">
-                Ver Todas las Propiedades en Venta
+                Ver Todas
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2"/>
                 </svg>
@@ -483,7 +491,7 @@ get_header(); ?>
         <div class="no-properties-message">
             <p>No hay propiedades destacadas en venta disponibles en este momento.</p>
             <a href="<?php echo home_url('/propiedades/?operacion=venta'); ?>" class="view-all-btn">
-                Ver Todas las Propiedades en Venta
+                Ver Todas
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2"/>
                 </svg>
@@ -491,24 +499,21 @@ get_header(); ?>
         </div>
         <?php endif; ?>
     </div>
+    <br><br>
 </section>
 
 <!-- Propiedades Destacadas en Arriendo -->
 <section id="arriendo" class="section bg-light">
+    <br><br>
     <div class="container">
-        <div class="section-header">
-            <div class="section-tag arriendo-tag">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 11H5C3.89543 11 3 11.8954 3 13V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V13C21 11.8954 20.1046 11 19 11Z" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M7 11V7C7 4.79086 8.79086 3 11 3H13C15.2091 3 17 4.79086 17 7V11" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Propiedades en Arriendo</span>
-            </div>
-            <h2 class="section-title">Propiedades Destacadas</h2>
-            <p class="section-subtitle">Descubre las mejores oportunidades inmobiliarias disponibles</p>
+        <div class="section-tag arriendo-tag">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 11H5C3.89543 11 3 11.8954 3 13V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V13C21 11.8954 20.1046 11 19 11Z" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 11V7C7 4.79086 8.79086 3 11 3H13C15.2091 3 17 4.79086 17 7V11" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Propiedades en Arriendo</span>
         </div>
-        
-                    <?php
+        <?php
         // Obtener propiedades destacadas en arriendo
         $featured_arriendo_properties = mjpropiedades_get_featured_properties_by_operation('arriendo', 6);
         
@@ -614,7 +619,7 @@ get_header(); ?>
         <!-- Ver todas button -->
         <div class="section-footer">
             <a href="<?php echo home_url('/propiedades/?operacion=arriendo'); ?>" class="view-all-btn">
-                Ver Todas las Propiedades en Arriendo
+                Ver Todas
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2"/>
                 </svg>
@@ -625,7 +630,7 @@ get_header(); ?>
         <div class="no-properties-message">
             <p>No hay propiedades destacadas en arriendo disponibles en este momento.</p>
             <a href="<?php echo home_url('/propiedades/?operacion=arriendo'); ?>" class="view-all-btn">
-                Ver Todas las Propiedades en Arriendo
+                Ver Todas
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2"/>
                 </svg>
@@ -633,10 +638,12 @@ get_header(); ?>
                     </div>
         <?php endif; ?>
     </div>
+    <br><br>
 </section>
 
 <!-- Quiénes Somos -->
 <section id="about" class="about section">
+    <br><br>
     <div class="container">
         <div class="about-container">
             <div class="about-content">
@@ -677,14 +684,16 @@ get_header(); ?>
             </div>
         </div>
     </div>
+    <br><br>
 </section>
 
 <!-- Testimonios -->
 <section id="testimonios" class="testimonials section bg-light">
+    <br><br>
     <div class="container">
         <h2 class="section-title"><?php echo get_theme_mod('mjpropiedades_testimonials_title', 'Lo que dicen nuestros clientes'); ?></h2>
         <p class="section-subtitle"><?php echo get_theme_mod('mjpropiedades_testimonials_subtitle', 'Testimonios reales de clientes satisfechos en la Cuarta Región'); ?></p>
-        
+        <br>
         <!-- Estadísticas de Satisfacción -->
         <div class="testimonials-stats">
             <div class="stat-item">
@@ -696,7 +705,7 @@ get_header(); ?>
                 <span class="stat-label">Recomiendan</span>
             </div>
         </div>
-        
+        <br><br>
         <?php
         // Testimonios por defecto si no hay configuración
         $default_testimonials = array(
@@ -770,16 +779,18 @@ get_header(); ?>
             ?>
         </div>
     </div>
+    <br><br><br><br>
 </section>
 
 
 <!-- Contact Section -->
 <section id="contacto" class="section">
     <div class="container">
+        <br><br>
         <div class="contact-header">
             <h2 class="section-title">Contáctanos</h2>
             <p class="section-subtitle">Estamos aquí para ayudarte con todas tus necesidades inmobiliarias</p>
-            
+            <br>
             <?php
             // Mostrar mensajes de éxito o error
             if (isset($_GET['contact'])) {
@@ -790,8 +801,8 @@ get_header(); ?>
                 }
             }
             ?>
-            </div>
-            
+        </div>
+        
         <div class="contact-content">
             <!-- Información de Contacto -->
             <div class="contact-info">
@@ -849,51 +860,62 @@ get_header(); ?>
             
             <!-- Formulario de Contacto -->
             <div class="contact-form-container">
+            <?php
+                // Verificar si Contact Form 7 está activo
+                if (function_exists('wpcf7_contact_form')) {
+                    echo do_shortcode('[contact-form-7 id="1" title="Formulario de Contacto"]');
+                } else {
+                    // Fallback al formulario original si CF7 no está instalado
+                    ?>
         <form class="contact-form" method="post" action="">
             <?php wp_nonce_field('contact_form_nonce', 'contact_nonce'); ?>
             <input type="hidden" name="contact_form_submitted" value="1">
             
-                    <div class="form-row">
+                        <div class="form-row">
             <div class="form-group">
-                            <label for="nombre" class="form-label">Nombre completo</label>
-                            <input type="text" id="nombre" name="nombre" class="form-input" required>
+                                <label for="nombre" class="form-label">Nombre completo</label>
+                                <input type="text" id="nombre" name="nombre" class="form-input" required>
             </div>
             
-                        <div class="form-group">
+                            <div class="form-group">
                 <label for="email" class="form-label">Email</label>
-                            <input type="email" id="email" name="email" class="form-input" required>
-                        </div>
+                                <input type="email" id="email" name="email" class="form-input" required>
+                            </div>
             </div>
             
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="telefono" class="form-label">Teléfono</label>
-                            <input type="tel" id="telefono" name="telefono" class="form-input" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="tel" id="telefono" name="telefono" class="form-input" required>
             </div>
             
             <div class="form-group">
-                            <label for="tipo_consulta" class="form-label">Tipo de consulta</label>
-                            <select id="tipo_consulta" name="tipo_consulta" class="form-select" required>
+                                <label for="tipo_consulta" class="form-label">Tipo de consulta</label>
+                                <select id="tipo_consulta" name="tipo_consulta" class="form-select" required>
                     <option value="">Seleccionar tipo</option>
-                                <option value="compra">Compra de propiedad</option>
-                                <option value="venta">Venta de propiedad</option>
-                                <option value="arriendo">Arriendo de propiedad</option>
-                                <option value="tasacion">Tasación</option>
-                                <option value="asesoria">Asesoría inmobiliaria</option>
+                                    <option value="compra">Compra de propiedad</option>
+                                    <option value="venta">Venta de propiedad</option>
+                                    <option value="arriendo">Arriendo de propiedad</option>
+                                    <option value="tasacion">Tasación</option>
+                                    <option value="asesoria">Asesoría inmobiliaria</option>
                 </select>
-                        </div>
+                            </div>
             </div>
             
             <div class="form-group">
-                        <label for="mensaje" class="form-label">Mensaje</label>
-                        <textarea id="mensaje" name="mensaje" class="form-textarea" placeholder="Cuéntanos más sobre tu consulta..." required></textarea>
+                            <label for="mensaje" class="form-label">Mensaje</label>
+                            <textarea id="mensaje" name="mensaje" class="form-textarea" placeholder="Cuéntanos más sobre tu consulta..." required></textarea>
             </div>
             
-                    <button type="submit" class="submit-btn">Enviar Consulta</button>
-                </form>
+                        <button type="submit" class="submit-btn">Enviar Consulta</button>
+                    </form>
+                    <?php
+                }
+                ?>
             </div>
             </div>
     </div>
+    <br><br><br><br>
 </section>
 
 <?php get_footer(); ?>

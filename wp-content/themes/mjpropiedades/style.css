@@ -6589,6 +6589,128 @@ body.admin-bar .hero {
     }
 }
 
+/* Estilos para Contact Form 7 */
+.wpcf7-form {
+    width: 100%;
+}
+
+.wpcf7-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.wpcf7-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.wpcf7-form .form-label {
+    font-weight: 600;
+    color: var(--dark-gray);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.wpcf7-form .form-input,
+.wpcf7-form .form-select,
+.wpcf7-form .form-textarea {
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #ffffff;
+}
+
+.wpcf7-form .form-input:focus,
+.wpcf7-form .form-select:focus,
+.wpcf7-form .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.wpcf7-form .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+    grid-column: 1 / -1;
+}
+
+.wpcf7-form .submit-btn {
+    background: var(--primary-blue);
+    color: white;
+    padding: 16px 32px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.wpcf7-form .submit-btn:hover {
+    background: var(--hero-button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30, 64, 175, 0.3);
+}
+
+.wpcf7-form .submit-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Mensajes de Contact Form 7 */
+.wpcf7-response-output {
+    margin-top: 1rem;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.wpcf7-mail-sent-ok {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.wpcf7-validation-errors,
+.wpcf7-mail-sent-ng {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.wpcf7-spam-blocked {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* Responsive para Contact Form 7 */
+@media (max-width: 768px) {
+    .wpcf7-form .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .wpcf7-form .form-input,
+    .wpcf7-form .form-select,
+    .wpcf7-form .form-textarea {
+        padding: 10px 12px;
+    }
+    
+    .wpcf7-form .submit-btn {
+        padding: 14px 24px;
+        font-size: 1rem;
+    }
+}
+
 /* Estilos responsivos para el Hero */
 @media (max-width: 768px) {
     .hero-container {
