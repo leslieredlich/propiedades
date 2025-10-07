@@ -1204,12 +1204,6 @@ function mjpropiedades_customize_register($wp_customize) {
         ),
     ));
     
-    // Sección de información de contacto
-    $wp_customize->add_section('mjpropiedades_contact', array(
-        'title'    => __('Información de Contacto', 'mjpropiedades'),
-        'priority' => 30,
-    ));
-    
     // Sección del Hero Slider
     $wp_customize->add_section('mjpropiedades_hero', array(
         'title'    => __('Hero Slider', 'mjpropiedades'),
@@ -2058,42 +2052,6 @@ function mjpropiedades_customize_register($wp_customize) {
         'section' => 'mjpropiedades_hero',
         'mime_type' => 'image',
     )));
-    
-    // Teléfono
-    $wp_customize->add_setting('mjpropiedades_phone', array(
-        'default'           => '+56 9 4927 6448',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    
-    $wp_customize->add_control('mjpropiedades_phone', array(
-        'label'   => __('Teléfono', 'mjpropiedades'),
-        'section' => 'mjpropiedades_contact',
-        'type'    => 'text',
-    ));
-    
-    // Email
-    $wp_customize->add_setting('mjpropiedades_email', array(
-        'default'           => 'homeisaspa@gmail.com',
-        'sanitize_callback' => 'sanitize_email',
-    ));
-    
-    $wp_customize->add_control('mjpropiedades_email', array(
-        'label'   => __('Email', 'mjpropiedades'),
-        'section' => 'mjpropiedades_contact',
-        'type'    => 'email',
-    ));
-    
-    // Dirección
-    $wp_customize->add_setting('mjpropiedades_address', array(
-        'default'           => 'Santiago, Chile',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    
-    $wp_customize->add_control('mjpropiedades_address', array(
-        'label'   => __('Dirección', 'mjpropiedades'),
-        'section' => 'mjpropiedades_contact',
-        'type'    => 'text',
-    ));
     
     // Sección de configuración del menú
     $wp_customize->add_section('mjpropiedades_menu', array(
@@ -3793,6 +3751,37 @@ function mjpropiedades_search_properties() {
         'meta_query' => array()
     );
     
+    // Aplicar ordenamiento
+    if (isset($_GET['sort']) && !empty($_GET['sort'])) {
+        $sort = sanitize_text_field($_GET['sort']);
+        
+        switch ($sort) {
+            case 'price-asc':
+                $args['meta_key'] = '_propiedad_precio';
+                $args['orderby'] = 'meta_value_num';
+                $args['order'] = 'ASC';
+                break;
+            case 'price-desc':
+                $args['meta_key'] = '_propiedad_precio';
+                $args['orderby'] = 'meta_value_num';
+                $args['order'] = 'DESC';
+                break;
+            case 'title-asc':
+                $args['orderby'] = 'title';
+                $args['order'] = 'ASC';
+                break;
+            case 'date-desc':
+            default:
+                $args['orderby'] = 'date';
+                $args['order'] = 'DESC';
+                break;
+        }
+    } else {
+        // Ordenamiento por defecto: más recientes primero
+        $args['orderby'] = 'date';
+        $args['order'] = 'DESC';
+    }
+    
     // Aplicar filtros
     if (isset($_GET['tipo_propiedad']) && !empty($_GET['tipo_propiedad'])) {
         $args['meta_query'][] = array(
@@ -3873,7 +3862,506 @@ function mjpropiedades_search_properties() {
     return new WP_Query($args);
 }
 
-// ===== PANEL DE ADMINISTRACIÓN PARA OPCIONES DE BÚSQUEDA =====
+// ===== CONFIGURACIÓN DE COLORES PARA TARJETAS DE PROPIEDADES =====
+
+// Agregar sección de colores de tarjetas al Customizer
+function mjpropiedades_property_cards_customizer($wp_customize) {
+    
+    // Sección para colores de tarjetas de propiedades
+    $wp_customize->add_section('mjpropiedades_property_cards_colors', array(
+        'title' => __('Colores de Tarjetas de Propiedades', 'mjpropiedades'),
+        'description' => __('Configura los colores para las tarjetas de propiedades', 'mjpropiedades'),
+        'priority' => 30,
+        'capability' => 'edit_theme_options',
+    ));
+    
+    // Color de fondo de la tarjeta
+    $wp_customize->add_setting('mjpropiedades_card_background', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_background', array(
+        'label' => __('Color de Fondo de la Tarjeta', 'mjpropiedades'),
+        'description' => __('Color de fondo principal de las tarjetas de propiedades', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_background',
+    )));
+    
+    // Color del título de la propiedad
+    $wp_customize->add_setting('mjpropiedades_card_title_color', array(
+        'default' => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_title_color', array(
+        'label' => __('Color del Título', 'mjpropiedades'),
+        'description' => __('Color del título de la propiedad', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_title_color',
+    )));
+    
+    // Color de la ubicación
+    $wp_customize->add_setting('mjpropiedades_card_location_color', array(
+        'default' => '#666666',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_location_color', array(
+        'label' => __('Color de Ubicación', 'mjpropiedades'),
+        'description' => __('Color del texto de ubicación', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_location_color',
+    )));
+    
+    // Color del precio
+    $wp_customize->add_setting('mjpropiedades_card_price_color', array(
+        'default' => '#ff6b35',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_price_color', array(
+        'label' => __('Color del Precio', 'mjpropiedades'),
+        'description' => __('Color del precio de la propiedad', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_price_color',
+    )));
+    
+    // Color del botón "Ver Detalles"
+    $wp_customize->add_setting('mjpropiedades_card_button_bg', array(
+        'default' => '#FFC107',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_button_bg', array(
+        'label' => __('Color de Fondo del Botón', 'mjpropiedades'),
+        'description' => __('Color de fondo del botón "Ver Detalles"', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_button_bg',
+    )));
+    
+    // Color del texto del botón
+    $wp_customize->add_setting('mjpropiedades_card_button_text', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_button_text', array(
+        'label' => __('Color del Texto del Botón', 'mjpropiedades'),
+        'description' => __('Color del texto del botón "Ver Detalles"', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_button_text',
+    )));
+    
+    // Color del botón al hacer hover
+    $wp_customize->add_setting('mjpropiedades_card_button_hover', array(
+        'default' => '#ff6b35',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_button_hover', array(
+        'label' => __('Color del Botón al Hover', 'mjpropiedades'),
+        'description' => __('Color del botón cuando se pasa el mouse por encima', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_button_hover',
+    )));
+    
+    // Color del texto del botón al hacer hover
+    $wp_customize->add_setting('mjpropiedades_card_button_text_hover', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_button_text_hover', array(
+        'label' => __('Color del Texto del Botón al Hover', 'mjpropiedades'),
+        'description' => __('Color del texto del botón al hacer hover', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_button_text_hover',
+    )));
+    
+    // Color de los detalles (dormitorios, baños, etc.)
+    $wp_customize->add_setting('mjpropiedades_card_details_color', array(
+        'default' => '#666666',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_details_color', array(
+        'label' => __('Color de los Detalles', 'mjpropiedades'),
+        'description' => __('Color del texto de dormitorios, baños, metros cuadrados', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_details_color',
+    )));
+    
+    // Color de los iconos de detalles
+    $wp_customize->add_setting('mjpropiedades_card_icons_color', array(
+        'default' => '#ff6b35',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_icons_color', array(
+        'label' => __('Color de los Iconos', 'mjpropiedades'),
+        'description' => __('Color de los iconos de dormitorios, baños, metros cuadrados', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_icons_color',
+    )));
+    
+    // Color de la etiqueta de operación (VENTA)
+    $wp_customize->add_setting('mjpropiedades_card_tag_bg', array(
+        'default' => '#00d4aa',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_tag_bg', array(
+        'label' => __('Color de Fondo de la Etiqueta VENTA', 'mjpropiedades'),
+        'description' => __('Color de fondo de la etiqueta VENTA', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_tag_bg',
+    )));
+    
+    // Color de la etiqueta de operación (ARRIENDO)
+    $wp_customize->add_setting('mjpropiedades_card_arriendo_tag_bg', array(
+        'default' => '#4285F4',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_arriendo_tag_bg', array(
+        'label' => __('Color de Fondo de la Etiqueta ARRIENDO', 'mjpropiedades'),
+        'description' => __('Color de fondo de la etiqueta ARRIENDO', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_arriendo_tag_bg',
+    )));
+    
+    // Color del texto de la etiqueta
+    $wp_customize->add_setting('mjpropiedades_card_tag_text', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_card_tag_text', array(
+        'label' => __('Color del Texto de la Etiqueta', 'mjpropiedades'),
+        'description' => __('Color del texto de la etiqueta VENTA/ARRIENDO', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'settings' => 'mjpropiedades_card_tag_text',
+    )));
+    
+    // Color de la sombra de la tarjeta
+    $wp_customize->add_setting('mjpropiedades_card_shadow', array(
+        'default' => 'rgba(0, 0, 0, 0.1)',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_card_shadow', array(
+        'label' => __('Color de la Sombra', 'mjpropiedades'),
+        'description' => __('Color de la sombra de las tarjetas (formato: rgba(0, 0, 0, 0.1))', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'type' => 'text',
+    ));
+    
+    // Color de la sombra al hacer hover
+    $wp_customize->add_setting('mjpropiedades_card_shadow_hover', array(
+        'default' => 'rgba(0, 0, 0, 0.15)',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport' => 'postMessage',
+    ));
+    
+    $wp_customize->add_control('mjpropiedades_card_shadow_hover', array(
+        'label' => __('Color de la Sombra al Hover', 'mjpropiedades'),
+        'description' => __('Color de la sombra cuando se pasa el mouse por encima', 'mjpropiedades'),
+        'section' => 'mjpropiedades_property_cards_colors',
+        'type' => 'text',
+    ));
+}
+add_action('customize_register', 'mjpropiedades_property_cards_customizer');
+
+// Generar CSS dinámico para los colores de las tarjetas
+function mjpropiedades_property_cards_dynamic_css() {
+    // Obtener valores con fallback a valores por defecto
+    $card_bg = get_theme_mod('mjpropiedades_card_background');
+    if (empty($card_bg)) $card_bg = '#ffffff';
+    
+    $card_title = get_theme_mod('mjpropiedades_card_title_color');
+    if (empty($card_title)) $card_title = '#333333';
+    
+    $card_location = get_theme_mod('mjpropiedades_card_location_color');
+    if (empty($card_location)) $card_location = '#666666';
+    
+    $card_price = get_theme_mod('mjpropiedades_card_price_color');
+    if (empty($card_price)) $card_price = '#ff6b35';
+    
+    $card_button_bg = get_theme_mod('mjpropiedades_card_button_bg');
+    if (empty($card_button_bg)) $card_button_bg = '#FFC107';
+    
+    $card_button_text = get_theme_mod('mjpropiedades_card_button_text');
+    if (empty($card_button_text)) $card_button_text = '#ffffff';
+    
+    $card_button_hover = get_theme_mod('mjpropiedades_card_button_hover');
+    if (empty($card_button_hover)) $card_button_hover = '#ff6b35';
+    
+    $card_button_text_hover = get_theme_mod('mjpropiedades_card_button_text_hover');
+    if (empty($card_button_text_hover)) $card_button_text_hover = '#ffffff';
+    
+    $card_details = get_theme_mod('mjpropiedades_card_details_color');
+    if (empty($card_details)) $card_details = '#666666';
+    
+    $card_icons = get_theme_mod('mjpropiedades_card_icons_color');
+    if (empty($card_icons)) $card_icons = '#ff6b35';
+    
+    $card_tag_bg = get_theme_mod('mjpropiedades_card_tag_bg');
+    if (empty($card_tag_bg)) $card_tag_bg = '#00d4aa';
+    
+    $card_arriendo_tag_bg = get_theme_mod('mjpropiedades_card_arriendo_tag_bg');
+    if (empty($card_arriendo_tag_bg)) $card_arriendo_tag_bg = '#4285F4';
+    
+    $card_tag_text = get_theme_mod('mjpropiedades_card_tag_text');
+    if (empty($card_tag_text)) $card_tag_text = '#ffffff';
+    
+    $card_shadow = get_theme_mod('mjpropiedades_card_shadow');
+    if (empty($card_shadow)) $card_shadow = 'rgba(0, 0, 0, 0.1)';
+    
+    $card_shadow_hover = get_theme_mod('mjpropiedades_card_shadow_hover');
+    if (empty($card_shadow_hover)) $card_shadow_hover = 'rgba(0, 0, 0, 0.15)';
+    
+    $css = "
+    /* Colores dinámicos para tarjetas de propiedades */
+    .property-card {
+        background: {$card_bg} !important;
+        box-shadow: 0 2px 8px {$card_shadow} !important;
+    }
+    
+    .property-card:hover {
+        box-shadow: 0 8px 25px {$card_shadow_hover} !important;
+    }
+    
+    .property-title a {
+        color: {$card_title} !important;
+    }
+    
+    .property-title a:hover {
+        color: {$card_price} !important;
+    }
+    
+    .property-location {
+        color: {$card_location} !important;
+    }
+    
+    .property-price {
+        color: {$card_price} !important;
+    }
+    
+    .property-btn {
+        background: {$card_button_bg} !important;
+        color: {$card_button_text} !important;
+    }
+    
+    .property-btn:hover {
+        background: {$card_button_hover} !important;
+        color: {$card_button_text_hover} !important;
+    }
+    
+    .detail-item {
+        color: {$card_details} !important;
+    }
+    
+    .detail-item svg {
+        color: {$card_icons} !important;
+    }
+    
+    .property-tag {
+        color: {$card_tag_text} !important;
+    }
+    
+    /* Etiqueta específica para VENTA */
+    .property-tag.venta {
+        background: {$card_tag_bg} !important;
+        box-shadow: 0 1px 3px {$card_tag_bg}66 !important;
+    }
+    
+    /* Etiqueta específica para ARRIENDO */
+    .property-tag.arriendo {
+        background: {$card_arriendo_tag_bg} !important;
+        box-shadow: 0 1px 3px {$card_arriendo_tag_bg}66 !important;
+    }
+    ";
+    
+    return $css;
+}
+
+// Agregar CSS dinámico al head
+function mjpropiedades_property_cards_css() {
+    // Verificar si estamos en la página de propiedades o en cualquier página que muestre propiedades
+    $should_load = false;
+    
+    // Verificar página específica por slug
+    if (is_page('propiedades')) {
+        $should_load = true;
+    }
+    
+    // Verificar por ID de página
+    $propiedades_page = get_page_by_path('propiedades');
+    if ($propiedades_page && is_page($propiedades_page->ID)) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en home o front page (donde también pueden aparecer propiedades)
+    if (is_home() || is_front_page()) {
+        $should_load = true;
+    }
+    
+    // Verificar si hay propiedades en la consulta actual
+    global $wp_query;
+    if ($wp_query && $wp_query->get('post_type') === 'propiedad') {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en cualquier página que contenga el template de propiedades
+    if (is_page_template('page-propiedades.php')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos usando el template de inicio (page-inicio.php)
+    if (is_page_template('page-inicio.php')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en la página de inicio por slug
+    if (is_page('inicio')) {
+        $should_load = true;
+    }
+    
+    if ($should_load) {
+        echo '<style type="text/css" id="mjpropiedades-property-cards-colors">' . mjpropiedades_property_cards_dynamic_css() . '</style>';
+    }
+}
+add_action('wp_head', 'mjpropiedades_property_cards_css');
+
+// Función adicional para cargar CSS específicamente en el template de propiedades
+function mjpropiedades_load_property_cards_css_in_template() {
+    // Solo ejecutar si estamos usando el template de propiedades
+    if (is_page_template('page-propiedades.php')) {
+        echo '<style type="text/css" id="mjpropiedades-property-cards-colors-template">' . mjpropiedades_property_cards_dynamic_css() . '</style>';
+    }
+}
+add_action('wp_head', 'mjpropiedades_load_property_cards_css_in_template', 5);
+
+// Agregar CSS dinámico para el Customizer (preview en tiempo real)
+function mjpropiedades_property_cards_customizer_css() {
+    wp_add_inline_style('customize-preview', mjpropiedades_property_cards_dynamic_css());
+}
+add_action('customize_preview_init', function() {
+    add_action('wp_enqueue_scripts', 'mjpropiedades_property_cards_customizer_css');
+});
+
+// JavaScript para preview en tiempo real en el Customizer
+function mjpropiedades_property_cards_customizer_js() {
+    ?>
+    <script type="text/javascript">
+    (function($) {
+        // Preview en tiempo real para colores de tarjetas
+        wp.customize('mjpropiedades_card_background', function(value) {
+            value.bind(function(newval) {
+                $('.property-card').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_title_color', function(value) {
+            value.bind(function(newval) {
+                $('.property-title a').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_location_color', function(value) {
+            value.bind(function(newval) {
+                $('.property-location').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_price_color', function(value) {
+            value.bind(function(newval) {
+                $('.property-price').css('color', newval);
+                $('.property-title a:hover').css('color', newval);
+                $('.property-tag[style*="background: #ff6b35"]').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_button_bg', function(value) {
+            value.bind(function(newval) {
+                $('.property-btn').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_button_text', function(value) {
+            value.bind(function(newval) {
+                $('.property-btn').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_button_hover', function(value) {
+            value.bind(function(newval) {
+                $('.property-btn:hover').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_button_text_hover', function(value) {
+            value.bind(function(newval) {
+                $('.property-btn:hover').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_details_color', function(value) {
+            value.bind(function(newval) {
+                $('.detail-item').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_icons_color', function(value) {
+            value.bind(function(newval) {
+                $('.detail-item svg').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_tag_bg', function(value) {
+            value.bind(function(newval) {
+                $('.property-tag').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_tag_text', function(value) {
+            value.bind(function(newval) {
+                $('.property-tag').css('color', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_shadow', function(value) {
+            value.bind(function(newval) {
+                $('.property-card').css('box-shadow', '0 2px 8px ' + newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_shadow_hover', function(value) {
+            value.bind(function(newval) {
+                $('.property-card:hover').css('box-shadow', '0 8px 25px ' + newval);
+            });
+        });
+        
+    })(jQuery);
+    </script>
+    <?php
+}
+add_action('customize_controls_print_scripts', 'mjpropiedades_property_cards_customizer_js');
 
 // Agregar página de administración para opciones de búsqueda
 function mjpropiedades_add_search_options_page() {

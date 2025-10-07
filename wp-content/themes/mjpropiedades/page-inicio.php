@@ -8,6 +8,11 @@
 
 get_header(); ?>
 
+<!-- CSS dinámico para colores de tarjetas de propiedades -->
+<style type="text/css" id="mjpropiedades-property-cards-colors-inicio">
+<?php echo mjpropiedades_property_cards_dynamic_css(); ?>
+</style>
+
 <!-- Hero Section -->
 <section class="hero">
     <!-- Carrusel de Imágenes -->

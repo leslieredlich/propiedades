@@ -532,21 +532,7 @@ body {
     object-fit: cover;
 }
 
-.property-tag {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    background: var(--primary-blue);
-    color: var(--white);
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.property-tag[style*="background: var(--orange)"] {
-    background: var(--orange) !important;
-}
+/* Eliminar definición duplicada anterior */
 
 .property-content {
     padding: 1.5rem;
@@ -1157,6 +1143,968 @@ body {
     margin: 0;
     color: #666;
     font-weight: 500;
+}
+
+/* ===== PÁGINA DE PROPIEDADES - DISEÑO PROFESIONAL MOBILE FIRST ===== */
+
+.properties-page {
+    padding: 20px 0;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #666;
+}
+
+.breadcrumbs a {
+    color: #ff6b35;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.breadcrumbs a:hover {
+    color: #e55a2b;
+}
+
+.breadcrumbs .separator {
+    color: #ccc;
+}
+
+.breadcrumbs .current {
+    color: #333;
+    font-weight: 500;
+}
+
+/* Header de propiedades */
+.properties-header {
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2c2c2c;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+/* Controles de propiedades */
+.properties-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.results-summary {
+    display: flex;
+    align-items: center;
+}
+
+.results-count {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.view-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sort-controls label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    white-space: nowrap;
+}
+
+.sort-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: var(--white);
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.view-toggle {
+    display: flex;
+    gap: 4px;
+    background: #f5f5f5;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.view-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: #666;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.view-btn:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.view-btn.active {
+    background: #ff6b35;
+    color: var(--white);
+}
+
+/* Layout principal */
+.properties-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Sidebar de filtros */
+.properties-sidebar {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.filters-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.filters-toggle {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: var(--white);
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filters-toggle:hover {
+    border-color: #ff6b35;
+    color: #ff6b35;
+}
+
+.filters-toggle svg {
+    transition: transform 0.3s ease;
+}
+
+.filters-toggle.active svg {
+    transform: rotate(180deg);
+}
+
+.filters-content {
+    padding: 20px;
+}
+
+.filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: var(--white);
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+/* Rango de precio mejorado */
+.price-range {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: var(--white);
+    font-size: 14px;
+    color: #333;
+    transition: border-color 0.3s ease;
+}
+
+.price-input:focus {
+    outline: none;
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.price-separator {
+    color: #666;
+    font-weight: 500;
+}
+
+.price-slider {
+    position: relative;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    margin: 8px 0;
+}
+
+.price-slider input[type="range"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: transparent;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.price-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #ff6b35;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.price-slider input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.price-slider input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #ff6b35;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.price-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Botones de filtro */
+.filter-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.filter-btn.primary {
+    background: #ff6b35;
+    color: var(--white);
+}
+
+.filter-btn.primary:hover {
+    background: #e55a2b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.filter-btn.secondary {
+    background: #f8f9fa;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.filter-btn.secondary:hover {
+    background: #e9ecef;
+    color: #333;
+    border-color: #ccc;
+}
+
+/* Contenido principal */
+.properties-main {
+    flex: 1;
+}
+
+/* Grid de propiedades */
+.properties-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+/* Tarjetas de propiedades mejoradas */
+.property-card {
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.property-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Los colores específicos se aplican dinámicamente desde el admin */
+
+.property-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+}
+
+.property-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.property-card:hover .property-image img {
+    transform: scale(1.05);
+}
+
+.property-tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: #ffffff;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 2;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    line-height: 1.2;
+    width: auto;
+    max-width: none;
+    display: inline-block;
+}
+
+/* Etiqueta VENTA (verde) */
+.property-tag.venta {
+    background: #00d4aa;
+    box-shadow: 0 1px 3px rgba(0, 212, 170, 0.4);
+}
+
+.property-tag.venta:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 6px rgba(0, 212, 170, 0.5);
+}
+
+/* Etiqueta ARRIENDO (azul) */
+.property-tag.arriendo {
+    background: #4285F4;
+    box-shadow: 0 1px 3px rgba(66, 133, 244, 0.4);
+}
+
+.property-tag.arriendo:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 6px rgba(66, 133, 244, 0.5);
+}
+
+.property-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.property-card:hover .property-actions {
+    opacity: 1;
+}
+
+.property-favorite,
+.property-share {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.property-favorite:hover,
+.property-share:hover {
+    background: var(--white);
+    color: #ff6b35;
+    transform: scale(1.1);
+}
+
+.property-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Precio primero, grande y prominente */
+.property-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Título de la propiedad */
+.property-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.property-title a {
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.property-title a:hover {
+    color: #ff6b35;
+}
+
+/* Ubicación */
+.property-location {
+    margin: 0;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.property-location svg {
+    flex-shrink: 0;
+}
+
+/* Detalles de la propiedad */
+.property-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 0;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.detail-item svg {
+    flex-shrink: 0;
+}
+
+/* El color se aplica dinámicamente desde el admin */
+
+/* Asegurar que las características tengan color por defecto */
+.detail-item {
+    color: #666666;
+}
+
+.detail-item svg {
+    color: #ff6b35;
+}
+
+.property-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.property-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ff6b35;
+}
+
+.property-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 16px;
+    background: #FFC107;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.property-btn:hover {
+    background: #ff6b35;
+    color: var(--white);
+    transform: translateY(-1px);
+}
+
+/* Paginación mejorada */
+.pagination-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+    padding: 20px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: #666;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination a,
+.pagination span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #666;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.pagination a:hover {
+    border-color: #ff6b35;
+    color: #ff6b35;
+    background: rgba(255, 107, 53, 0.05);
+}
+
+.pagination .current {
+    background: #ff6b35;
+    color: var(--white);
+    border-color: #ff6b35;
+}
+
+/* Estado sin propiedades */
+.no-properties {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.no-properties-icon {
+    margin-bottom: 24px;
+    color: #ccc;
+}
+
+.no-properties h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 12px 0;
+}
+
+.no-properties p {
+    font-size: 16px;
+    color: #666;
+    margin: 0 0 24px 0;
+}
+
+.no-properties-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.btn.primary {
+    background: #ff6b35;
+    color: var(--white);
+}
+
+.btn.primary:hover {
+    background: #e55a2b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.btn.secondary {
+    background: #f8f9fa;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.btn.secondary:hover {
+    background: #e9ecef;
+    color: #333;
+    border-color: #ccc;
+}
+
+/* Responsive para página de propiedades */
+@media (min-width: 768px) {
+    .properties-page {
+        padding: 40px 0;
+    }
+    
+    .page-title {
+        font-size: 36px;
+    }
+    
+    .page-subtitle {
+        font-size: 18px;
+    }
+    
+    .properties-controls {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .view-controls {
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .properties-layout {
+        flex-direction: row;
+        gap: 32px;
+    }
+    
+    .properties-sidebar {
+        width: 300px;
+        flex-shrink: 0;
+    }
+    
+    .properties-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+    
+    .property-image {
+        height: 220px;
+    }
+    
+    .property-footer {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .property-btn {
+        flex-shrink: 0;
+    }
+    
+    .pagination-wrapper {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    
+    .no-properties-actions {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+@media (min-width: 1024px) {
+    .properties-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+    }
+    
+    .property-image {
+        height: 240px;
+    }
+    
+    .properties-sidebar {
+        width: 320px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .properties-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Mobile específico */
+@media (max-width: 767px) {
+    .filters-toggle {
+        display: flex;
+    }
+    
+    .filters-content {
+        display: none;
+        padding: 16px 20px;
+    }
+    
+    .filters-content.active {
+        display: block;
+    }
+    
+    .properties-controls {
+        padding: 12px;
+    }
+    
+    .results-count {
+        font-size: 14px;
+    }
+    
+    .sort-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .sort-controls label {
+        font-size: 12px;
+    }
+    
+    .sort-select {
+        width: 100%;
+        font-size: 13px;
+    }
+    
+    .view-toggle {
+        align-self: flex-start;
+    }
+    
+    .property-card {
+        margin-bottom: 16px;
+    }
+    
+    .property-image {
+        height: 180px;
+    }
+    
+    .property-content {
+        padding: 16px;
+    }
+    
+    .property-title {
+        font-size: 16px;
+    }
+    
+    .property-details {
+        gap: 12px;
+    }
+    
+    .detail-item {
+        font-size: 13px;
+    }
+    
+    .property-price {
+        font-size: 18px;
+    }
+    
+    .property-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .property-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .pagination a,
+    .pagination span {
+        min-width: 36px;
+        height: 36px;
+        font-size: 13px;
+    }
+}
+
+/* Vista de lista */
+.properties-grid.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.properties-grid.list-view .property-card {
+    display: flex;
+    flex-direction: row;
+    height: 200px;
+}
+
+.properties-grid.list-view .property-image {
+    width: 300px;
+    height: 100%;
+    flex-shrink: 0;
+}
+
+.properties-grid.list-view .property-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.properties-grid.list-view .property-details {
+    margin-bottom: 8px;
+}
+
+.properties-grid.list-view .property-footer {
+    margin-top: auto;
+}
+
+@media (max-width: 767px) {
+    .properties-grid.list-view .property-card {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .properties-grid.list-view .property-image {
+        width: 100%;
+        height: 180px;
+    }
 }
 
 /* Responsive para página de propiedades */
@@ -2517,8 +3465,8 @@ body {
 }
 
 .footer-section .contact-icon {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3948,8 +4896,7 @@ body.admin-bar .hero {
     .property-content {
         padding: 1rem;
     }
-}
-    
+
     .services-cta {
         padding: 2rem 1.5rem;
     }
@@ -4003,8 +4950,6 @@ body.admin-bar .hero {
     .property-feature {
         font-size: 0.8rem;
     }
-}
-    
     .icon-wrapper {
         width: 60px;
         height: 60px;
@@ -4069,29 +5014,7 @@ body.admin-bar .hero {
     margin: 0;
 }
 
-/* Tag de operación */
-.property-tag {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    z-index: 10;
-}
-
-.property-tag.venta {
-    background: #22c55e;
-    color: white;
-}
-
-.property-tag.arriendo {
-    background: #f97316;
-    color: white;
-}
+/* Eliminar definición duplicada anterior */
 
 /* Botones de acción */
 .property-actions {
