@@ -4014,12 +4014,12 @@ function mjpropiedades_get_search_form($args = array()) {
     
     ob_start();
     ?>
-    <div class="search-form-container">
-        <?php if ($args['show_title']): ?>
-        <div class="search-header">
-            <h2 class="section-title"><?php echo esc_html($args['title']); ?></h2>
-        </div>
-        <?php endif; ?>
+        <div class="search-form-container <?php echo (isset($args['form_id']) && $args['form_id'] === 'properties-search-form') ? 'search-form-clean' : ''; ?>">
+            <?php if ($args['show_title']): ?>
+            <div class="search-header">
+                <h2 class="section-title"><?php echo esc_html($args['title']); ?></h2>
+            </div>
+            <?php endif; ?>
         
         <form id="<?php echo esc_attr($args['form_id']); ?>" class="<?php echo esc_attr($args['class']); ?>" method="<?php echo esc_attr($args['method']); ?>" action="<?php echo esc_url($args['action']); ?>">
             <!-- Primera fila: Todos los select en una fila -->

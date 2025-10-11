@@ -267,13 +267,13 @@ get_header(); ?>
     margin-bottom: 3rem;
 }
 
-.search-form-container {
+/* .search-form-container {
     background: white;
     padding: 2rem;
     border-radius: 15px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
-}
+} */
 
 .search-header {
     text-align: center;
