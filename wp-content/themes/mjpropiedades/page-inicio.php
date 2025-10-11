@@ -112,7 +112,7 @@ get_header(); ?>
             'title' => 'Encuentra tu Propiedad Ideal',
             'button_text' => 'Buscar Propiedades',
             'action' => home_url('/propiedades/'),
-            'preserve_values' => false,
+            'preserve_values' => true,
             'form_id' => 'home-search-form'
         ));
         ?>
