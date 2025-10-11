@@ -7,42 +7,42 @@
 get_header(); ?>
 
 <div class="property-detail-page">
-    <?php while (have_posts()) : the_post(); ?>
-    <?php
-    // Obtener datos de la propiedad
-    $precio = get_post_meta(get_the_ID(), '_propiedad_precio', true);
-    $operacion = get_post_meta(get_the_ID(), '_propiedad_operacion', true);
-    $dormitorios = get_post_meta(get_the_ID(), '_propiedad_dormitorios', true);
-    $banos = get_post_meta(get_the_ID(), '_propiedad_banos', true);
-    $metros = get_post_meta(get_the_ID(), '_propiedad_metros', true);
-    $comuna = get_post_meta(get_the_ID(), '_propiedad_comuna', true);
-    $tipo = get_post_meta(get_the_ID(), '_propiedad_tipo', true);
-    $direccion = get_post_meta(get_the_ID(), '_propiedad_direccion', true);
-    $ano_construccion = get_post_meta(get_the_ID(), '_propiedad_ano_construccion', true);
-    $orientacion = get_post_meta(get_the_ID(), '_propiedad_orientacion', true);
-    $gastos_comunes = get_post_meta(get_the_ID(), '_propiedad_gastos_comunes', true);
-    $estado = get_post_meta(get_the_ID(), '_propiedad_estado', true);
-    $disponibilidad = get_post_meta(get_the_ID(), '_propiedad_disponibilidad', true);
-    $caracteristicas = get_post_meta(get_the_ID(), '_propiedad_caracteristicas', true);
-    $latitud = get_post_meta(get_the_ID(), '_propiedad_latitud', true);
-    $longitud = get_post_meta(get_the_ID(), '_propiedad_longitud', true);
-    $lugares_cercanos = get_post_meta(get_the_ID(), '_propiedad_lugares_cercanos', true);
-    $estacionamientos = get_post_meta(get_the_ID(), '_propiedad_estacionamientos', true);
-    
-    // Si no hay operación configurada, determinar por precio
-    if (!$operacion) {
-        $operacion = ($precio && $precio < 1000000) ? 'arriendo' : 'venta';
-    }
-    
+        <?php while (have_posts()) : the_post(); ?>
+        <?php
+        // Obtener datos de la propiedad
+        $precio = get_post_meta(get_the_ID(), '_propiedad_precio', true);
+        $operacion = get_post_meta(get_the_ID(), '_propiedad_operacion', true);
+        $dormitorios = get_post_meta(get_the_ID(), '_propiedad_dormitorios', true);
+        $banos = get_post_meta(get_the_ID(), '_propiedad_banos', true);
+        $metros = get_post_meta(get_the_ID(), '_propiedad_metros', true);
+        $comuna = get_post_meta(get_the_ID(), '_propiedad_comuna', true);
+        $tipo = get_post_meta(get_the_ID(), '_propiedad_tipo', true);
+        $direccion = get_post_meta(get_the_ID(), '_propiedad_direccion', true);
+        $ano_construccion = get_post_meta(get_the_ID(), '_propiedad_ano_construccion', true);
+        $orientacion = get_post_meta(get_the_ID(), '_propiedad_orientacion', true);
+        $gastos_comunes = get_post_meta(get_the_ID(), '_propiedad_gastos_comunes', true);
+        $estado = get_post_meta(get_the_ID(), '_propiedad_estado', true);
+        $disponibilidad = get_post_meta(get_the_ID(), '_propiedad_disponibilidad', true);
+        $caracteristicas = get_post_meta(get_the_ID(), '_propiedad_caracteristicas', true);
+        $latitud = get_post_meta(get_the_ID(), '_propiedad_latitud', true);
+        $longitud = get_post_meta(get_the_ID(), '_propiedad_longitud', true);
+        $lugares_cercanos = get_post_meta(get_the_ID(), '_propiedad_lugares_cercanos', true);
+        $estacionamientos = get_post_meta(get_the_ID(), '_propiedad_estacionamientos', true);
+        
+        // Si no hay operación configurada, determinar por precio
+        if (!$operacion) {
+            $operacion = ($precio && $precio < 1000000) ? 'arriendo' : 'venta';
+        }
+        
     // Formatear precio en CLP con separadores de miles
-    $precio_text = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
-    if ($operacion === 'arriendo') {
-        $precio_text .= '/mes';
-    }
-    
-    $uf_precio = $precio ? round($precio / 40000) : 0;
-    ?>
-    
+    $precio_text = $precio ? '$' . number_format(floatval($precio), 0, ',', '.') : 'Consultar';
+        if ($operacion === 'arriendo') {
+            $precio_text .= '/mes';
+        }
+        
+        $uf_precio = $precio ? round($precio / 40000) : 0;
+        ?>
+        
     <!-- Hero Section - Galería de Imágenes -->
     <section class="hero-gallery-section">
         <div class="hero-container">
@@ -118,12 +118,12 @@ get_header(); ?>
                         <?php foreach ($all_images as $index => $image) : ?>
                             <button class="dot <?php echo $index === 0 ? 'active' : ''; ?>" onclick="goToImage(<?php echo $index; ?>)"></button>
                         <?php endforeach; ?>
-                    </div>
+                </div>
                 <?php endif; ?>
                 
                 <!-- Miniaturas de la galería -->
                 <div class="gallery-thumbnails">
-                    <?php 
+                            <?php 
                     if (!empty($all_images)) {
                         foreach ($all_images as $index => $image) {
                             $thumbnail_url = wp_get_attachment_image_url($image['id'], 'medium');
@@ -180,8 +180,110 @@ get_header(); ?>
                 <div class="separator"></div>
                 
                 <!-- Información del agente -->
+                <?php
+                // Obtener datos del agente
+                $agente = mjpropiedades_get_property_agent();
+                $agente_data = $agente ? mjpropiedades_get_agent_data($agente->ID) : null;
+                
+                if ($agente_data) : ?>
                 <div class="agent-info">
                     <h3 class="agent-title">Agente Inmobiliario</h3>
+                    <div class="agent-profile">
+                        <div class="agent-avatar">
+                            <?php if ($agente_data['avatar']) : ?>
+                                <img src="<?php echo esc_url($agente_data['avatar']); ?>" alt="<?php echo esc_attr($agente_data['nombre']); ?>" />
+                            <?php else : ?>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            <?php endif; ?>
+                        </div>
+                        <div class="agent-details">
+                            <div class="agent-name"><?php echo esc_html($agente_data['nombre']); ?></div>
+                            <div class="agent-specialization">
+                                <?php 
+                                if ($agente_data['cargo']) {
+                                    echo esc_html($agente_data['cargo']);
+                                } else {
+                                    echo 'Especialista en ' . esc_html($comuna);
+                                }
+                                ?>
+                            </div>
+                            <?php if (get_theme_mod('mjpropiedades_show_rating', true) && $agente_data['rating'] && $agente_data['resenas']) : ?>
+                            <div class="agent-rating">
+                                <div class="stars">
+                                    <?php 
+                                    $rating = floatval($agente_data['rating']);
+                                    $full_stars = floor($rating);
+                                    $has_half_star = ($rating - $full_stars) >= 0.5;
+                                    
+                                    // Mostrar estrellas llenas
+                                    for ($i = 0; $i < $full_stars; $i++) {
+                                        echo '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">';
+                                        echo '<polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>';
+                                        echo '</svg>';
+                                    }
+                                    
+                                    // Mostrar media estrella si es necesario
+                                    if ($has_half_star) {
+                                        echo '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">';
+                                        echo '<defs>';
+                                        echo '<linearGradient id="half-star">';
+                                        echo '<stop offset="50%" stop-color="currentColor"/>';
+                                        echo '<stop offset="50%" stop-color="transparent"/>';
+                                        echo '</linearGradient>';
+                                        echo '</defs>';
+                                        echo '<polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="url(#half-star)"></polygon>';
+                                        echo '</svg>';
+                                    }
+                                    
+                                    // Mostrar estrellas vacías
+                                    $empty_stars = 5 - $full_stars - ($has_half_star ? 1 : 0);
+                                    for ($i = 0; $i < $empty_stars; $i++) {
+                                        echo '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">';
+                                        echo '<polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>';
+                                        echo '</svg>';
+                                    }
+                                    ?>
+                                </div>
+                                <span class="rating-text"><?php echo esc_html($agente_data['rating']); ?> (<?php echo esc_html($agente_data['resenas']); ?> reseñas)</span>
+                                </div>
+                            <?php endif; ?>
+                </div>
+            </div>
+                    
+                    <!-- Botones de contacto -->
+                    <div class="contact-buttons">
+                        <?php if ($agente_data['telefono']) : ?>
+                        <a href="tel:<?php echo esc_attr($agente_data['telefono']); ?>" class="contact-btn call-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                            Llamar Ahora
+                        </a>
+                        <?php endif; ?>
+                        
+                        <?php 
+                        // Determinar qué número usar para WhatsApp (priorizar WhatsApp, luego teléfono, luego número por defecto)
+                        $whatsapp_number = $agente_data['whatsapp'] ? $agente_data['whatsapp'] : ($agente_data['telefono'] ? $agente_data['telefono'] : '+56912345678');
+                        
+                        // Crear mensaje para WhatsApp
+                        $whatsapp_message = "Hola, estoy interesado/a en esta propiedad: " . get_the_title() . " en " . $comuna . ". ¿Podrías darme más información?";
+                        $whatsapp_url = "https://wa.me/" . str_replace(array('+', ' ', '-'), '', $whatsapp_number) . "?text=" . urlencode($whatsapp_message);
+                        ?>
+                        <a href="<?php echo esc_url($whatsapp_url); ?>" class="contact-btn whatsapp-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                            </svg>
+                            Conversar Ahora
+                        </a>
+                    </div>
+                </div>
+                <?php else : ?>
+                <!-- Mensaje cuando no hay agente -->
+                <div class="agent-info">
+                    <h3 class="agent-title">Contacto</h3>
                     <div class="agent-profile">
                         <div class="agent-avatar">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -190,32 +292,12 @@ get_header(); ?>
                             </svg>
                         </div>
                         <div class="agent-details">
-                            <div class="agent-name">María Elena Rodríguez</div>
-                            <div class="agent-specialization">Especialista en <?php echo esc_html($comuna); ?></div>
-                            <div class="agent-rating">
-                                <div class="stars">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
-                                    </svg>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
-                                    </svg>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
-                                    </svg>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
-                                    </svg>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
-                                    </svg>
-                                </div>
-                                <span class="rating-text">4.9 (127 reseñas)</span>
-                            </div>
+                            <div class="agent-name"><?php echo esc_html(get_theme_mod('mjpropiedades_no_agent_message', 'Contactar con nuestro equipo')); ?></div>
+                            <div class="agent-specialization">Estaremos encantados de atenderte</div>
                         </div>
                     </div>
                     
-                    <!-- Botones de contacto -->
+                    <!-- Botones de contacto genéricos -->
                     <div class="contact-buttons">
                         <a href="tel:+56912345678" class="contact-btn call-btn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -223,32 +305,31 @@ get_header(); ?>
                             </svg>
                             Llamar Ahora
                         </a>
-                        <a href="https://wa.me/56912345678" class="contact-btn whatsapp-btn">
+                        <?php 
+                            // Crear mensaje para WhatsApp (sin agente)
+                            $whatsapp_message_fallback = "Hola, estoy interesado/a en esta propiedad: " . get_the_title() . " en " . $comuna . ". ¿Podrías darme más información?";
+                            $whatsapp_url_fallback = "https://wa.me/56912345678?text=" . urlencode($whatsapp_message_fallback);
+                        ?>
+                        <a href="<?php echo esc_url($whatsapp_url_fallback); ?>" class="contact-btn whatsapp-btn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
                             </svg>
-                            WhatsApp
-                        </a>
-                        <a href="mailto:contacto@propiedades.com" class="contact-btn email-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                <polyline points="22,6 12,13 2,6"></polyline>
-                            </svg>
-                            Enviar Email
+                            Conversar Ahora
                         </a>
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
-    
-    <!-- Información Principal -->
+        
+        <!-- Información Principal -->
     <section class="property-info">
         <div class="container">
             <!-- Header con título y precio -->
-            <div class="property-header">
-                <div class="property-title-section">
-                    <h1 class="property-title"><?php the_title(); ?></h1>
+                <div class="property-header">
+                    <div class="property-title-section">
+                        <h1 class="property-title"><?php the_title(); ?></h1>
                     <p class="property-location">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -256,168 +337,168 @@ get_header(); ?>
                         </svg>
                         <?php echo $direccion ? esc_html($direccion) : esc_html($comuna); ?>
                     </p>
+                                </div>
+                    
+                <div class="price-section">
+                        <div class="price-main"><?php echo $precio_text; ?></div>
+                        <?php if ($uf_precio > 0) : ?>
+                            <div class="price-uf">UF <?php echo number_format(floatval($uf_precio), 0, ',', '.'); ?></div>
+                            <?php endif; ?>
+                    </div>
                 </div>
                 
-                <div class="price-section">
-                    <div class="price-main"><?php echo $precio_text; ?></div>
-                    <?php if ($uf_precio > 0) : ?>
-                        <div class="price-uf">UF <?php echo number_format($uf_precio, 0, ',', '.'); ?></div>
-                    <?php endif; ?>
-                </div>
-            </div>
-            
-            <!-- Características principales -->
+                <!-- Características principales -->
             <div class="main-features">
                 <div class="feature-item">
-                    <div class="feature-icon">
+                        <div class="feature-icon">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 7V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V7M3 7V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V7M3 7H21M7 11H17M7 15H13"></path>
-                        </svg>
-                    </div>
+                            </svg>
+                                </div>
                     <div class="feature-content">
                         <span class="feature-number"><?php echo $dormitorios ?: '3'; ?></span>
                         <span class="feature-label">Dormitorios</span>
                     </div>
-                </div>
-                
+                    </div>
+                    
                 <div class="feature-item">
-                    <div class="feature-icon">
+                        <div class="feature-icon">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7.5C15 8.3 14.3 9 13.5 9S12 8.3 12 7.5V5.5L6 7V9L12 7.5V9.5C12 10.3 12.7 11 13.5 11S15 10.3 15 9.5V7.5L21 9Z"></path>
                             <path d="M12 12C8.7 12 6 14.7 6 18V22H18V18C18 14.7 15.3 12 12 12Z"></path>
-                        </svg>
-                    </div>
+                            </svg>
+                                </div>
                     <div class="feature-content">
                         <span class="feature-number"><?php echo $banos ?: '2'; ?></span>
                         <span class="feature-label">Baños</span>
                     </div>
-                </div>
-                
+                        </div>
+                        
                 <div class="feature-item">
-                    <div class="feature-icon">
+                        <div class="feature-icon">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                             <line x1="9" y1="9" x2="15" y2="15"></line>
                             <line x1="15" y1="9" x2="9" y2="15"></line>
-                        </svg>
-                    </div>
+                            </svg>
+                        </div>
                     <div class="feature-content">
                         <span class="feature-number"><?php echo $metros ?: '120'; ?> m²</span>
                         <span class="feature-label">Construidos</span>
                     </div>
-                </div>
-                
+                    </div>
+                    
                 <?php if ($estacionamientos) : ?>
                 <div class="feature-item">
-                    <div class="feature-icon">
+                        <div class="feature-icon">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 16V8C21 6.89543 20.1046 6 19 6H5C3.89543 6 3 6.89543 3 8V16C3 17.1046 3.89543 18 5 18H19C20.1046 18 21 17.1046 21 16Z"></path>
                             <path d="M7 10H17M7 14H13"></path>
                             <circle cx="12" cy="12" r="2"></circle>
-                        </svg>
-                    </div>
+                            </svg>
+                        </div>
                     <div class="feature-content">
                         <span class="feature-number"><?php echo $estacionamientos; ?></span>
                         <span class="feature-label">Estacionamientos</span>
                     </div>
                 </div>
                 <?php endif; ?>
+                </div>
             </div>
-        </div>
-    </section>
-    
-    <!-- Contenido Principal -->
-    <section class="property-content">
-        <div class="container">
+        </section>
+        
+        <!-- Contenido Principal -->
+        <section class="property-content">
+            <div class="container">
             <div class="content-layout">
                 <!-- Columna principal -->
-                <div class="content-main">
+                    <div class="content-main">
                     <!-- Descripción -->
                     <div class="content-section">
-                        <h2 class="section-title">Descripción</h2>
+                            <h2 class="section-title">Descripción</h2>
                         <div class="description-content">
-                            <?php if (get_the_content()) : ?>
-                                <?php the_content(); ?>
-                            <?php else : ?>
-                                <p>Hermosa <?php echo esc_html($tipo); ?> moderna en sector exclusivo, ofrece espacios amplios y luminosos, perfecta para una familia que busca comodidad y elegancia en <?php echo esc_html($comuna); ?>.</p>
-                                
-                                <p>Esta propiedad cuenta con acabados de primera calidad, cocina equipada con electrodomésticos premium, amplios dormitorios con closets empotrados y hermoso jardín trasero. Su ubicación privilegiada permite fácil acceso a centros comerciales, colegios y transporte público.</p>
-                            <?php endif; ?>
+                                <?php if (get_the_content()) : ?>
+                                    <?php the_content(); ?>
+                                <?php else : ?>
+                                    <p>Hermosa <?php echo esc_html($tipo); ?> moderna en sector exclusivo, ofrece espacios amplios y luminosos, perfecta para una familia que busca comodidad y elegancia en <?php echo esc_html($comuna); ?>.</p>
+                                    
+                                    <p>Esta propiedad cuenta con acabados de primera calidad, cocina equipada con electrodomésticos premium, amplios dormitorios con closets empotrados y hermoso jardín trasero. Su ubicación privilegiada permite fácil acceso a centros comerciales, colegios y transporte público.</p>
+                                <?php endif; ?>
                         </div>
-                    </div>
-                    
+                            </div>
+                            
                     <!-- Características -->
                     <div class="content-section">
                         <h2 class="section-title">Características</h2>
                         <div class="features-grid">
-                            <?php
-                            if ($caracteristicas) {
-                                $caracteristicas_array = explode("\n", $caracteristicas);
-                                foreach ($caracteristicas_array as $caracteristica) {
-                                    $caracteristica = trim($caracteristica);
-                                    if (!empty($caracteristica)) {
+                                <?php
+                                if ($caracteristicas) {
+                                    $caracteristicas_array = explode("\n", $caracteristicas);
+                                    foreach ($caracteristicas_array as $caracteristica) {
+                                        $caracteristica = trim($caracteristica);
+                                        if (!empty($caracteristica)) {
                                         echo '<div class="feature-item-list">';
                                         echo '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">';
                                         echo '<polyline points="20,6 9,17 4,12"></polyline>';
                                         echo '</svg>';
-                                        echo '<span>' . esc_html($caracteristica) . '</span>';
-                                        echo '</div>';
+                                            echo '<span>' . esc_html($caracteristica) . '</span>';
+                                            echo '</div>';
+                                        }
                                     }
-                                }
-                            } else {
+                                } else {
                                 // Características por defecto
-                                $default_features = array(
-                                    'Cocina equipada',
-                                    'Jardín privado',
-                                    'Terraza techada',
-                                    'Calefacción central',
-                                    'Closets empotrados',
-                                    'Portón automático'
-                                );
-                                
-                                foreach ($default_features as $feature) {
+                                    $default_features = array(
+                                        'Cocina equipada',
+                                        'Jardín privado',
+                                        'Terraza techada',
+                                        'Calefacción central',
+                                        'Closets empotrados',
+                                        'Portón automático'
+                                    );
+                                    
+                                    foreach ($default_features as $feature) {
                                     echo '<div class="feature-item-list">';
                                     echo '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">';
                                     echo '<polyline points="20,6 9,17 4,12"></polyline>';
                                     echo '</svg>';
-                                    echo '<span>' . esc_html($feature) . '</span>';
-                                    echo '</div>';
+                                        echo '<span>' . esc_html($feature) . '</span>';
+                                        echo '</div>';
+                                    }
                                 }
-                            }
-                            ?>
+                                ?>
+                            </div>
                         </div>
-                    </div>
                     
-                    <!-- Ubicación -->
-                    <div class="content-section">
-                        <h2 class="section-title">Ubicación</h2>
+                        <!-- Ubicación -->
+                        <div class="content-section">
+                            <h2 class="section-title">Ubicación</h2>
                         <div class="location-content">
-                            <?php if ($latitud && $longitud) : ?>
+                                    <?php if ($latitud && $longitud) : ?>
                                 <div class="map-container">
-                                    <iframe 
-                                        src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dgsWUxW4U5Q&q=<?php echo $latitud; ?>,<?php echo $longitud; ?>" 
-                                        width="100%" 
-                                        height="300" 
+                                        <iframe 
+                                            src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dgsWUxW4U5Q&q=<?php echo $latitud; ?>,<?php echo $longitud; ?>" 
+                                            width="100%" 
+                                            height="300" 
                                         style="border:0; border-radius: 12px;" 
-                                        allowfullscreen="" 
-                                        loading="lazy">
-                                    </iframe>
+                                            allowfullscreen="" 
+                                            loading="lazy">
+                                        </iframe>
                                 </div>
-                            <?php else : ?>
+                                    <?php else : ?>
                                 <div class="map-placeholder">
                                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                                         <circle cx="12" cy="10" r="3"></circle>
                                     </svg>
-                                    <p>Ubicación: <?php echo esc_html($comuna); ?></p>
-                                </div>
+                                            <p>Ubicación: <?php echo esc_html($comuna); ?></p>
+                    </div>
                             <?php endif; ?>
-                            
+                
                             <?php if ($lugares_cercanos) : ?>
                                 <div class="nearby-places">
                                     <h3>Lugares cercanos</h3>
                                     <div class="places-grid">
-                                        <?php
+                                    <?php
                                         $lugares_array = json_decode($lugares_cercanos, true);
                                         if (is_array($lugares_array)) {
                                             foreach ($lugares_array as $lugar) {
@@ -438,59 +519,59 @@ get_header(); ?>
                                                         break;
                                                     case 'recreacion':
                                                         $icon_class = 'fas fa-gamepad';
-                                                        break;
-                                                }
-                                                
-                                                echo '<div class="place-item">';
-                                                echo '<i class="' . esc_attr($icon_class) . '"></i>';
-                                                echo '<div class="place-info">';
-                                                echo '<span class="place-name">' . esc_html($lugar['nombre']) . '</span>';
-                                                echo '<span class="place-distance">' . esc_html($lugar['distancia']) . '</span>';
-                                                echo '</div>';
-                                                echo '</div>';
+                                                    break;
                                             }
+                                            
+                                            echo '<div class="place-item">';
+                                            echo '<i class="' . esc_attr($icon_class) . '"></i>';
+                                            echo '<div class="place-info">';
+                                            echo '<span class="place-name">' . esc_html($lugar['nombre']) . '</span>';
+                                            echo '<span class="place-distance">' . esc_html($lugar['distancia']) . '</span>';
+                                            echo '</div>';
+                                            echo '</div>';
                                         }
-                                        ?>
-                                    </div>
+                                    }
+                                    ?>
+                                </div>
                                 </div>
                             <?php endif; ?>
+                                </div>
+                        </div>
+                        
+                    <!-- Información adicional -->
+                        <div class="content-section">
+                        <h2 class="section-title">Información adicional</h2>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                <span class="info-label">Año construcción</span>
+                                        <span class="info-value"><?php echo $ano_construccion ?: '2018'; ?></span>
+                                    </div>
+                                    <div class="info-item">
+                                <span class="info-label">Orientación</span>
+                                        <span class="info-value"><?php echo $orientacion ?: 'Norte'; ?></span>
+                                    </div>
+                                    <div class="info-item">
+                                <span class="info-label">Gastos comunes</span>
+                                        <span class="info-value">$<?php echo $gastos_comunes ? number_format($gastos_comunes, 0, ',', '.') : '85.000'; ?></span>
+                                    </div>
+                                    <div class="info-item">
+                                <span class="info-label">Estado</span>
+                                <span class="info-value status-good"><?php echo $estado ?: 'Excelente'; ?></span>
+                                    </div>
+                                    <div class="info-item">
+                                <span class="info-label">Disponibilidad</span>
+                                        <span class="info-value"><?php echo $disponibilidad ?: 'Inmediata'; ?></span>
+                                    </div>
+                                    <div class="info-item">
+                                <span class="info-label">Tipo</span>
+                                <span class="info-value"><?php echo $tipo ?: 'Casa'; ?></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Información adicional -->
-                    <div class="content-section">
-                        <h2 class="section-title">Información adicional</h2>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="info-label">Año construcción</span>
-                                <span class="info-value"><?php echo $ano_construccion ?: '2018'; ?></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Orientación</span>
-                                <span class="info-value"><?php echo $orientacion ?: 'Norte'; ?></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Gastos comunes</span>
-                                <span class="info-value">$<?php echo $gastos_comunes ? number_format($gastos_comunes, 0, ',', '.') : '85.000'; ?></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Estado</span>
-                                <span class="info-value status-good"><?php echo $estado ?: 'Excelente'; ?></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Disponibilidad</span>
-                                <span class="info-value"><?php echo $disponibilidad ?: 'Inmediata'; ?></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Tipo</span>
-                                <span class="info-value"><?php echo $tipo ?: 'Casa'; ?></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Sidebar con formulario -->
-                <div class="content-sidebar">
+                    <div class="content-sidebar">
                     <div class="contact-card">
                         <div class="contact-header">
                             <h3>¿Te interesa esta propiedad?</h3>
@@ -498,39 +579,39 @@ get_header(); ?>
                         </div>
                         
                         <form class="contact-form" method="post" action="">
-                            <?php wp_nonce_field('property_contact_nonce', 'property_contact_nonce'); ?>
-                            <input type="hidden" name="property_id" value="<?php echo get_the_ID(); ?>">
-                            <input type="hidden" name="property_contact_submitted" value="1">
-                            
-                            <div class="form-group">
-                                <label for="contact_name">Nombre completo</label>
+                                <?php wp_nonce_field('property_contact_nonce', 'property_contact_nonce'); ?>
+                                <input type="hidden" name="property_id" value="<?php echo get_the_ID(); ?>">
+                                <input type="hidden" name="property_contact_submitted" value="1">
+                                
+                        <div class="form-group">
+                                    <label for="contact_name">Nombre completo</label>
                                 <input type="text" id="contact_name" name="contact_name" placeholder="Tu nombre" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="contact_email">Email</label>
-                                <input type="email" id="contact_email" name="contact_email" placeholder="tu@email.com" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="contact_phone">Teléfono</label>
-                                <input type="tel" id="contact_phone" name="contact_phone" placeholder="+56 9 1234 5678" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="contact_message">Mensaje</label>
+                        </div>
+                                
+                        <div class="form-group">
+                                    <label for="contact_email">Email</label>
+                                    <input type="email" id="contact_email" name="contact_email" placeholder="tu@email.com" required>
+                        </div>
+                                
+                        <div class="form-group">
+                                    <label for="contact_phone">Teléfono</label>
+                                    <input type="tel" id="contact_phone" name="contact_phone" placeholder="+56 9 1234 5678" required>
+                        </div>
+                                
+                        <div class="form-group">
+                                    <label for="contact_message">Mensaje</label>
                                 <textarea id="contact_message" name="contact_message" placeholder="Cuéntanos qué te interesa..." rows="4"></textarea>
-                            </div>
-                            
-                            <div class="form-group checkbox-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="request_visit" value="1">
-                                    <span class="checkmark"></span>
-                                    Solicitar visita programada
-                                </label>
-                            </div>
-                            
-                            <div class="form-actions">
+                        </div>
+                    
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="request_visit" value="1">
+                                        <span class="checkmark"></span>
+                                        Solicitar visita programada
+                                    </label>
+                    </div>
+                    
+                                <div class="form-actions">
                                 <button type="submit" class="btn-primary">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -545,100 +626,100 @@ get_header(); ?>
                                     </svg>
                                     Llamar ahora
                                 </a>
-                            </div>
-                        </form>
+                                </div>
+                    </form>
+                </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-    
+        </section>
+        
     <!-- Propiedades similares -->
-    <section class="similar-properties">
-        <div class="container">
+        <section class="similar-properties">
+            <div class="container">
             <h2 class="section-title">Propiedades similares</h2>
-            <div class="properties-grid">
-                <?php
-                // Query para propiedades similares
-                $similar_args = array(
-                    'post_type' => 'propiedad',
-                    'posts_per_page' => 3,
-                    'post__not_in' => array(get_the_ID()),
-                    'meta_query' => array(
-                        array(
-                            'key' => '_propiedad_operacion',
-                            'value' => $operacion,
-                            'compare' => '='
+                <div class="properties-grid">
+                    <?php
+                    // Query para propiedades similares
+                    $similar_args = array(
+                        'post_type' => 'propiedad',
+                        'posts_per_page' => 3,
+                        'post__not_in' => array(get_the_ID()),
+                        'meta_query' => array(
+                            array(
+                                'key' => '_propiedad_operacion',
+                                'value' => $operacion,
+                                'compare' => '='
+                            )
                         )
-                    )
-                );
-                
-                $similar_query = new WP_Query($similar_args);
-                
-                if ($similar_query->have_posts()) :
-                    while ($similar_query->have_posts()) : $similar_query->the_post();
-                        $similar_precio = get_post_meta(get_the_ID(), '_propiedad_precio', true);
-                        $similar_operacion = get_post_meta(get_the_ID(), '_propiedad_operacion', true);
-                        $similar_dormitorios = get_post_meta(get_the_ID(), '_propiedad_dormitorios', true);
-                        $similar_banos = get_post_meta(get_the_ID(), '_propiedad_banos', true);
-                        $similar_metros = get_post_meta(get_the_ID(), '_propiedad_metros', true);
-                        $similar_comuna = get_post_meta(get_the_ID(), '_propiedad_comuna', true);
-                        
-                        $similar_precio_text = $similar_precio ? '$' . number_format($similar_precio, 0, ',', '.') : 'Consultar';
-                        if ($similar_operacion === 'arriendo') {
-                            $similar_precio_text .= '/mes';
-                        }
-                        ?>
-                        
-                        <div class="property-card">
-                            <div class="card-image">
-                                <?php if (has_post_thumbnail()) : ?>
-                                    <a href="<?php the_permalink(); ?>">
-                                        <?php the_post_thumbnail('medium'); ?>
-                                    </a>
-                                <?php else : ?>
-                                    <div class="no-image">
+                    );
+                    
+                    $similar_query = new WP_Query($similar_args);
+                    
+                    if ($similar_query->have_posts()) :
+                        while ($similar_query->have_posts()) : $similar_query->the_post();
+                            $similar_precio = get_post_meta(get_the_ID(), '_propiedad_precio', true);
+                            $similar_operacion = get_post_meta(get_the_ID(), '_propiedad_operacion', true);
+                            $similar_dormitorios = get_post_meta(get_the_ID(), '_propiedad_dormitorios', true);
+                            $similar_banos = get_post_meta(get_the_ID(), '_propiedad_banos', true);
+                            $similar_metros = get_post_meta(get_the_ID(), '_propiedad_metros', true);
+                            $similar_comuna = get_post_meta(get_the_ID(), '_propiedad_comuna', true);
+                            
+                            $similar_precio_text = $similar_precio ? '$' . number_format(floatval($similar_precio), 0, ',', '.') : 'Consultar';
+                            if ($similar_operacion === 'arriendo') {
+                                $similar_precio_text .= '/mes';
+                            }
+                            ?>
+                            
+                            <div class="property-card">
+                                <div class="card-image">
+                                    <?php if (has_post_thumbnail()) : ?>
+                                        <a href="<?php the_permalink(); ?>">
+                                            <?php the_post_thumbnail('medium'); ?>
+                                        </a>
+                                    <?php else : ?>
+                                        <div class="no-image">
                                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                                             <polyline points="9,22 9,12 15,12 15,22"></polyline>
                                         </svg>
+    </div>
+                                    <?php endif; ?>
+                                    
+                                    <div class="card-tag <?php echo $similar_operacion; ?>">
+                                        <?php echo ucfirst($similar_operacion); ?>
                                     </div>
-                                <?php endif; ?>
-                                
-                                <div class="card-tag <?php echo $similar_operacion; ?>">
-                                    <?php echo ucfirst($similar_operacion); ?>
                                 </div>
-                            </div>
-                            
-                            <div class="card-content">
-                                <h3 class="card-title">
-                                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-                                </h3>
                                 
-                                <div class="card-details">
-                                    <?php if ($similar_dormitorios) : ?>
+                                <div class="card-content">
+                                    <h3 class="card-title">
+                                        <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                                    </h3>
+                                    
+                                    <div class="card-details">
+                                        <?php if ($similar_dormitorios) : ?>
                                         <span><?php echo $similar_dormitorios; ?> dorm</span>
-                                    <?php endif; ?>
-                                    <?php if ($similar_banos) : ?>
-                                        <span>• <?php echo $similar_banos; ?> baños</span>
-                                    <?php endif; ?>
-                                    <?php if ($similar_metros) : ?>
-                                        <span>• <?php echo $similar_metros; ?> m²</span>
-                                    <?php endif; ?>
-                                </div>
-                                
-                                <div class="card-footer">
-                                    <div class="card-price"><?php echo $similar_precio_text; ?></div>
-                                    <a href="<?php the_permalink(); ?>" class="card-btn">Ver detalles</a>
-                                </div>
-                            </div>
+                                        <?php endif; ?>
+                                        <?php if ($similar_banos) : ?>
+                                            <span>• <?php echo $similar_banos; ?> baños</span>
+                                        <?php endif; ?>
+                                        <?php if ($similar_metros) : ?>
+                                            <span>• <?php echo $similar_metros; ?> m²</span>
+                                        <?php endif; ?>
                         </div>
-                        
-                    <?php endwhile;
-                    wp_reset_postdata();
-                endif; ?>
-            </div>
-            
+                                    
+                                    <div class="card-footer">
+                                        <div class="card-price"><?php echo $similar_precio_text; ?></div>
+                                    <a href="<?php the_permalink(); ?>" class="card-btn">Ver detalles</a>
+                        </div>
+                        </div>
+                        </div>
+                            
+                        <?php endwhile;
+                        wp_reset_postdata();
+                    endif; ?>
+                </div>
+                
             <div class="view-all">
                 <a href="<?php echo get_post_type_archive_link('propiedad'); ?>" class="btn-view-all">
                     Ver todas las propiedades
@@ -647,11 +728,11 @@ get_header(); ?>
                         <polyline points="7,7 17,7 17,17"></polyline>
                     </svg>
                 </a>
+                </div>
             </div>
-        </div>
-    </section>
-    
-    <?php endwhile; ?>
+        </section>
+        
+        <?php endwhile; ?>
 </div>
 
 <style>
@@ -971,6 +1052,14 @@ body.admin-bar .property-detail-page {
     justify-content: center;
     color: white;
     flex-shrink: 0;
+    overflow: hidden;
+}
+
+.agent-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .agent-details {
@@ -1045,13 +1134,33 @@ body.admin-bar .property-detail-page {
 }
 
 .whatsapp-btn {
-    background: #25d366;
-    color: white;
+    background: #25d366 !important;
+    color: white !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+    padding: 12px 20px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2) !important;
 }
 
 .whatsapp-btn:hover {
-    background: #128c7e;
-    transform: translateY(-1px);
+    background: #128c7e !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3) !important;
+}
+
+.whatsapp-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+    fill: currentColor !important;
 }
 
 .email-btn {

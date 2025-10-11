@@ -285,7 +285,7 @@ get_header(); ?>
                 }
                 
                 // Formatear precio
-                $precio_formatted = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
+                $precio_formatted = $precio ? '$' . number_format(floatval($precio), 0, ',', '.') : 'Consultar';
                 
                 // Determinar operación si no está configurada
                 if (!$operacion) {
@@ -424,7 +424,7 @@ get_header(); ?>
                 }
                 
                 // Formatear precio
-                $precio_formatted = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
+                $precio_formatted = $precio ? '$' . number_format(floatval($precio), 0, ',', '.') : 'Consultar';
                 
                 // Determinar operación si no está configurada
                 if (!$operacion) {

@@ -210,7 +210,7 @@ get_header(); ?>
                             
                             <?php if ($precio) : ?>
                                 <div class="property-price">
-                                    $<?php echo number_format($precio, 0, ',', '.'); ?>
+                                    $<?php echo number_format(floatval($precio), 0, ',', '.'); ?>
                                     <?php if ($operacion === 'arriendo') : ?>
                                         /mes
                                     <?php endif; ?>

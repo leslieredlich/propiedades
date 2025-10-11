@@ -120,7 +120,7 @@ get_header(); ?>
                             $tag_bg = ($operacion === 'arriendo') ? $arriendo_tag_color : $venta_tag_color;
                             $tag_style = 'style="background: ' . $tag_bg . '; color: ' . $tag_text_color . ';"';
                             $tag_text = ucfirst($operacion);
-                    $precio_text = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
+                    $precio_text = $precio ? '$' . number_format(floatval($precio), 0, ',', '.') : 'Consultar';
                     if ($operacion === 'arriendo') {
                         $precio_text .= '/mes';
                     }

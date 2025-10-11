@@ -1109,7 +1109,7 @@ function mjpropiedades_display_properties($operacion = 'venta', $limit = 3) {
             
             $tag_class = ($operacion_real === 'arriendo') ? 'style="background: var(--orange);"' : '';
             $tag_text = ucfirst($operacion_real);
-            $precio_text = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
+            $precio_text = $precio ? '$' . number_format(floatval($precio), 0, ',', '.') : 'Consultar';
             if ($operacion_real === 'arriendo') {
                 $precio_text .= '/mes';
             }
@@ -4080,7 +4080,7 @@ function mjpropiedades_get_search_form($args = array()) {
                     <div class="price-slider-container">
                         <input type="range" id="<?php echo esc_attr($args['form_id']); ?>-precio-min" name="precio_min" class="price-slider" min="0" max="1000000000" value="<?php echo esc_attr($current_values['precio_min']); ?>" step="100000">
                         <div class="price-display">
-                            <span class="price-value" id="<?php echo esc_attr($args['form_id']); ?>-precio-min-value">$<?php echo number_format($current_values['precio_min'], 0, ',', '.'); ?></span>
+                            <span class="price-value" id="<?php echo esc_attr($args['form_id']); ?>-precio-min-value">$<?php echo number_format(floatval($current_values['precio_min']), 0, ',', '.'); ?></span>
                             <span class="price-max">$1.000.000.000</span>
                         </div>
                     </div>
@@ -4092,7 +4092,7 @@ function mjpropiedades_get_search_form($args = array()) {
                         <input type="range" id="<?php echo esc_attr($args['form_id']); ?>-precio-max" name="precio_max" class="price-slider" min="0" max="1000000000" value="<?php echo esc_attr($current_values['precio_max']); ?>" step="100000">
                         <div class="price-display">
                             <span class="price-min">$0</span>
-                            <span class="price-value" id="<?php echo esc_attr($args['form_id']); ?>-precio-max-value">$<?php echo number_format($current_values['precio_max'], 0, ',', '.'); ?></span>
+                            <span class="price-value" id="<?php echo esc_attr($args['form_id']); ?>-precio-max-value">$<?php echo number_format(floatval($current_values['precio_max']), 0, ',', '.'); ?></span>
                         </div>
                     </div>
                 </div>
@@ -4990,4 +4990,601 @@ function mjpropiedades_search_options_page() {
     </style>
     <?php
 }
+
+// ========================================
+// SISTEMA DE AGENTES INMOBILIARIOS
+// ========================================
+
+// 1. CREAR CUSTOM POST TYPE PARA AGENTES
+function mjpropiedades_create_agente_post_type() {
+    $labels = array(
+        'name' => 'Agentes',
+        'singular_name' => 'Agente',
+        'menu_name' => 'Agentes',
+        'add_new' => 'Agregar Agente',
+        'add_new_item' => 'Agregar Nuevo Agente',
+        'edit_item' => 'Editar Agente',
+        'new_item' => 'Nuevo Agente',
+        'view_item' => 'Ver Agente',
+        'search_items' => 'Buscar Agentes',
+        'not_found' => 'No se encontraron agentes',
+        'not_found_in_trash' => 'No se encontraron agentes en la papelera'
+    );
+
+    $args = array(
+        'labels' => $labels,
+        'public' => false,
+        'publicly_queryable' => false,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'query_var' => true,
+        'rewrite' => false,
+        'capability_type' => 'post',
+        'has_archive' => false,
+        'hierarchical' => false,
+        'menu_position' => 25,
+        'menu_icon' => 'dashicons-businessman',
+        'supports' => array('title', 'thumbnail', 'editor'),
+        'show_in_rest' => false
+    );
+
+    register_post_type('agente', $args);
+}
+add_action('init', 'mjpropiedades_create_agente_post_type');
+
+// 2. CREAR META BOXES PARA AGENTES
+function mjpropiedades_add_agente_meta_boxes() {
+    add_meta_box(
+        'agente_contact_info',
+        'Información de Contacto',
+        'mjpropiedades_agente_contact_info_callback',
+        'agente',
+        'normal',
+        'high'
+    );
+
+    add_meta_box(
+        'agente_specializations',
+        'Especializaciones',
+        'mjpropiedades_agente_specializations_callback',
+        'agente',
+        'normal',
+        'high'
+    );
+
+    add_meta_box(
+        'agente_stats',
+        'Estadísticas',
+        'mjpropiedades_agente_stats_callback',
+        'agente',
+        'side',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'mjpropiedades_add_agente_meta_boxes');
+
+// Callback para información de contacto
+function mjpropiedades_agente_contact_info_callback($post) {
+    wp_nonce_field('mjpropiedades_agente_contact_info', 'mjpropiedades_agente_contact_info_nonce');
+    
+    $telefono = get_post_meta($post->ID, '_agente_telefono', true);
+    $whatsapp = get_post_meta($post->ID, '_agente_whatsapp', true);
+    $email = get_post_meta($post->ID, '_agente_email', true);
+    $email_alt = get_post_meta($post->ID, '_agente_email_alt', true);
+    ?>
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="agente_telefono">Teléfono Principal</label></th>
+            <td><input type="tel" id="agente_telefono" name="agente_telefono" value="<?php echo esc_attr($telefono); ?>" class="regular-text" placeholder="+56 9 1234 5678" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_whatsapp">WhatsApp</label></th>
+            <td><input type="tel" id="agente_whatsapp" name="agente_whatsapp" value="<?php echo esc_attr($whatsapp); ?>" class="regular-text" placeholder="+56 9 1234 5678" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_email">Email Principal</label></th>
+            <td><input type="email" id="agente_email" name="agente_email" value="<?php echo esc_attr($email); ?>" class="regular-text" placeholder="agente@propiedades.com" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_email_alt">Email Alternativo</label></th>
+            <td><input type="email" id="agente_email_alt" name="agente_email_alt" value="<?php echo esc_attr($email_alt); ?>" class="regular-text" placeholder="alternativo@propiedades.com" /></td>
+        </tr>
+    </table>
+    <?php
+}
+
+// Callback para especializaciones
+function mjpropiedades_agente_specializations_callback($post) {
+    wp_nonce_field('mjpropiedades_agente_specializations', 'mjpropiedades_agente_specializations_nonce');
+    
+    $cargo = get_post_meta($post->ID, '_agente_cargo', true);
+    $comunas = get_post_meta($post->ID, '_agente_comunas', true);
+    $tipos_propiedad = get_post_meta($post->ID, '_agente_tipos_propiedad', true);
+    $operaciones = get_post_meta($post->ID, '_agente_operaciones', true);
+    $experiencia = get_post_meta($post->ID, '_agente_experiencia', true);
+    
+    if (!is_array($comunas)) $comunas = array();
+    if (!is_array($tipos_propiedad)) $tipos_propiedad = array();
+    if (!is_array($operaciones)) $operaciones = array();
+    
+    $comunas_disponibles = array('La Serena', 'Coquimbo', 'Ovalle', 'Vicuña', 'Illapel', 'Salamanca', 'Los Vilos', 'Andacollo', 'Punitaqui', 'Monte Patria', 'Combarbalá', 'Canela', 'Paiguano');
+    $tipos_disponibles = array('Casa', 'Departamento', 'Terreno', 'Local Comercial', 'Oficina', 'Bodega', 'Parcela', 'Edificio');
+    $operaciones_disponibles = array('Venta', 'Arriendo', 'Ambas');
+    ?>
+    
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="agente_cargo">Cargo/Especialización</label></th>
+            <td><input type="text" id="agente_cargo" name="agente_cargo" value="<?php echo esc_attr($cargo); ?>" class="regular-text" placeholder="Especialista en La Serena" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_experiencia">Años de Experiencia</label></th>
+            <td><input type="number" id="agente_experiencia" name="agente_experiencia" value="<?php echo esc_attr($experiencia); ?>" class="small-text" min="0" max="50" /></td>
+        </tr>
+        <tr>
+            <th scope="row">Comunas de Especialización</th>
+            <td>
+                <?php foreach ($comunas_disponibles as $comuna) : ?>
+                    <label style="display: block; margin-bottom: 5px;">
+                        <input type="checkbox" name="agente_comunas[]" value="<?php echo esc_attr($comuna); ?>" <?php checked(in_array($comuna, $comunas)); ?> />
+                        <?php echo esc_html($comuna); ?>
+                    </label>
+                <?php endforeach; ?>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Tipos de Propiedad</th>
+            <td>
+                <?php foreach ($tipos_disponibles as $tipo) : ?>
+                    <label style="display: block; margin-bottom: 5px;">
+                        <input type="checkbox" name="agente_tipos_propiedad[]" value="<?php echo esc_attr($tipo); ?>" <?php checked(in_array($tipo, $tipos_propiedad)); ?> />
+                        <?php echo esc_html($tipo); ?>
+                    </label>
+                <?php endforeach; ?>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Operaciones</th>
+            <td>
+                <?php foreach ($operaciones_disponibles as $operacion) : ?>
+                    <label style="display: block; margin-bottom: 5px;">
+                        <input type="checkbox" name="agente_operaciones[]" value="<?php echo esc_attr($operacion); ?>" <?php checked(in_array($operacion, $operaciones)); ?> />
+                        <?php echo esc_html($operacion); ?>
+                    </label>
+                <?php endforeach; ?>
+            </td>
+        </tr>
+    </table>
+    <?php
+}
+
+// Callback para estadísticas
+function mjpropiedades_agente_stats_callback($post) {
+    wp_nonce_field('mjpropiedades_agente_stats', 'mjpropiedades_agente_stats_nonce');
+    
+    $rating = get_post_meta($post->ID, '_agente_rating', true);
+    $resenas = get_post_meta($post->ID, '_agente_resenas', true);
+    $propiedades_vendidas = get_post_meta($post->ID, '_agente_propiedades_vendidas', true);
+    $activo = get_post_meta($post->ID, '_agente_activo', true);
+    ?>
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="agente_rating">Rating (0-5)</label></th>
+            <td><input type="number" id="agente_rating" name="agente_rating" value="<?php echo esc_attr($rating); ?>" class="small-text" min="0" max="5" step="0.1" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_resenas">Número de Reseñas</label></th>
+            <td><input type="number" id="agente_resenas" name="agente_resenas" value="<?php echo esc_attr($resenas); ?>" class="small-text" min="0" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_propiedades_vendidas">Propiedades Vendidas</label></th>
+            <td><input type="number" id="agente_propiedades_vendidas" name="agente_propiedades_vendidas" value="<?php echo esc_attr($propiedades_vendidas); ?>" class="small-text" min="0" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_activo">Agente Activo</label></th>
+            <td><input type="checkbox" id="agente_activo" name="agente_activo" value="1" <?php checked($activo, '1'); ?> /> <label for="agente_activo">Activo</label></td>
+        </tr>
+    </table>
+    <?php
+}
+
+// 3. GUARDAR META BOXES DE AGENTES
+function mjpropiedades_save_agente_meta_boxes($post_id) {
+    // Verificar nonces y permisos
+    if (!isset($_POST['mjpropiedades_agente_contact_info_nonce']) || !wp_verify_nonce($_POST['mjpropiedades_agente_contact_info_nonce'], 'mjpropiedades_agente_contact_info')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Guardar información de contacto
+    $fields = array('telefono', 'whatsapp', 'email', 'email_alt');
+    foreach ($fields as $field) {
+        if (isset($_POST['agente_' . $field])) {
+            update_post_meta($post_id, '_agente_' . $field, sanitize_text_field($_POST['agente_' . $field]));
+        }
+    }
+
+    // Guardar especializaciones
+    if (isset($_POST['agente_cargo'])) {
+        update_post_meta($post_id, '_agente_cargo', sanitize_text_field($_POST['agente_cargo']));
+    }
+    
+    if (isset($_POST['agente_experiencia'])) {
+        update_post_meta($post_id, '_agente_experiencia', intval($_POST['agente_experiencia']));
+    }
+
+    if (isset($_POST['agente_comunas'])) {
+        update_post_meta($post_id, '_agente_comunas', array_map('sanitize_text_field', $_POST['agente_comunas']));
+    } else {
+        update_post_meta($post_id, '_agente_comunas', array());
+    }
+
+    if (isset($_POST['agente_tipos_propiedad'])) {
+        update_post_meta($post_id, '_agente_tipos_propiedad', array_map('sanitize_text_field', $_POST['agente_tipos_propiedad']));
+    } else {
+        update_post_meta($post_id, '_agente_tipos_propiedad', array());
+    }
+
+    if (isset($_POST['agente_operaciones'])) {
+        update_post_meta($post_id, '_agente_operaciones', array_map('sanitize_text_field', $_POST['agente_operaciones']));
+    } else {
+        update_post_meta($post_id, '_agente_operaciones', array());
+    }
+
+    // Guardar estadísticas
+    if (isset($_POST['agente_rating'])) {
+        update_post_meta($post_id, '_agente_rating', floatval($_POST['agente_rating']));
+    }
+    
+    if (isset($_POST['agente_resenas'])) {
+        update_post_meta($post_id, '_agente_resenas', intval($_POST['agente_resenas']));
+    }
+    
+    if (isset($_POST['agente_propiedades_vendidas'])) {
+        update_post_meta($post_id, '_agente_propiedades_vendidas', intval($_POST['agente_propiedades_vendidas']));
+    }
+    
+    update_post_meta($post_id, '_agente_activo', isset($_POST['agente_activo']) ? '1' : '0');
+}
+add_action('save_post', 'mjpropiedades_save_agente_meta_boxes');
+
+// 4. CREAR META BOX PARA ASIGNAR AGENTE A PROPIEDAD
+function mjpropiedades_add_property_agent_meta_box() {
+    add_meta_box(
+        'property_agent_assignment',
+        'Asignar Agente',
+        'mjpropiedades_property_agent_assignment_callback',
+        'propiedad',
+        'side',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'mjpropiedades_add_property_agent_meta_box');
+
+function mjpropiedades_property_agent_assignment_callback($post) {
+    wp_nonce_field('mjpropiedades_property_agent_assignment', 'mjpropiedades_property_agent_assignment_nonce');
+    
+    $agente_asignado = get_post_meta($post->ID, '_propiedad_agente', true);
+    
+    // Obtener agentes activos
+    $agentes = get_posts(array(
+        'post_type' => 'agente',
+        'posts_per_page' => -1,
+        'meta_query' => array(
+            array(
+                'key' => '_agente_activo',
+                'value' => '1',
+                'compare' => '='
+            )
+        )
+    ));
+    
+    echo '<div id="agent-assignment-container">';
+    echo '<p><strong>Seleccionar Agente:</strong></p>';
+    echo '<select name="propiedad_agente" id="propiedad_agente" style="width: 100%; margin-bottom: 15px;">';
+    echo '<option value="">Sin agente asignado</option>';
+    
+    foreach ($agentes as $agente) {
+        $selected = selected($agente_asignado, $agente->ID, false);
+        $cargo = get_post_meta($agente->ID, '_agente_cargo', true);
+        $rating = get_post_meta($agente->ID, '_agente_rating', true);
+        $resenas = get_post_meta($agente->ID, '_agente_resenas', true);
+        
+        $display_name = $agente->post_title;
+        if ($cargo) {
+            $display_name .= ' - ' . $cargo;
+        }
+        if ($rating) {
+            $display_name .= ' (' . $rating . '⭐)';
+        }
+        
+        echo '<option value="' . $agente->ID . '" ' . $selected . '>' . esc_html($display_name) . '</option>';
+    }
+    
+    echo '</select>';
+    
+    // Vista previa del agente seleccionado
+    if ($agente_asignado) {
+        $agente = get_post($agente_asignado);
+        if ($agente) {
+            echo '<div id="agent-preview" style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">';
+            echo '<h4>Vista Previa del Agente:</h4>';
+            
+            $avatar = get_the_post_thumbnail($agente->ID, 'thumbnail');
+            if ($avatar) {
+                echo '<div style="float: left; margin-right: 10px;">' . $avatar . '</div>';
+            }
+            
+            echo '<div>';
+            echo '<strong>' . esc_html($agente->post_title) . '</strong><br>';
+            
+            $cargo = get_post_meta($agente->ID, '_agente_cargo', true);
+            if ($cargo) {
+                echo '<em>' . esc_html($cargo) . '</em><br>';
+            }
+            
+            $rating = get_post_meta($agente->ID, '_agente_rating', true);
+            $resenas = get_post_meta($agente->ID, '_agente_resenas', true);
+            if ($rating && $resenas) {
+                echo '⭐ ' . $rating . ' (' . $resenas . ' reseñas)<br>';
+            }
+            
+            $telefono = get_post_meta($agente->ID, '_agente_telefono', true);
+            if ($telefono) {
+                echo '📞 ' . esc_html($telefono) . '<br>';
+            }
+            
+            $email = get_post_meta($agente->ID, '_agente_email', true);
+            if ($email) {
+                echo '✉️ ' . esc_html($email);
+            }
+            
+            echo '</div>';
+            echo '<div style="clear: both;"></div>';
+            echo '</div>';
+        }
+    } else {
+        echo '<div id="agent-preview" style="display: none;"></div>';
+    }
+    
+    echo '<p style="margin-top: 15px;">';
+    echo '<a href="' . admin_url('post-new.php?post_type=agente') . '" class="button" target="_blank">Agregar Nuevo Agente</a> ';
+    echo '<a href="' . admin_url('edit.php?post_type=agente') . '" class="button" target="_blank">Gestionar Agentes</a>';
+    echo '</p>';
+    
+    echo '</div>';
+    
+    // JavaScript para actualizar vista previa
+    ?>
+    <script>
+    jQuery(document).ready(function($) {
+        $('#propiedad_agente').on('change', function() {
+            var agentId = $(this).val();
+            var preview = $('#agent-preview');
+            
+            if (agentId) {
+                // Aquí podrías hacer una llamada AJAX para obtener los datos del agente
+                // Por simplicidad, recargamos la página para mostrar la vista previa
+                preview.show();
+            } else {
+                preview.hide();
+            }
+        });
+    });
+    </script>
+    <?php
+}
+
+// Guardar asignación de agente
+function mjpropiedades_save_property_agent_assignment($post_id) {
+    if (!isset($_POST['mjpropiedades_property_agent_assignment_nonce']) || !wp_verify_nonce($_POST['mjpropiedades_property_agent_assignment_nonce'], 'mjpropiedades_property_agent_assignment')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    if (isset($_POST['propiedad_agente'])) {
+        update_post_meta($post_id, '_propiedad_agente', intval($_POST['propiedad_agente']));
+    }
+}
+add_action('save_post', 'mjpropiedades_save_property_agent_assignment');
+
+// 5. AGREGAR CONFIGURACIÓN AL CUSTOMIZER
+function mjpropiedades_agent_customizer_settings($wp_customize) {
+    // Sección de agentes
+    $wp_customize->add_section('mjpropiedades_agents', array(
+        'title' => 'Configuración de Agentes',
+        'priority' => 160,
+        'description' => 'Configuración global para el sistema de agentes inmobiliarios'
+    ));
+
+    // Agente por defecto
+    $wp_customize->add_setting('mjpropiedades_default_agent', array(
+        'default' => '',
+        'sanitize_callback' => 'absint'
+    ));
+
+    $wp_customize->add_control('mjpropiedades_default_agent', array(
+        'label' => 'Agente por Defecto',
+        'description' => 'Agente que se mostrará cuando una propiedad no tenga agente asignado',
+        'section' => 'mjpropiedades_agents',
+        'type' => 'select',
+        'choices' => mjpropiedades_get_agents_choices()
+    ));
+
+    // Mostrar rating
+    $wp_customize->add_setting('mjpropiedades_show_rating', array(
+        'default' => true,
+        'sanitize_callback' => 'wp_validate_boolean'
+    ));
+
+    $wp_customize->add_control('mjpropiedades_show_rating', array(
+        'label' => 'Mostrar Rating',
+        'description' => 'Mostrar el rating y número de reseñas',
+        'section' => 'mjpropiedades_agents',
+        'type' => 'checkbox'
+    ));
+
+    // Mostrar estadísticas
+    $wp_customize->add_setting('mjpropiedades_show_stats', array(
+        'default' => true,
+        'sanitize_callback' => 'wp_validate_boolean'
+    ));
+
+    $wp_customize->add_control('mjpropiedades_show_stats', array(
+        'label' => 'Mostrar Estadísticas',
+        'description' => 'Mostrar propiedades vendidas y años de experiencia',
+        'section' => 'mjpropiedades_agents',
+        'type' => 'checkbox'
+    ));
+
+    // Mensaje cuando no hay agente
+    $wp_customize->add_setting('mjpropiedades_no_agent_message', array(
+        'default' => 'Contactar con nuestro equipo',
+        'sanitize_callback' => 'sanitize_text_field'
+    ));
+
+    $wp_customize->add_control('mjpropiedades_no_agent_message', array(
+        'label' => 'Mensaje sin Agente',
+        'description' => 'Mensaje que se muestra cuando no hay agente disponible',
+        'section' => 'mjpropiedades_agents',
+        'type' => 'text'
+    ));
+}
+add_action('customize_register', 'mjpropiedades_agent_customizer_settings');
+
+// Función helper para obtener opciones de agentes
+function mjpropiedades_get_agents_choices() {
+    $choices = array('' => 'Sin agente por defecto');
+    
+    $agentes = get_posts(array(
+        'post_type' => 'agente',
+        'posts_per_page' => -1,
+        'meta_query' => array(
+            array(
+                'key' => '_agente_activo',
+                'value' => '1',
+                'compare' => '='
+            )
+        )
+    ));
+
+    foreach ($agentes as $agente) {
+        $choices[$agente->ID] = $agente->post_title;
+    }
+
+    return $choices;
+}
+
+// 6. FUNCIONES HELPER PARA OBTENER DATOS DEL AGENTE
+function mjpropiedades_get_property_agent($property_id = null) {
+    if (!$property_id) {
+        global $post;
+        $property_id = $post->ID;
+    }
+
+    // Buscar agente asignado a la propiedad
+    $agente_id = get_post_meta($property_id, '_propiedad_agente', true);
+    
+    if ($agente_id) {
+        $agente = get_post($agente_id);
+        if ($agente && $agente->post_type === 'agente') {
+            return $agente;
+        }
+    }
+
+    // Si no hay agente asignado, buscar por comuna
+    $comuna = get_post_meta($property_id, '_propiedad_comuna', true);
+    if ($comuna) {
+        $agente = mjpropiedades_get_agent_by_comuna($comuna);
+        if ($agente) {
+            return $agente;
+        }
+    }
+
+    // Si no hay agente por comuna, usar agente por defecto
+    $default_agent_id = get_theme_mod('mjpropiedades_default_agent', '');
+    if ($default_agent_id) {
+        $agente = get_post($default_agent_id);
+        if ($agente && $agente->post_type === 'agente') {
+            return $agente;
+        }
+    }
+
+    return null;
+}
+
+function mjpropiedades_get_agent_by_comuna($comuna) {
+    $agentes = get_posts(array(
+        'post_type' => 'agente',
+        'posts_per_page' => 1,
+        'meta_query' => array(
+            'relation' => 'AND',
+            array(
+                'key' => '_agente_activo',
+                'value' => '1',
+                'compare' => '='
+            ),
+            array(
+                'key' => '_agente_comunas',
+                'value' => $comuna,
+                'compare' => 'LIKE'
+            )
+        )
+    ));
+
+    return !empty($agentes) ? $agentes[0] : null;
+}
+
+function mjpropiedades_get_agent_data($agente_id) {
+    if (!$agente_id) return null;
+
+    $agente = get_post($agente_id);
+    if (!$agente || $agente->post_type !== 'agente') return null;
+
+    return array(
+        'id' => $agente->ID,
+        'nombre' => $agente->post_title,
+        'cargo' => get_post_meta($agente->ID, '_agente_cargo', true),
+        'telefono' => get_post_meta($agente->ID, '_agente_telefono', true),
+        'whatsapp' => get_post_meta($agente->ID, '_agente_whatsapp', true),
+        'email' => get_post_meta($agente->ID, '_agente_email', true),
+        'email_alt' => get_post_meta($agente->ID, '_agente_email_alt', true),
+        'rating' => get_post_meta($agente->ID, '_agente_rating', true),
+        'resenas' => get_post_meta($agente->ID, '_agente_resenas', true),
+        'experiencia' => get_post_meta($agente->ID, '_agente_experiencia', true),
+        'propiedades_vendidas' => get_post_meta($agente->ID, '_agente_propiedades_vendidas', true),
+        'comunas' => get_post_meta($agente->ID, '_agente_comunas', true),
+        'tipos_propiedad' => get_post_meta($agente->ID, '_agente_tipos_propiedad', true),
+        'operaciones' => get_post_meta($agente->ID, '_agente_operaciones', true),
+        'avatar' => get_the_post_thumbnail_url($agente->ID, 'thumbnail'),
+        'bio' => $agente->post_content
+    );
+}
+
+// 7. ACTUALIZAR EL CUSTOMIZER DINÁMICAMENTE
+function mjpropiedades_refresh_agent_choices() {
+    if (is_customize_preview()) {
+        $wp_customize = new WP_Customize_Manager();
+        $control = $wp_customize->get_control('mjpropiedades_default_agent');
+        if ($control) {
+            $control->choices = mjpropiedades_get_agents_choices();
+        }
+    }
+}
+add_action('wp_loaded', 'mjpropiedades_refresh_agent_choices');
+
 ?>
