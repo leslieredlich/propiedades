@@ -44,69 +44,201 @@ get_header(); ?>
     ?>
     
     <!-- Hero Section - Galería de Imágenes -->
-    <section class="hero-gallery">
-        <div class="gallery-main">
-            <?php if (has_post_thumbnail()) : ?>
-                <?php the_post_thumbnail('full', array('class' => 'hero-image')); ?>
-            <?php else : ?>
-                <div class="no-image">
-                    <div class="no-image-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                            <polyline points="9,22 9,12 15,12 15,22"></polyline>
-                        </svg>
-                    </div>
-                    <p>Sin imagen disponible</p>
-                </div>
-            <?php endif; ?>
-            
-            <!-- Tag de operación -->
-            <div class="operation-tag <?php echo esc_attr($operacion); ?>">
-                <?php echo ucfirst($operacion); ?>
-            </div>
-            
-            <!-- Botones de acción flotantes -->
-            <div class="floating-actions">
-                <button class="floating-btn share-btn" title="Compartir">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="18" cy="5" r="3"></circle>
-                        <circle cx="6" cy="12" r="3"></circle>
-                        <circle cx="18" cy="19" r="3"></circle>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                </button>
-                <button class="floating-btn favorite-btn" title="Agregar a favoritos">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        
-        <!-- Miniaturas de galería -->
-        <div class="gallery-thumbnails">
-            <?php 
-            $gallery_images = get_post_meta(get_the_ID(), '_propiedad_gallery', true);
-            if ($gallery_images) {
-                $image_ids = explode(',', $gallery_images);
-                foreach ($image_ids as $index => $image_id) {
-                    $image_url = wp_get_attachment_image_url($image_id, 'medium');
-                    $large_image_url = wp_get_attachment_image_url($image_id, 'large');
-                    if ($image_url) {
-                        $active_class = $index === 0 ? 'active' : '';
-                        echo '<div class="thumbnail ' . $active_class . '" data-image="' . esc_url($large_image_url) . '">';
-                        echo '<img src="' . esc_url($image_url) . '" alt="Imagen ' . ($index + 1) . ' de la propiedad">';
-                        echo '</div>';
+    <section class="hero-gallery-section">
+        <div class="hero-container">
+            <!-- Galería principal -->
+            <div class="gallery-container">
+                <div class="gallery-main">
+                    <?php 
+                    // Obtener todas las imágenes de la galería
+                    $gallery_images = get_post_meta(get_the_ID(), '_propiedad_gallery', true);
+                    $all_images = array();
+                    
+                    if ($gallery_images) {
+                        $image_ids = explode(',', $gallery_images);
+                        foreach ($image_ids as $image_id) {
+                            $image_url = wp_get_attachment_image_url($image_id, 'large');
+                            if ($image_url) {
+                                $all_images[] = array(
+                                    'url' => $image_url,
+                                    'id' => $image_id
+                                );
+                            }
+                        }
                     }
-                }
-            } else if (has_post_thumbnail()) {
-                $main_image_url = wp_get_attachment_image_url(get_post_thumbnail_id(), 'large');
-                echo '<div class="thumbnail active" data-image="' . esc_url($main_image_url) . '">';
-                the_post_thumbnail('medium');
-                echo '</div>';
-            }
-            ?>
+                    
+                    // Si no hay galería, usar imagen destacada
+                    if (empty($all_images) && has_post_thumbnail()) {
+                        $all_images[] = array(
+                            'url' => wp_get_attachment_image_url(get_post_thumbnail_id(), 'large'),
+                            'id' => get_post_thumbnail_id()
+                        );
+                    }
+                    
+                    if (!empty($all_images)) :
+                        foreach ($all_images as $index => $image) :
+                            $active_class = $index === 0 ? 'active' : '';
+                            ?>
+                            <div class="gallery-image <?php echo $active_class; ?>" data-index="<?php echo $index; ?>">
+                                <img src="<?php echo esc_url($image['url']); ?>" alt="Imagen <?php echo $index + 1; ?> de la propiedad">
+                            </div>
+                            <?php
+                        endforeach;
+                    else :
+                    ?>
+                        <div class="no-image">
+                            <div class="no-image-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                                </svg>
+                            </div>
+                            <p>Sin imagen disponible</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                
+                <!-- Navegación de la galería -->
+                <?php if (count($all_images) > 1) : ?>
+                    <div class="gallery-navigation">
+                        <button class="nav-btn prev-btn" onclick="changeImage(-1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15,18 9,12 15,6"></polyline>
+                            </svg>
+                        </button>
+                        <button class="nav-btn next-btn" onclick="changeImage(1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9,18 15,12 9,6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Indicadores de puntos -->
+                    <div class="gallery-dots">
+                        <?php foreach ($all_images as $index => $image) : ?>
+                            <button class="dot <?php echo $index === 0 ? 'active' : ''; ?>" onclick="goToImage(<?php echo $index; ?>)"></button>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+                
+                <!-- Miniaturas de la galería -->
+                <div class="gallery-thumbnails">
+                    <?php 
+                    if (!empty($all_images)) {
+                        foreach ($all_images as $index => $image) {
+                            $thumbnail_url = wp_get_attachment_image_url($image['id'], 'medium');
+                            if ($thumbnail_url) {
+                                $active_class = $index === 0 ? 'active' : '';
+                                echo '<div class="thumbnail ' . $active_class . '" onclick="goToImage(' . $index . ')">';
+                                echo '<img src="' . esc_url($thumbnail_url) . '" alt="Miniatura ' . ($index + 1) . '">';
+                                echo '</div>';
+                            }
+                        }
+                    }
+                    ?>
+                </div>
+            </div>
+            
+            <!-- Panel de información -->
+            <div class="info-panel">
+                <div class="property-price"><?php echo $precio_text; ?></div>
+                <h1 class="property-title"><?php the_title(); ?></h1>
+                <p class="property-location">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <?php echo $direccion ? esc_html($direccion) : esc_html($comuna); ?>
+                </p>
+                
+                <!-- Características principales -->
+                <div class="main-features-grid">
+                    <div class="feature-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 7V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V7M3 7V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V7M3 7H21M7 11H17M7 15H13"></path>
+                        </svg>
+                        <span><?php echo $dormitorios ?: '2'; ?> dorm</span>
+                    </div>
+                    <div class="feature-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7.5C15 8.3 14.3 9 13.5 9S12 8.3 12 7.5V5.5L6 7V9L12 7.5V9.5C12 10.3 12.7 11 13.5 11S15 10.3 15 9.5V7.5L21 9Z"></path>
+                            <path d="M12 12C8.7 12 6 14.7 6 18V22H18V18C18 14.7 15.3 12 12 12Z"></path>
+                        </svg>
+                        <span><?php echo $banos ?: '2'; ?> baños</span>
+                    </div>
+                    <div class="feature-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                        </svg>
+                        <span><?php echo $metros ?: '85'; ?> m²</span>
+                    </div>
+                </div>
+                
+                <!-- Separador -->
+                <div class="separator"></div>
+                
+                <!-- Información del agente -->
+                <div class="agent-info">
+                    <h3 class="agent-title">Agente Inmobiliario</h3>
+                    <div class="agent-profile">
+                        <div class="agent-avatar">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <div class="agent-details">
+                            <div class="agent-name">María Elena Rodríguez</div>
+                            <div class="agent-specialization">Especialista en <?php echo esc_html($comuna); ?></div>
+                            <div class="agent-rating">
+                                <div class="stars">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
+                                    </svg>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
+                                    </svg>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
+                                    </svg>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
+                                    </svg>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
+                                    </svg>
+                                </div>
+                                <span class="rating-text">4.9 (127 reseñas)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de contacto -->
+                    <div class="contact-buttons">
+                        <a href="tel:+56912345678" class="contact-btn call-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                            Llamar Ahora
+                        </a>
+                        <a href="https://wa.me/56912345678" class="contact-btn whatsapp-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                            </svg>
+                            WhatsApp
+                        </a>
+                        <a href="mailto:contacto@propiedades.com" class="contact-btn email-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                            Enviar Email
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
     
@@ -546,6 +678,7 @@ get_header(); ?>
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
+    --header-height: 80px;
 }
 
 /* Reset y base */
@@ -558,6 +691,18 @@ get_header(); ?>
 .property-detail-page {
     background: var(--bg-secondary);
     min-height: 100vh;
+    padding-top: var(--header-height);
+}
+
+/* Ajuste para la barra de administración de WordPress */
+body.admin-bar .property-detail-page {
+    padding-top: calc(var(--header-height) + 32px);
+}
+
+@media (max-width: 782px) {
+    body.admin-bar .property-detail-page {
+        padding-top: var(--header-height);
+    }
 }
 
 .container {
@@ -566,21 +711,51 @@ get_header(); ?>
     padding: 0 1rem;
 }
 
-/* Hero Gallery */
-.hero-gallery {
+/* Hero Gallery Section */
+.hero-gallery-section {
+    background: var(--bg-primary);
+    padding: 2rem 0;
+}
+
+.hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+.gallery-container {
     position: relative;
-    height: 60vh;
-    min-height: 400px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
     overflow: hidden;
+    box-shadow: var(--shadow-lg);
 }
 
 .gallery-main {
     position: relative;
-    height: 100%;
-    width: 100%;
+    height: 400px;
+    overflow: hidden;
 }
 
-.hero-image {
+.gallery-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.gallery-image.active {
+    opacity: 1;
+}
+
+.gallery-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -605,87 +780,94 @@ get_header(); ?>
     font-weight: 500;
 }
 
-.operation-tag {
+/* Navegación de galería */
+.gallery-navigation {
     position: absolute;
-    top: 1.5rem;
-    left: 1.5rem;
-    background: var(--primary-color);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-xl);
-    font-weight: 600;
-    font-size: 0.875rem;
-    z-index: 10;
-}
-
-.operation-tag.arriendo {
-    background: var(--secondary-color);
-}
-
-.floating-actions {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
     display: flex;
-    gap: 0.75rem;
-    z-index: 10;
+    justify-content: space-between;
+    padding: 0 1rem;
+    pointer-events: none;
 }
 
-.floating-btn {
+.nav-btn {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(0, 0, 0, 0.7);
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    color: var(--text-primary);
-    box-shadow: var(--shadow-lg);
+    color: white;
+    pointer-events: auto;
+    z-index: 10;
 }
 
-.floating-btn:hover {
+.nav-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+/* Indicadores de puntos */
+.gallery-dots {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active,
+.dot:hover {
     background: white;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-xl);
+    transform: scale(1.2);
 }
 
-.floating-btn svg {
-    transition: color 0.3s ease;
-}
-
-.favorite-btn.active svg {
-    color: #ef4444;
-    fill: currentColor;
-}
-
+/* Miniaturas */
 .gallery-thumbnails {
     position: absolute;
-    bottom: 1.5rem;
-    left: 1.5rem;
-    right: 1.5rem;
+    bottom: 3rem;
+    left: 1rem;
+    right: 1rem;
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     overflow-x: auto;
     padding-bottom: 0.5rem;
 }
 
 .thumbnail {
     flex-shrink: 0;
-    width: 80px;
-    height: 60px;
-    border-radius: var(--radius-md);
+    width: 60px;
+    height: 45px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
     cursor: pointer;
     border: 2px solid transparent;
     transition: all 0.3s ease;
+    opacity: 0.7;
 }
 
 .thumbnail.active,
 .thumbnail:hover {
     border-color: white;
+    opacity: 1;
     transform: scale(1.05);
 }
 
@@ -693,6 +875,195 @@ get_header(); ?>
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+/* Panel de información */
+.info-panel {
+    background: var(--bg-primary);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-light);
+    position: sticky;
+    top: 2rem;
+}
+
+.property-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.property-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.property-location {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.property-location svg {
+    flex-shrink: 0;
+}
+
+/* Características principales */
+.main-features-grid {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.feature-item svg {
+    color: var(--text-secondary);
+}
+
+/* Separador */
+.separator {
+    height: 1px;
+    background: var(--border-color);
+    margin: 1.5rem 0;
+}
+
+/* Información del agente */
+.agent-info {
+    margin-top: 1.5rem;
+}
+
+.agent-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.agent-profile {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.agent-avatar {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.agent-details {
+    flex: 1;
+}
+
+.agent-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.agent-specialization {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.agent-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stars {
+    display: flex;
+    gap: 0.125rem;
+}
+
+.stars svg {
+    color: #fbbf24;
+    width: 16px;
+    height: 16px;
+}
+
+.rating-text {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Botones de contacto */
+.contact-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.contact-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.call-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+.call-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.whatsapp-btn {
+    background: #25d366;
+    color: white;
+}
+
+.whatsapp-btn:hover {
+    background: #128c7e;
+    transform: translateY(-1px);
+}
+
+.email-btn {
+    background: var(--bg-primary);
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.email-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
 }
 
 /* Property Info */
@@ -1265,6 +1636,16 @@ get_header(); ?>
 
 /* Responsive Design */
 @media (max-width: 1024px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .info-panel {
+        position: static;
+        order: -1;
+    }
+    
     .content-layout {
         grid-template-columns: 1fr;
         gap: 2rem;
@@ -1287,9 +1668,42 @@ get_header(); ?>
 }
 
 @media (max-width: 768px) {
-    .hero-gallery {
-        height: 50vh;
-        min-height: 300px;
+    .hero-gallery-section {
+        padding: 1rem 0;
+    }
+    
+    .hero-container {
+        gap: 1.5rem;
+    }
+    
+    .gallery-main {
+        height: 300px;
+    }
+    
+    .info-panel {
+        padding: 1.5rem;
+    }
+    
+    .property-price {
+        font-size: 1.75rem;
+    }
+    
+    .property-title {
+        font-size: 1.25rem;
+    }
+    
+    .main-features-grid {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .contact-buttons {
+        gap: 0.5rem;
+    }
+    
+    .contact-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.8rem;
     }
     
     .container {
@@ -1338,39 +1752,91 @@ get_header(); ?>
         gap: 1.5rem;
     }
     
-    .floating-actions {
-        top: 1rem;
-        right: 1rem;
-    }
-    
-    .floating-btn {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .operation-tag {
-        top: 1rem;
-        left: 1rem;
-        padding: 0.375rem 0.75rem;
-        font-size: 0.75rem;
-    }
-    
     .gallery-thumbnails {
-        bottom: 1rem;
-        left: 1rem;
-        right: 1rem;
+        bottom: 2.5rem;
+        left: 0.5rem;
+        right: 0.5rem;
     }
     
     .thumbnail {
-        width: 60px;
-        height: 45px;
+        width: 50px;
+        height: 38px;
+    }
+    
+    .nav-btn {
+        width: 40px;
+        height: 40px;
     }
 }
 
 @media (max-width: 480px) {
-    .hero-gallery {
-        height: 40vh;
-        min-height: 250px;
+    .hero-gallery-section {
+        padding: 0.5rem 0;
+    }
+    
+    .gallery-main {
+        height: 250px;
+    }
+    
+    .info-panel {
+        padding: 1rem;
+    }
+    
+    .property-price {
+        font-size: 1.5rem;
+    }
+    
+    .property-title {
+        font-size: 1.125rem;
+    }
+    
+    .main-features-grid {
+        gap: 0.5rem;
+    }
+    
+    .feature-item {
+        font-size: 0.8rem;
+    }
+    
+    .agent-profile {
+        gap: 0.75rem;
+    }
+    
+    .agent-avatar {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .agent-name {
+        font-size: 0.9rem;
+    }
+    
+    .agent-specialization {
+        font-size: 0.8rem;
+    }
+    
+    .contact-btn {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.8rem;
+    }
+    
+    .gallery-thumbnails {
+        bottom: 2rem;
+    }
+    
+    .thumbnail {
+        width: 45px;
+        height: 34px;
+    }
+    
+    .nav-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .dot {
+        width: 6px;
+        height: 6px;
     }
     
     .property-title {
@@ -1489,32 +1955,90 @@ get_header(); ?>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Galería de imágenes
-    const thumbnails = document.querySelectorAll('.thumbnail');
-    const heroImage = document.querySelector('.hero-image');
+    // Variables globales para la galería
+    let currentImageIndex = 0;
+    const galleryImages = document.querySelectorAll('.gallery-image');
+    const totalImages = galleryImages.length;
     
-    if (thumbnails.length > 0 && heroImage) {
-        thumbnails.forEach(function(thumbnail) {
-            thumbnail.addEventListener('click', function() {
-                // Remover clase active de todas las miniaturas
-                thumbnails.forEach(function(thumb) {
-                    thumb.classList.remove('active');
-                });
-                
-                // Agregar clase active a la miniatura clickeada
-                this.classList.add('active');
-                
-                // Cambiar la imagen principal
-                const imageUrl = this.getAttribute('data-image');
-                if (imageUrl) {
-                    heroImage.style.opacity = '0.7';
-                    setTimeout(function() {
-                        heroImage.src = imageUrl;
-                        heroImage.style.opacity = '1';
-                    }, 150);
-                }
-            });
+    // Función para cambiar imagen
+    window.changeImage = function(direction) {
+        if (totalImages <= 1) return;
+        
+        currentImageIndex += direction;
+        
+        if (currentImageIndex >= totalImages) {
+            currentImageIndex = 0;
+        } else if (currentImageIndex < 0) {
+            currentImageIndex = totalImages - 1;
+        }
+        
+        updateGallery();
+    };
+    
+    // Función para ir a una imagen específica
+    window.goToImage = function(index) {
+        if (index >= 0 && index < totalImages) {
+            currentImageIndex = index;
+            updateGallery();
+        }
+    };
+    
+    // Función para actualizar la galería
+    function updateGallery() {
+        // Actualizar imágenes principales
+        galleryImages.forEach(function(img, index) {
+            img.classList.toggle('active', index === currentImageIndex);
         });
+        
+        // Actualizar miniaturas
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        thumbnails.forEach(function(thumb, index) {
+            thumb.classList.toggle('active', index === currentImageIndex);
+        });
+        
+        // Actualizar puntos indicadores
+        const dots = document.querySelectorAll('.dot');
+        dots.forEach(function(dot, index) {
+            dot.classList.toggle('active', index === currentImageIndex);
+        });
+    }
+    
+    // Navegación con teclado
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') {
+            changeImage(-1);
+        } else if (e.key === 'ArrowRight') {
+            changeImage(1);
+        }
+    });
+    
+    // Auto-play de la galería (opcional)
+    let autoPlayInterval;
+    
+    function startAutoPlay() {
+        autoPlayInterval = setInterval(function() {
+            if (totalImages > 1) {
+                changeImage(1);
+            }
+        }, 5000); // Cambiar cada 5 segundos
+    }
+    
+    function stopAutoPlay() {
+        if (autoPlayInterval) {
+            clearInterval(autoPlayInterval);
+        }
+    }
+    
+    // Iniciar auto-play
+    if (totalImages > 1) {
+        startAutoPlay();
+        
+        // Pausar auto-play al hacer hover
+        const galleryContainer = document.querySelector('.gallery-container');
+        if (galleryContainer) {
+            galleryContainer.addEventListener('mouseenter', stopAutoPlay);
+            galleryContainer.addEventListener('mouseleave', startAutoPlay);
+        }
     }
     
     // Botones de acción
