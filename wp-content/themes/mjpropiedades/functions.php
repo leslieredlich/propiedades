@@ -5553,7 +5553,7 @@ function mjpropiedades_get_property_agent($property_id = null) {
         $property_id = $post->ID;
     }
 
-    // Buscar agente asignado a la propiedad
+    // 1. Buscar agente asignado directamente a la propiedad
     $agente_id = get_post_meta($property_id, '_propiedad_agente', true);
     
     if ($agente_id) {
@@ -5563,16 +5563,7 @@ function mjpropiedades_get_property_agent($property_id = null) {
         }
     }
 
-    // Si no hay agente asignado, buscar por comuna
-    $comuna = get_post_meta($property_id, '_propiedad_comuna', true);
-    if ($comuna) {
-        $agente = mjpropiedades_get_agent_by_comuna($comuna);
-        if ($agente) {
-            return $agente;
-        }
-    }
-
-    // Si no hay agente por comuna, usar agente por defecto
+    // 2. Solo usar agente por defecto si está configurado en el tema
     $default_agent_id = get_theme_mod('mjpropiedades_default_agent', '');
     if ($default_agent_id) {
         $agente = get_post($default_agent_id);
@@ -5581,6 +5572,8 @@ function mjpropiedades_get_property_agent($property_id = null) {
         }
     }
 
+    // 3. Si no hay agente por defecto configurado, retornar null
+    // El template mostrará información de contacto de la empresa
     return null;
 }
 
