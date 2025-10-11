@@ -28,16 +28,38 @@ get_header(); ?>
                     <label for="tipo">Tipo:</label>
                     <select name="tipo" id="tipo">
                         <option value="">Todos</option>
-                        <option value="casa" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : '', 'casa'); ?>>Casa</option>
-                        <option value="departamento" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : '', 'departamento'); ?>>Departamento</option>
-                        <option value="oficina" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : '', 'oficina'); ?>>Oficina</option>
-                        <option value="local" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : '', 'local'); ?>>Local Comercial</option>
+                        <option value="casa" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : (isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : ''), 'casa'); ?>>Casa</option>
+                        <option value="departamento" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : (isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : ''), 'departamento'); ?>>Departamento</option>
+                        <option value="oficina" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : (isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : ''), 'oficina'); ?>>Oficina</option>
+                        <option value="local" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : (isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : ''), 'local'); ?>>Local Comercial</option>
                     </select>
                 </div>
                 
                 <div class="filter-group">
                     <label for="comuna">Comuna:</label>
-                    <input type="text" name="comuna" id="comuna" placeholder="Buscar comuna..." value="<?php echo isset($_GET['comuna']) ? esc_attr($_GET['comuna']) : ''; ?>">
+                    <?php 
+                    // Obtener el valor de comuna desde ubicación si viene del formulario de inicio
+                    $comuna_value = '';
+                    if (isset($_GET['comuna']) && !empty($_GET['comuna'])) {
+                        $comuna_value = $_GET['comuna'];
+                    } elseif (isset($_GET['ubicacion']) && !empty($_GET['ubicacion'])) {
+                        // Convertir ubicación a comuna
+                        $comunas = get_option('mjpropiedades_comunas', array(
+                            'la-serena' => 'La Serena',
+                            'coquimbo' => 'Coquimbo',
+                            'ovalle' => 'Ovalle',
+                            'vicuna' => 'Vicuña',
+                            'paihuano' => 'Paihuano',
+                            'andacollo' => 'Andacollo',
+                            'combarbala' => 'Combarbalá',
+                            'monte-patri' => 'Monte Patria',
+                            'punitaqui' => 'Punitaqui',
+                            'rio-hurtado' => 'Río Hurtado'
+                        ));
+                        $comuna_value = isset($comunas[$_GET['ubicacion']]) ? $comunas[$_GET['ubicacion']] : $_GET['ubicacion'];
+                    }
+                    ?>
+                    <input type="text" name="comuna" id="comuna" placeholder="Buscar comuna..." value="<?php echo esc_attr($comuna_value); ?>">
                 </div>
                 
                 <div class="filter-group">
@@ -48,6 +70,30 @@ get_header(); ?>
                 <div class="filter-group">
                     <label for="precio_max">Precio máximo:</label>
                     <input type="number" name="precio_max" id="precio_max" placeholder="Sin límite" value="<?php echo isset($_GET['precio_max']) ? esc_attr($_GET['precio_max']) : ''; ?>">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="dormitorios">Dormitorios:</label>
+                    <select name="dormitorios" id="dormitorios">
+                        <option value="">Cualquier cantidad</option>
+                        <option value="1" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '1'); ?>>1 dormitorio</option>
+                        <option value="2" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '2'); ?>>2 dormitorios</option>
+                        <option value="3" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '3'); ?>>3 dormitorios</option>
+                        <option value="4" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '4'); ?>>4 dormitorios</option>
+                        <option value="5+" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '5+'); ?>>5+ dormitorios</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="banos">Baños:</label>
+                    <select name="banos" id="banos">
+                        <option value="">Cualquier cantidad</option>
+                        <option value="1" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '1'); ?>>1 baño</option>
+                        <option value="2" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '2'); ?>>2 baños</option>
+                        <option value="3" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '3'); ?>>3 baños</option>
+                        <option value="4" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '4'); ?>>4 baños</option>
+                        <option value="5+" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '5+'); ?>>5+ baños</option>
+                    </select>
                 </div>
                 
                 <button type="submit" class="btn-filter">Filtrar</button>
@@ -75,7 +121,7 @@ get_header(); ?>
                 );
             }
             
-            // Filtro por tipo
+            // Filtro por tipo de propiedad (compatible con formulario de inicio)
             if (isset($_GET['tipo']) && !empty($_GET['tipo'])) {
                 $args['meta_query'][] = array(
                     'key' => '_propiedad_tipo',
@@ -84,11 +130,44 @@ get_header(); ?>
                 );
             }
             
-            // Filtro por comuna
+            // Filtro por tipo de propiedad desde formulario de inicio
+            if (isset($_GET['tipo_propiedad']) && !empty($_GET['tipo_propiedad'])) {
+                $args['meta_query'][] = array(
+                    'key' => '_propiedad_tipo',
+                    'value' => sanitize_text_field($_GET['tipo_propiedad']),
+                    'compare' => '='
+                );
+            }
+            
+            // Filtro por comuna (compatible con formulario de inicio)
             if (isset($_GET['comuna']) && !empty($_GET['comuna'])) {
                 $args['meta_query'][] = array(
                     'key' => '_propiedad_comuna',
                     'value' => sanitize_text_field($_GET['comuna']),
+                    'compare' => 'LIKE'
+                );
+            }
+            
+            // Filtro por ubicación desde formulario de inicio
+            if (isset($_GET['ubicacion']) && !empty($_GET['ubicacion'])) {
+                // Convertir el valor de ubicación a formato de comuna
+                $comunas = get_option('mjpropiedades_comunas', array(
+                    'la-serena' => 'La Serena',
+                    'coquimbo' => 'Coquimbo',
+                    'ovalle' => 'Ovalle',
+                    'vicuna' => 'Vicuña',
+                    'paihuano' => 'Paihuano',
+                    'andacollo' => 'Andacollo',
+                    'combarbala' => 'Combarbalá',
+                    'monte-patri' => 'Monte Patria',
+                    'punitaqui' => 'Punitaqui',
+                    'rio-hurtado' => 'Río Hurtado'
+                ));
+                $comuna_label = isset($comunas[$_GET['ubicacion']]) ? $comunas[$_GET['ubicacion']] : $_GET['ubicacion'];
+                
+                $args['meta_query'][] = array(
+                    'key' => '_propiedad_comuna',
+                    'value' => sanitize_text_field($comuna_label),
                     'compare' => 'LIKE'
                 );
             }
@@ -111,6 +190,46 @@ get_header(); ?>
                     'compare' => '<=',
                     'type' => 'NUMERIC'
                 );
+            }
+            
+            // Filtro por dormitorios (desde formulario de inicio)
+            if (isset($_GET['dormitorios']) && !empty($_GET['dormitorios'])) {
+                $dormitorios_value = sanitize_text_field($_GET['dormitorios']);
+                if ($dormitorios_value === '5+') {
+                    $args['meta_query'][] = array(
+                        'key' => '_propiedad_dormitorios',
+                        'value' => 5,
+                        'compare' => '>=',
+                        'type' => 'NUMERIC'
+                    );
+                } else {
+                    $args['meta_query'][] = array(
+                        'key' => '_propiedad_dormitorios',
+                        'value' => intval($dormitorios_value),
+                        'compare' => '>=',
+                        'type' => 'NUMERIC'
+                    );
+                }
+            }
+            
+            // Filtro por baños (desde formulario de inicio)
+            if (isset($_GET['banos']) && !empty($_GET['banos'])) {
+                $banos_value = sanitize_text_field($_GET['banos']);
+                if ($banos_value === '5+') {
+                    $args['meta_query'][] = array(
+                        'key' => '_propiedad_banos',
+                        'value' => 5,
+                        'compare' => '>=',
+                        'type' => 'NUMERIC'
+                    );
+                } else {
+                    $args['meta_query'][] = array(
+                        'key' => '_propiedad_banos',
+                        'value' => intval($banos_value),
+                        'compare' => '>=',
+                        'type' => 'NUMERIC'
+                    );
+                }
             }
             
             $properties_query = new WP_Query($args);
@@ -325,7 +444,6 @@ get_header(); ?>
 }
 
 .property-details span {
-    background: #1e40af;
     padding: 4px 8px;
     border-radius: 12px;
 }

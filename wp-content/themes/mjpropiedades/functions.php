@@ -8,6 +8,198 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// ========================================
+// CONFIGURACIÓN DE EMAIL SMTP
+// ========================================
+
+// Configurar SMTP para Contact Form 7
+function mjpropiedades_configure_smtp($phpmailer) {
+    // Configuración SMTP para homeisa.cl
+    $phpmailer->isSMTP();
+    $phpmailer->Host = 'vps-1765142.promecanicaservicios.com'; // Cambia por tu servidor SMTP
+    $phpmailer->SMTPAuth = true;
+    $phpmailer->Port = 465; // Puerto TLS (usa 465 para SSL)
+    $phpmailer->Username = 'contacto@devkreativo.cl';
+    $phpmailer->Password = 'dy0*Z6-SGy$h*h6M'; // Cambia por tu contraseña real
+    $phpmailer->SMTPSecure = 'ssl'; // 'tls' o 'ssl'
+    $phpmailer->From = 'contacto@devkreativo.cl';
+    $phpmailer->FromName = 'Home Isa - Corredora de Propiedades';
+    $phpmailer->CharSet = 'UTF-8';
+    $phpmailer->isHTML(true);
+}
+add_action('phpmailer_init', 'mjpropiedades_configure_smtp');
+
+// Configuración alternativa usando wp_mail
+function mjpropiedades_configure_wp_mail() {
+    // Configurar headers por defecto
+    add_filter('wp_mail_from', function() {
+        return 'contacto@devkreativo.cl';
+    });
+    
+    add_filter('wp_mail_from_name', function() {
+        return 'Home Isa - Corredora de Propiedades';
+    });
+    
+    add_filter('wp_mail_content_type', function() {
+        return 'text/html; charset=UTF-8';
+    });
+}
+add_action('init', 'mjpropiedades_configure_wp_mail');
+
+// ========================================
+// CONFIGURACIÓN AUTOMÁTICA DE CONTACT FORM 7
+// ========================================
+
+// Crear formulario de contacto automáticamente al activar el tema
+function mjpropiedades_create_default_contact_form() {
+    // Verificar si ya existe un formulario
+    $existing_form = get_posts(array(
+        'post_type' => 'wpcf7_contact_form',
+        'posts_per_page' => 1,
+        'post_status' => 'publish'
+    ));
+    
+    if (empty($existing_form)) {
+        // Crear el formulario
+        $form_id = wp_insert_post(array(
+            'post_type' => 'wpcf7_contact_form',
+            'post_title' => 'Formulario de Contacto',
+            'post_content' => mjpropiedades_get_contact_form_template(),
+            'post_status' => 'publish'
+        ));
+        
+        if ($form_id) {
+            // Configurar el formulario
+            mjpropiedades_configure_contact_form($form_id);
+        }
+    }
+}
+add_action('after_switch_theme', 'mjpropiedades_create_default_contact_form');
+
+// Plantilla del formulario de contacto
+function mjpropiedades_get_contact_form_template() {
+    return '
+<div class="form-row">
+    <div class="form-group">
+        <label for="nombre">Nombre completo</label>
+        [text* nombre id:nombre class:form-input placeholder "Tu nombre completo"]
+    </div>
+    <div class="form-group">
+        <label for="email">Email</label>
+        [email* email id:email class:form-input placeholder "tu@email.com"]
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group">
+        <label for="telefono">Teléfono</label>
+        [tel telefono id:telefono class:form-input placeholder "Tu teléfono"]
+    </div>
+    <div class="form-group">
+        <label for="tipo-consulta">Tipo de consulta</label>
+        [select tipo-consulta id:tipo-consulta class:form-select include_blank "Seleccionar tipo" "Compra de propiedad" "Venta de propiedad" "Arriendo" "Tasación" "Consulta general"]
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="mensaje">Mensaje</label>
+    [textarea* mensaje id:mensaje class:form-textarea placeholder "Cuéntanos más sobre tu consulta..."]
+</div>
+
+<div class="form-submit">
+    [submit class:submit-btn "ENVIAR CONSULTA"]
+</div>
+    ';
+}
+
+// Configurar el formulario de contacto
+function mjpropiedades_configure_contact_form($form_id) {
+    // Configurar mensajes
+    update_post_meta($form_id, '_form', mjpropiedades_get_contact_form_template());
+    update_post_meta($form_id, '_mail', array(
+        'subject' => 'Nueva consulta desde homeisa.cl',
+        'sender' => '[nombre] <[email]>',
+        'body' => mjpropiedades_get_email_template(),
+        'recipient' => 'contacto@devkreativo.cl',
+        'additional_headers' => '',
+        'attachments' => '',
+        'use_html' => 1,
+        'exclude_blank' => 0
+    ));
+    
+    // Configurar mensaje de envío exitoso
+    update_post_meta($form_id, '_mail_2', array(
+        'active' => 1,
+        'subject' => 'Confirmación de consulta recibida',
+        'sender' => 'Home Isa <contacto@devkreativo.cl>',
+        'body' => 'Hola [nombre],<br><br>Hemos recibido tu consulta y te contactaremos pronto.<br><br>Gracias por contactarnos,<br>Equipo Home Isa',
+        'recipient' => '[email]',
+        'additional_headers' => '',
+        'attachments' => '',
+        'use_html' => 1,
+        'exclude_blank' => 0
+    ));
+    
+    // Mensajes del formulario
+    update_post_meta($form_id, '_messages', array(
+        'mail_sent_ok' => '¡Gracias por tu consulta! Hemos recibido tu mensaje y te contactaremos pronto.',
+        'mail_sent_ng' => 'Hubo un error al enviar tu mensaje. Por favor, inténtalo de nuevo.',
+        'validation_error' => 'Uno o más campos tienen un error. Por favor, revísalos e inténtalo de nuevo.',
+        'spam' => 'Tu mensaje fue considerado como spam. Por favor, inténtalo de nuevo.',
+        'acceptance_missing' => 'Debes aceptar los términos y condiciones.',
+        'quiz_answer_not_correct' => 'La respuesta del cuestionario es incorrecta.',
+        'captcha_not_match' => 'Tu respuesta no es correcta.',
+        'invalid_email' => 'La dirección de correo electrónico que ingresaste no es válida.',
+        'invalid_required' => 'Este campo es obligatorio.',
+        'invalid_too_long' => 'Este campo es demasiado largo.',
+        'invalid_too_short' => 'Este campo es demasiado corto.'
+    ));
+}
+
+// Plantilla del email
+function mjpropiedades_get_email_template() {
+    return '
+<h2>Nueva Consulta desde homeisa.cl</h2>
+
+<p><strong>Detalles de la consulta:</strong></p>
+<ul>
+    <li><strong>Nombre:</strong> [nombre]</li>
+    <li><strong>Email:</strong> [email]</li>
+    <li><strong>Teléfono:</strong> [telefono]</li>
+    <li><strong>Tipo de consulta:</strong> [tipo-consulta]</li>
+</ul>
+
+<p><strong>Mensaje:</strong></p>
+<p>[mensaje]</p>
+
+<hr>
+<p><em>Este mensaje fue enviado desde el formulario de contacto de homeisa.cl</em></p>
+    ';
+}
+
+// Función para obtener el ID del formulario automáticamente
+function mjpropiedades_get_contact_form_id() {
+    $forms = get_posts(array(
+        'post_type' => 'wpcf7_contact_form',
+        'posts_per_page' => 1,
+        'post_status' => 'publish'
+    ));
+    
+    if (!empty($forms)) {
+        return $forms[0]->ID;
+    }
+    
+    return 1; // Fallback
+}
+
+// Hook para ejecutar la creación del formulario cuando se active Contact Form 7
+add_action('wpcf7_init', function() {
+    if (!get_option('mjpropiedades_contact_form_created')) {
+        mjpropiedades_create_default_contact_form();
+        update_option('mjpropiedades_contact_form_created', true);
+    }
+});
+
 // Configuración del tema
 function mjpropiedades_setup() {
     // Soporte para título dinámico
@@ -3397,121 +3589,6 @@ function mjpropiedades_save_page_template($post_id) {
 }
 add_action('save_post', 'mjpropiedades_save_page_template');
 
-// Agregar sección de colores para propiedades destacadas
-function mjpropiedades_add_property_colors_section($wp_customize) {
-    // Sección de colores para propiedades
-    $wp_customize->add_section('mjpropiedades_property_colors', array(
-        'title'    => __('Colores de Tarjetas de Propiedades', 'mjpropiedades'),
-        'priority' => 40,
-    ));
-    
-    // Color del precio
-    $wp_customize->add_setting('mjpropiedades_property_price_color', array(
-        'default' => '#8b4513',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_price_color', array(
-        'label' => __('Color del Precio', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del título
-    $wp_customize->add_setting('mjpropiedades_property_title_color', array(
-        'default' => '#1f2937',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_title_color', array(
-        'label' => __('Color del Título', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color de la ubicación
-    $wp_customize->add_setting('mjpropiedades_property_location_color', array(
-        'default' => '#6b7280',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_location_color', array(
-        'label' => __('Color de la Ubicación', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color de las características
-    $wp_customize->add_setting('mjpropiedades_property_features_color', array(
-        'default' => '#6b7280',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_features_color', array(
-        'label' => __('Color de las Características', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del botón
-    $wp_customize->add_setting('mjpropiedades_property_button_color', array(
-        'default' => '#8b4513',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_button_color', array(
-        'label' => __('Color del Botón', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del botón al hacer hover
-    $wp_customize->add_setting('mjpropiedades_property_button_hover_color', array(
-        'default' => '#6d3410',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_button_hover_color', array(
-        'label' => __('Color del Botón (Hover)', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del tag de venta
-    $wp_customize->add_setting('mjpropiedades_property_tag_venta_color', array(
-        'default' => '#10b981',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_tag_venta_color', array(
-        'label' => __('Color del Tag "Venta"', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del tag de arriendo
-    $wp_customize->add_setting('mjpropiedades_property_tag_arriendo_color', array(
-        'default' => '#3b82f6',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_tag_arriendo_color', array(
-        'label' => __('Color del Tag "Arriendo"', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-}
-add_action('customize_register', 'mjpropiedades_add_property_colors_section');
-
-// Agregar CSS dinámico para colores de propiedades
-function mjpropiedades_property_colors_css() {
-    $price_color = get_theme_mod('mjpropiedades_property_price_color', '#8b4513');
-    $title_color = get_theme_mod('mjpropiedades_property_title_color', '#1f2937');
-    $location_color = get_theme_mod('mjpropiedades_property_location_color', '#6b7280');
-    $features_color = get_theme_mod('mjpropiedades_property_features_color', '#6b7280');
-    $button_color = get_theme_mod('mjpropiedades_property_button_color', '#8b4513');
-    $button_hover_color = get_theme_mod('mjpropiedades_property_button_hover_color', '#6d3410');
-    $tag_venta_color = get_theme_mod('mjpropiedades_property_tag_venta_color', '#10b981');
-    $tag_arriendo_color = get_theme_mod('mjpropiedades_property_tag_arriendo_color', '#3b82f6');
-    
-    echo '<style type="text/css">';
-    echo ':root {';
-    echo '--property-price-color: ' . esc_attr($price_color) . ';';
-    echo '--property-title-color: ' . esc_attr($title_color) . ';';
-    echo '--property-location-color: ' . esc_attr($location_color) . ';';
-    echo '--property-features-color: ' . esc_attr($features_color) . ';';
-    echo '--property-button-color: ' . esc_attr($button_color) . ';';
-    echo '--property-button-hover-color: ' . esc_attr($button_hover_color) . ';';
-    echo '--property-tag-venta-color: ' . esc_attr($tag_venta_color) . ';';
-    echo '--property-tag-arriendo-color: ' . esc_attr($tag_arriendo_color) . ';';
-    echo '}';
-    echo '</style>';
-}
-add_action('wp_head', 'mjpropiedades_property_colors_css');
 
 // Generar sitemap XML
 function mjpropiedades_generate_sitemap() {
@@ -4195,58 +4272,69 @@ function mjpropiedades_property_cards_dynamic_css() {
         background: {$card_arriendo_tag_bg} !important;
         box-shadow: 0 1px 3px {$card_arriendo_tag_bg}66 !important;
     }
+    
+    /* Selectores adicionales para compatibilidad */
+    .property-status-tag {
+        color: {$card_tag_text} !important;
+    }
+    
+    .property-status-tag.venta {
+        background: {$card_tag_bg} !important;
+        box-shadow: 0 1px 3px {$card_tag_bg}66 !important;
+    }
+    
+    .property-status-tag.arriendo {
+        background: {$card_arriendo_tag_bg} !important;
+        box-shadow: 0 1px 3px {$card_arriendo_tag_bg}66 !important;
+    }
+    
+    .property-details {
+        color: {$card_details} !important;
+    }
+    
+    .property-feature {
+        color: {$card_details} !important;
+    }
+    
+    .property-feature svg {
+        color: {$card_icons} !important;
+    }
+    
+    .property-button {
+        background: {$card_button_bg} !important;
+        color: {$card_button_text} !important;
+    }
+    
+    .property-button:hover {
+        background: {$card_button_hover} !important;
+        color: {$card_button_text_hover} !important;
+    }
+    
+    /* Selectores para archivos específicos */
+    .featured-properties-grid .property-card {
+        background: {$card_bg} !important;
+        box-shadow: 0 2px 8px {$card_shadow} !important;
+    }
+    
+    .featured-properties-grid .property-card:hover {
+        box-shadow: 0 8px 25px {$card_shadow_hover} !important;
+    }
+    
+    .properties-grid .property-card {
+        background: {$card_bg} !important;
+        box-shadow: 0 2px 8px {$card_shadow} !important;
+    }
+    
+    .properties-grid .property-card:hover {
+        box-shadow: 0 8px 25px {$card_shadow_hover} !important;
+    }
     ";
     
     return $css;
 }
 
-// Agregar CSS dinámico al head
-function mjpropiedades_property_cards_css() {
-    // Verificar si estamos en la página de propiedades o en cualquier página que muestre propiedades
-    $should_load = false;
-    
-    // Verificar página específica por slug
-    if (is_page('propiedades')) {
-        $should_load = true;
-    }
-    
-    // Verificar por ID de página
-    $propiedades_page = get_page_by_path('propiedades');
-    if ($propiedades_page && is_page($propiedades_page->ID)) {
-        $should_load = true;
-    }
-    
-    // Verificar si estamos en home o front page (donde también pueden aparecer propiedades)
-    if (is_home() || is_front_page()) {
-        $should_load = true;
-    }
-    
-    // Verificar si hay propiedades en la consulta actual
-    global $wp_query;
-    if ($wp_query && $wp_query->get('post_type') === 'propiedad') {
-        $should_load = true;
-    }
-    
-    // Verificar si estamos en cualquier página que contenga el template de propiedades
-    if (is_page_template('page-propiedades.php')) {
-        $should_load = true;
-    }
-    
-    // Verificar si estamos usando el template de inicio (page-inicio.php)
-    if (is_page_template('page-inicio.php')) {
-        $should_load = true;
-    }
-    
-    // Verificar si estamos en la página de inicio por slug
-    if (is_page('inicio')) {
-        $should_load = true;
-    }
-    
-    if ($should_load) {
-        echo '<style type="text/css" id="mjpropiedades-property-cards-colors">' . mjpropiedades_property_cards_dynamic_css() . '</style>';
-    }
-}
-add_action('wp_head', 'mjpropiedades_property_cards_css');
+// Reemplazar la función anterior con la nueva que incluye versión
+add_action('wp_head', 'mjpropiedades_property_cards_css_with_version');
 
 // Función adicional para cargar CSS específicamente en el template de propiedades
 function mjpropiedades_load_property_cards_css_in_template() {
@@ -4299,49 +4387,55 @@ function mjpropiedades_property_cards_customizer_js() {
         
         wp.customize('mjpropiedades_card_button_bg', function(value) {
             value.bind(function(newval) {
-                $('.property-btn').css('background', newval);
+                $('.property-btn, .property-button').css('background', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_button_text', function(value) {
             value.bind(function(newval) {
-                $('.property-btn').css('color', newval);
+                $('.property-btn, .property-button').css('color', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_button_hover', function(value) {
             value.bind(function(newval) {
-                $('.property-btn:hover').css('background', newval);
+                $('.property-btn:hover, .property-button:hover').css('background', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_button_text_hover', function(value) {
             value.bind(function(newval) {
-                $('.property-btn:hover').css('color', newval);
+                $('.property-btn:hover, .property-button:hover').css('color', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_details_color', function(value) {
             value.bind(function(newval) {
-                $('.detail-item').css('color', newval);
+                $('.detail-item, .property-details, .property-feature').css('color', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_icons_color', function(value) {
             value.bind(function(newval) {
-                $('.detail-item svg').css('color', newval);
+                $('.detail-item svg, .property-feature svg').css('color', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_tag_bg', function(value) {
             value.bind(function(newval) {
-                $('.property-tag').css('background', newval);
+                $('.property-tag.venta, .property-status-tag.venta').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_arriendo_tag_bg', function(value) {
+            value.bind(function(newval) {
+                $('.property-tag.arriendo, .property-status-tag.arriendo').css('background', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_tag_text', function(value) {
             value.bind(function(newval) {
-                $('.property-tag').css('color', newval);
+                $('.property-tag, .property-status-tag').css('color', newval);
             });
         });
         
@@ -4361,7 +4455,99 @@ function mjpropiedades_property_cards_customizer_js() {
     </script>
     <?php
 }
-add_action('customize_controls_print_scripts', 'mjpropiedades_property_cards_customizer_js');
+add_action('customize_preview_init', 'mjpropiedades_property_cards_customizer_js');
+
+// Limpiar caché cuando se cambien los colores de las tarjetas
+function mjpropiedades_clear_cache_on_property_cards_color_change() {
+    // Limpiar caché de WordPress si existe
+    if (function_exists('wp_cache_flush')) {
+        wp_cache_flush();
+    }
+    
+    // Limpiar caché de objetos específico
+    if (function_exists('wp_cache_delete')) {
+        wp_cache_delete('mjpropiedades_property_cards_colors', 'theme_mods');
+    }
+}
+add_action('customize_save_after', 'mjpropiedades_clear_cache_on_property_cards_color_change');
+
+// Agregar parámetros de versión para evitar caché en el CSS de tarjetas
+function mjpropiedades_add_version_to_property_cards_css() {
+    return time(); // Cambia cada vez que se carga la página
+}
+
+// Modificar la función que carga el CSS para agregar versión
+function mjpropiedades_property_cards_css_with_version() {
+    // Verificar si estamos en la página de propiedades o en cualquier página que muestre propiedades
+    $should_load = false;
+    
+    // Verificar página específica por slug
+    if (is_page('propiedades')) {
+        $should_load = true;
+    }
+    
+    // Verificar por ID de página
+    $propiedades_page = get_page_by_path('propiedades');
+    if ($propiedades_page && is_page($propiedades_page->ID)) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en home o front page (donde también pueden aparecer propiedades)
+    if (is_home() || is_front_page()) {
+        $should_load = true;
+    }
+    
+    // Verificar si hay propiedades en la consulta actual
+    global $wp_query;
+    if ($wp_query && $wp_query->get('post_type') === 'propiedad') {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en cualquier página que contenga el template de propiedades
+    if (is_page_template('page-propiedades.php')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos usando el template de inicio (page-inicio.php)
+    if (is_page_template('page-inicio.php')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en la página de inicio por slug
+    if (is_page('inicio')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en el archivo de propiedades (archive-propiedad.php)
+    if (is_post_type_archive('propiedad')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en una página individual de propiedad (single-propiedad.php)
+    if (is_singular('propiedad')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en cualquier página que use el template de inicio
+    if (is_page() && get_page_template_slug() === 'page-inicio.php') {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en cualquier página que use el template de propiedades
+    if (is_page() && get_page_template_slug() === 'page-propiedades.php') {
+        $should_load = true;
+    }
+    
+    // Verificar si el contenido de la página contiene tarjetas de propiedades
+    if (is_page() && (strpos(get_post_field('post_content', get_the_ID()), 'property-card') !== false)) {
+        $should_load = true;
+    }
+    
+    if ($should_load) {
+        $version = mjpropiedades_add_version_to_property_cards_css();
+        echo '<style type="text/css" id="mjpropiedades-property-cards-colors" data-version="' . $version . '">' . mjpropiedades_property_cards_dynamic_css() . '</style>';
+    }
+}
 
 // Agregar página de administración para opciones de búsqueda
 function mjpropiedades_add_search_options_page() {
