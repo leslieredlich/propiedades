@@ -3939,6 +3939,215 @@ function mjpropiedades_search_properties() {
     return new WP_Query($args);
 }
 
+// ===== FORMULARIO DE BÚSQUEDA REUTILIZABLE =====
+
+/**
+ * Genera el formulario de búsqueda de propiedades
+ * @param array $args Argumentos de configuración del formulario
+ * @return string HTML del formulario
+ */
+function mjpropiedades_get_search_form($args = array()) {
+    // Valores por defecto
+    $defaults = array(
+        'action' => home_url('/propiedades/'),
+        'method' => 'get',
+        'class' => 'search-form',
+        'show_title' => true,
+        'title' => 'Encuentra tu Propiedad Ideal',
+        'button_text' => 'Buscar Propiedades',
+        'preserve_values' => true,
+        'form_id' => 'search-form-' . uniqid()
+    );
+    
+    $args = wp_parse_args($args, $defaults);
+    
+    // Obtener valores actuales si se deben preservar
+    $current_values = array();
+    if ($args['preserve_values']) {
+        $current_values = array(
+            'tipo_propiedad' => isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : '',
+            'ubicacion' => isset($_GET['ubicacion']) ? $_GET['ubicacion'] : '',
+            'dormitorios' => isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '',
+            'banos' => isset($_GET['banos']) ? $_GET['banos'] : '',
+            'precio_min' => isset($_GET['precio_min']) ? $_GET['precio_min'] : '0',
+            'precio_max' => isset($_GET['precio_max']) ? $_GET['precio_max'] : '1000000000'
+        );
+    }
+    
+    // Obtener opciones de configuración
+    $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array(
+        'casa' => 'Casa',
+        'departamento' => 'Departamento',
+        'oficina' => 'Oficina',
+        'local' => 'Local Comercial',
+        'terreno' => 'Terreno'
+    ));
+    
+    $comunas = get_option('mjpropiedades_comunas', array(
+        'la-serena' => 'La Serena',
+        'coquimbo' => 'Coquimbo',
+        'ovalle' => 'Ovalle',
+        'vicuna' => 'Vicuña',
+        'paihuano' => 'Paihuano',
+        'andacollo' => 'Andacollo',
+        'combarbala' => 'Combarbalá',
+        'monte-patri' => 'Monte Patria',
+        'punitaqui' => 'Punitaqui',
+        'rio-hurtado' => 'Río Hurtado'
+    ));
+    
+    $dormitorios_options = get_option('mjpropiedades_dormitorios', array(
+        '1' => '1 dormitorio',
+        '2' => '2 dormitorios',
+        '3' => '3 dormitorios',
+        '4' => '4 dormitorios',
+        '5+' => '5+ dormitorios'
+    ));
+    
+    $banos_options = get_option('mjpropiedades_banos', array(
+        '1' => '1 baño',
+        '2' => '2 baños',
+        '3' => '3 baños',
+        '4' => '4 baños',
+        '5+' => '5+ baños'
+    ));
+    
+    ob_start();
+    ?>
+    <div class="search-form-container">
+        <?php if ($args['show_title']): ?>
+        <div class="search-header">
+            <h2 class="section-title"><?php echo esc_html($args['title']); ?></h2>
+        </div>
+        <?php endif; ?>
+        
+        <form id="<?php echo esc_attr($args['form_id']); ?>" class="<?php echo esc_attr($args['class']); ?>" method="<?php echo esc_attr($args['method']); ?>" action="<?php echo esc_url($args['action']); ?>">
+            <!-- Primera fila: Todos los select en una fila -->
+            <div class="search-form-row select-row">
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-tipo-propiedad" class="search-label">Tipo de Propiedad</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-tipo-propiedad" name="tipo_propiedad" class="search-select">
+                        <option value="">Todos los tipos</option>
+                        <?php foreach ($tipos_propiedad as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['tipo_propiedad'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-ubicacion" class="search-label">Ubicación</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-ubicacion" name="ubicacion" class="search-select">
+                        <option value="">Seleccionar comuna</option>
+                        <?php foreach ($comunas as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['ubicacion'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-dormitorios" class="search-label">Dormitorios</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-dormitorios" name="dormitorios" class="search-select">
+                        <option value="">Cualquier cantidad</option>
+                        <?php foreach ($dormitorios_options as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['dormitorios'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-banos" class="search-label">Baños</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-banos" name="banos" class="search-select">
+                        <option value="">Cualquier cantidad</option>
+                        <?php foreach ($banos_options as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['banos'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Segunda fila: Sliders de precio -->
+            <div class="search-form-row price-row">
+                <div class="search-group price-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-precio-min" class="search-label">Precio Mínimo (CLP)</label>
+                    <div class="price-slider-container">
+                        <input type="range" id="<?php echo esc_attr($args['form_id']); ?>-precio-min" name="precio_min" class="price-slider" min="0" max="1000000000" value="<?php echo esc_attr($current_values['precio_min']); ?>" step="100000">
+                        <div class="price-display">
+                            <span class="price-value" id="<?php echo esc_attr($args['form_id']); ?>-precio-min-value">$<?php echo number_format($current_values['precio_min'], 0, ',', '.'); ?></span>
+                            <span class="price-max">$1.000.000.000</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="search-group price-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-precio-max" class="search-label">Precio Máximo (CLP)</label>
+                    <div class="price-slider-container">
+                        <input type="range" id="<?php echo esc_attr($args['form_id']); ?>-precio-max" name="precio_max" class="price-slider" min="0" max="1000000000" value="<?php echo esc_attr($current_values['precio_max']); ?>" step="100000">
+                        <div class="price-display">
+                            <span class="price-min">$0</span>
+                            <span class="price-value" id="<?php echo esc_attr($args['form_id']); ?>-precio-max-value">$<?php echo number_format($current_values['precio_max'], 0, ',', '.'); ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botón de búsqueda -->
+            <div class="search-actions">
+                <button type="submit" class="search-btn">
+                    <?php echo esc_html($args['button_text']); ?>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+    // Script para actualizar los valores de precio en tiempo real
+    document.addEventListener('DOMContentLoaded', function() {
+        const formId = '<?php echo esc_js($args['form_id']); ?>';
+        const minSlider = document.getElementById(formId + '-precio-min');
+        const maxSlider = document.getElementById(formId + '-precio-max');
+        const minValue = document.getElementById(formId + '-precio-min-value');
+        const maxValue = document.getElementById(formId + '-precio-max-value');
+        
+        function formatPrice(price) {
+            return '$' + new Intl.NumberFormat('es-CL').format(price);
+        }
+        
+        if (minSlider && minValue) {
+            minSlider.addEventListener('input', function() {
+                minValue.textContent = formatPrice(this.value);
+                // Asegurar que el mínimo no sea mayor que el máximo
+                if (parseInt(this.value) > parseInt(maxSlider.value)) {
+                    maxSlider.value = this.value;
+                    maxValue.textContent = formatPrice(this.value);
+                }
+            });
+        }
+        
+        if (maxSlider && maxValue) {
+            maxSlider.addEventListener('input', function() {
+                maxValue.textContent = formatPrice(this.value);
+                // Asegurar que el máximo no sea menor que el mínimo
+                if (parseInt(this.value) < parseInt(minSlider.value)) {
+                    minSlider.value = this.value;
+                    minValue.textContent = formatPrice(this.value);
+                }
+            });
+        }
+    });
+    </script>
+    <?php
+    
+    return ob_get_clean();
+}
+
 // ===== CONFIGURACIÓN DE COLORES PARA TARJETAS DE PROPIEDADES =====
 
 // Agregar sección de colores de tarjetas al Customizer

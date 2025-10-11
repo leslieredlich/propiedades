@@ -67,21 +67,126 @@ get_header(); ?>
             </div>
         </div>
         
-        <!-- Formulario de búsqueda principal -->
-        <div class="search-section section">
-            <?php 
-            echo mjpropiedades_get_search_form(array(
-                'show_title' => true,
-                'title' => 'Encuentra tu Propiedad Ideal',
-                'button_text' => 'Buscar Propiedades',
-                'action' => get_permalink(),
-                'preserve_values' => true,
-                'form_id' => 'properties-search-form'
-            ));
-            ?>
-        </div>
-        
         <div class="properties-layout">
+            <!-- Sidebar de filtros -->
+            <aside class="properties-sidebar">
+                <div class="filters-header">
+                    <h3>Filtros</h3>
+                    <button type="button" class="filters-toggle mobile-only">
+                        <span>Mostrar filtros</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 10l-4-4h8l-4 4z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form class="filters-form" method="get" action="">
+                    <div class="filters-content">
+                        <!-- Tipo de Propiedad -->
+                        <div class="filter-group">
+                            <label for="filter-tipo-propiedad" class="filter-label">Tipo de Propiedad</label>
+                            <select id="filter-tipo-propiedad" name="tipo_propiedad" class="filter-select">
+                                <option value="">Todos los tipos</option>
+                                <?php 
+                                $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array());
+                                foreach ($tipos_propiedad as $value => $label) {
+                                    $selected = (isset($_GET['tipo_propiedad']) && $_GET['tipo_propiedad'] === $value) ? 'selected' : '';
+                                    echo '<option value="' . esc_attr($value) . '" ' . $selected . '>' . esc_html($label) . '</option>';
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <!-- Ubicación -->
+                        <div class="filter-group">
+                            <label for="filter-ubicacion" class="filter-label">Ubicación</label>
+                            <select id="filter-ubicacion" name="ubicacion" class="filter-select">
+                                <option value="">Todas las comunas</option>
+                                <?php
+                                $comunas = get_option('mjpropiedades_comunas', array());
+                                foreach ($comunas as $value => $label) {
+                                    $selected = (isset($_GET['ubicacion']) && $_GET['ubicacion'] === $value) ? 'selected' : '';
+                                    echo '<option value="' . esc_attr($value) . '" ' . $selected . '>' . esc_html($label) . '</option>';
+                                }
+                                ?>
+                            </select>
+            </div>
+                        
+                        <!-- Dormitorios -->
+                        <div class="filter-group">
+                            <label for="filter-dormitorios" class="filter-label">Dormitorios</label>
+                            <select id="filter-dormitorios" name="dormitorios" class="filter-select">
+                                <option value="">Cualquier cantidad</option>
+            <?php
+                                $dormitorios_options = get_option('mjpropiedades_dormitorios', array());
+                                foreach ($dormitorios_options as $value => $label) {
+                                    $selected = (isset($_GET['dormitorios']) && $_GET['dormitorios'] === $value) ? 'selected' : '';
+                                    echo '<option value="' . esc_attr($value) . '" ' . $selected . '>' . esc_html($label) . '</option>';
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <!-- Baños -->
+                        <div class="filter-group">
+                            <label for="filter-banos" class="filter-label">Baños</label>
+                            <select id="filter-banos" name="banos" class="filter-select">
+                                <option value="">Cualquier cantidad</option>
+                                <?php
+                                $banos_options = get_option('mjpropiedades_banos', array());
+                                foreach ($banos_options as $value => $label) {
+                                    $selected = (isset($_GET['banos']) && $_GET['banos'] === $value) ? 'selected' : '';
+                                    echo '<option value="' . esc_attr($value) . '" ' . $selected . '>' . esc_html($label) . '</option>';
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <!-- Rango de Precio -->
+                        <div class="filter-group">
+                            <label class="filter-label">Rango de Precio</label>
+                            <div class="price-range">
+                                <div class="price-inputs">
+                                    <input type="number" id="filter-precio-min" name="precio_min" class="price-input" 
+                                           value="<?php echo isset($_GET['precio_min']) ? esc_attr($_GET['precio_min']) : ''; ?>" 
+                                           placeholder="Mínimo" min="0">
+                                    <span class="price-separator">-</span>
+                                    <input type="number" id="filter-precio-max" name="precio_max" class="price-input" 
+                                           value="<?php echo isset($_GET['precio_max']) ? esc_attr($_GET['precio_max']) : ''; ?>" 
+                                           placeholder="Máximo" min="0">
+                                </div>
+                                <div class="price-slider">
+                                    <input type="range" id="precio-min-slider" min="0" max="1000000000" step="1000000" 
+                                           value="<?php echo isset($_GET['precio_min']) ? esc_attr($_GET['precio_min']) : '0'; ?>">
+                                    <input type="range" id="precio-max-slider" min="0" max="1000000000" step="1000000" 
+                                           value="<?php echo isset($_GET['precio_max']) ? esc_attr($_GET['precio_max']) : '1000000000'; ?>">
+                                </div>
+                                <div class="price-labels">
+                                    <span class="price-min-label">$0</span>
+                                    <span class="price-max-label">$1.000.000.000</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones de acción -->
+                        <div class="filter-actions">
+                            <button type="submit" class="filter-btn primary">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                </svg>
+                                Buscar
+                            </button>
+                            <a href="<?php echo get_permalink(); ?>" class="filter-btn secondary">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                                </svg>
+                                Limpiar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </aside>
             
             <!-- Contenido principal -->
             <main class="properties-main">

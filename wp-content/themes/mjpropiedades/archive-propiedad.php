@@ -12,93 +12,18 @@ get_header(); ?>
             <p class="archive-description">Encuentra la propiedad perfecta para ti</p>
         </header>
         
-        <!-- Filtros -->
-        <div class="property-filters">
-            <form class="filter-form" method="get">
-                <div class="filter-group">
-                    <label for="operacion">Operación:</label>
-                    <select name="operacion" id="operacion">
-                        <option value="">Todas</option>
-                        <option value="venta" <?php selected(isset($_GET['operacion']) ? $_GET['operacion'] : '', 'venta'); ?>>Venta</option>
-                        <option value="arriendo" <?php selected(isset($_GET['operacion']) ? $_GET['operacion'] : '', 'arriendo'); ?>>Arriendo</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="tipo">Tipo:</label>
-                    <select name="tipo" id="tipo">
-                        <option value="">Todos</option>
-                        <option value="casa" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : (isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : ''), 'casa'); ?>>Casa</option>
-                        <option value="departamento" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : (isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : ''), 'departamento'); ?>>Departamento</option>
-                        <option value="oficina" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : (isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : ''), 'oficina'); ?>>Oficina</option>
-                        <option value="local" <?php selected(isset($_GET['tipo']) ? $_GET['tipo'] : (isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : ''), 'local'); ?>>Local Comercial</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="comuna">Comuna:</label>
-                    <?php 
-                    // Obtener el valor de comuna desde ubicación si viene del formulario de inicio
-                    $comuna_value = '';
-                    if (isset($_GET['comuna']) && !empty($_GET['comuna'])) {
-                        $comuna_value = $_GET['comuna'];
-                    } elseif (isset($_GET['ubicacion']) && !empty($_GET['ubicacion'])) {
-                        // Convertir ubicación a comuna
-                        $comunas = get_option('mjpropiedades_comunas', array(
-                            'la-serena' => 'La Serena',
-                            'coquimbo' => 'Coquimbo',
-                            'ovalle' => 'Ovalle',
-                            'vicuna' => 'Vicuña',
-                            'paihuano' => 'Paihuano',
-                            'andacollo' => 'Andacollo',
-                            'combarbala' => 'Combarbalá',
-                            'monte-patri' => 'Monte Patria',
-                            'punitaqui' => 'Punitaqui',
-                            'rio-hurtado' => 'Río Hurtado'
-                        ));
-                        $comuna_value = isset($comunas[$_GET['ubicacion']]) ? $comunas[$_GET['ubicacion']] : $_GET['ubicacion'];
-                    }
-                    ?>
-                    <input type="text" name="comuna" id="comuna" placeholder="Buscar comuna..." value="<?php echo esc_attr($comuna_value); ?>">
-                </div>
-                
-                <div class="filter-group">
-                    <label for="precio_min">Precio mínimo:</label>
-                    <input type="number" name="precio_min" id="precio_min" placeholder="0" value="<?php echo isset($_GET['precio_min']) ? esc_attr($_GET['precio_min']) : ''; ?>">
-                </div>
-                
-                <div class="filter-group">
-                    <label for="precio_max">Precio máximo:</label>
-                    <input type="number" name="precio_max" id="precio_max" placeholder="Sin límite" value="<?php echo isset($_GET['precio_max']) ? esc_attr($_GET['precio_max']) : ''; ?>">
-                </div>
-                
-                <div class="filter-group">
-                    <label for="dormitorios">Dormitorios:</label>
-                    <select name="dormitorios" id="dormitorios">
-                        <option value="">Cualquier cantidad</option>
-                        <option value="1" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '1'); ?>>1 dormitorio</option>
-                        <option value="2" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '2'); ?>>2 dormitorios</option>
-                        <option value="3" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '3'); ?>>3 dormitorios</option>
-                        <option value="4" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '4'); ?>>4 dormitorios</option>
-                        <option value="5+" <?php selected(isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '', '5+'); ?>>5+ dormitorios</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="banos">Baños:</label>
-                    <select name="banos" id="banos">
-                        <option value="">Cualquier cantidad</option>
-                        <option value="1" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '1'); ?>>1 baño</option>
-                        <option value="2" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '2'); ?>>2 baños</option>
-                        <option value="3" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '3'); ?>>3 baños</option>
-                        <option value="4" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '4'); ?>>4 baños</option>
-                        <option value="5+" <?php selected(isset($_GET['banos']) ? $_GET['banos'] : '', '5+'); ?>>5+ baños</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="btn-filter">Filtrar</button>
-                <a href="<?php echo get_post_type_archive_link('propiedad'); ?>" class="btn-clear">Limpiar</a>
-            </form>
+        <!-- Formulario de búsqueda principal -->
+        <div class="search-section section">
+            <?php 
+            echo mjpropiedades_get_search_form(array(
+                'show_title' => true,
+                'title' => 'Encuentra tu Propiedad Ideal',
+                'button_text' => 'Buscar Propiedades',
+                'action' => get_post_type_archive_link('propiedad'),
+                'preserve_values' => true,
+                'form_id' => 'archive-search-form'
+            ));
+            ?>
         </div>
         
         <!-- Lista de propiedades -->
@@ -335,6 +260,198 @@ get_header(); ?>
 .properties-archive {
     padding: 120px 0 80px;
     background: #f8f9fa;
+}
+
+/* Estilos para el formulario de búsqueda en archive */
+.search-section {
+    margin-bottom: 3rem;
+}
+
+.search-form-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.search-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c2c2c;
+    margin-bottom: 0.5rem;
+}
+
+.search-form {
+    width: 100%;
+}
+
+.search-form-row {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Primera fila: Todos los select en una fila */
+.search-form-row.select-row {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Segunda fila: Sliders de precio en la misma fila */
+.search-form-row.price-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.search-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-label {
+    font-weight: 600;
+    color: #2c2c2c;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.search-select {
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f8f8;
+    color: #2c2c2c;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.search-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.price-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.price-slider-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.price-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #e0e0e0;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.price-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ff6b35;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.price-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ff6b35;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.price-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.price-value {
+    color: #ff6b35;
+    font-weight: 600;
+}
+
+.search-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.search-btn {
+    background: #ff6b35;
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    min-width: 200px;
+}
+
+.search-btn:hover {
+    background: #e55a2b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.search-btn:active {
+    transform: translateY(0);
+}
+
+/* Responsive Design para Search Section en archive */
+@media (max-width: 1024px) {
+    .search-form-row.select-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .search-form-row.price-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-form-row.select-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-form-row.price-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
 }
 
 .archive-header {
