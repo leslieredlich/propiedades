@@ -236,6 +236,40 @@ function mjpropiedades_setup() {
 }
 add_action('after_setup_theme', 'mjpropiedades_setup');
 
+// Función helper para obtener URLs dinámicas del menú
+function mjpropiedades_get_dynamic_menu_url($link_text, $url) {
+    // Detectar si estamos en la página de inicio
+    $is_homepage = is_front_page() || is_page_template('page-inicio.php');
+    
+    // Modificar URLs específicas
+    if (strpos($url, '#servicios') !== false) {
+        return $is_homepage ? '#servicios' : home_url('/inicio/#servicios');
+    }
+    
+    if (strpos($url, '#propiedades') !== false || 
+        (strpos($link_text, 'Propiedades') !== false && strpos($url, '#') !== false)) {
+        // Buscar la página de propiedades
+        $propiedades_page = get_page_by_path('propiedades');
+        if ($propiedades_page) {
+            return $is_homepage ? '#venta' : get_permalink($propiedades_page);
+        } else {
+            // Fallback: usar archive de propiedades
+            return $is_homepage ? '#venta' : get_post_type_archive_link('propiedad');
+        }
+    }
+    
+    return $url;
+}
+
+// Filtro para modificar los enlaces del menú principal
+add_filter('nav_menu_link_attributes', 'mjpropiedades_modify_menu_links', 10, 3);
+function mjpropiedades_modify_menu_links($atts, $item, $args) {
+    if (isset($atts['href'])) {
+        $atts['href'] = mjpropiedades_get_dynamic_menu_url($item->title, $atts['href']);
+    }
+    return $atts;
+}
+
 
 // Registrar post type para consultas de contacto
 function mjpropiedades_register_contact_inquiry_post_type() {
@@ -1280,6 +1314,7 @@ function mjpropiedades_customize_register($wp_customize) {
         'title'    => __('Logo del Footer', 'mjpropiedades'),
         'priority' => 28,
         'description' => __('Configura el logo específico para el footer, independiente del logo del header', 'mjpropiedades'),
+        'active_callback' => '__return_true',
     ));
     
     // Logo del footer
@@ -1400,6 +1435,7 @@ function mjpropiedades_customize_register($wp_customize) {
     $wp_customize->add_section('mjpropiedades_hero', array(
         'title'    => __('Hero Slider', 'mjpropiedades'),
         'priority' => 25,
+        'active_callback' => '__return_true',
     ));
     
     // Hero Image 1 - Compra de Propiedades
@@ -1819,12 +1855,14 @@ function mjpropiedades_customize_register($wp_customize) {
     $wp_customize->add_section('mjpropiedades_about', array(
         'title'    => __('Sección Quiénes Somos', 'mjpropiedades'),
         'priority' => 30,
+        'active_callback' => '__return_true',
     ));
     
     // Sección Servicios
     $wp_customize->add_section('mjpropiedades_services', array(
         'title'    => __('Sección Nuestros Servicios', 'mjpropiedades'),
-        'priority' => 35,
+        'priority' => 32,
+        'active_callback' => '__return_true',
     ));
     
     // Imagen de María José
@@ -2022,7 +2060,8 @@ function mjpropiedades_customize_register($wp_customize) {
     // Sección Testimonios
     $wp_customize->add_section('mjpropiedades_testimonials', array(
         'title'    => __('Sección Testimonios', 'mjpropiedades'),
-        'priority' => 32,
+        'priority' => 33,
+        'active_callback' => '__return_true',
     ));
     
     // Título de la sección
@@ -2248,7 +2287,8 @@ function mjpropiedades_customize_register($wp_customize) {
     // Sección de configuración del menú
     $wp_customize->add_section('mjpropiedades_menu', array(
         'title'    => __('Configuración del Menú', 'mjpropiedades'),
-        'priority' => 35,
+        'priority' => 38,
+        'active_callback' => '__return_true',
     ));
     
     // Alineación del menú
@@ -2367,7 +2407,8 @@ function mjpropiedades_customize_register($wp_customize) {
     // ===== SECCIÓN DE TIPOGRAFÍA =====
     $wp_customize->add_section('mjpropiedades_typography', array(
         'title'    => __('Tipografía', 'mjpropiedades'),
-        'priority' => 30,
+        'priority' => 34,
+        'active_callback' => '__return_true',
     ));
     
     // Tamaño de títulos principales (H1) - Basado en la imagen de referencia
@@ -2544,6 +2585,7 @@ function mjpropiedades_customize_register($wp_customize) {
         'title'    => __('Títulos de Secciones', 'mjpropiedades'),
         'priority' => 31,
         'description' => __('Controla el estilo y alineación de los títulos de secciones en la página de inicio', 'mjpropiedades'),
+        'active_callback' => '__return_true',
     ));
     
     // Alineación de títulos de secciones
@@ -2662,7 +2704,8 @@ function mjpropiedades_customize_register($wp_customize) {
     // Sección de información de contacto
     $wp_customize->add_section('mjpropiedades_contact_info', array(
         'title'    => __('Información de Contacto', 'mjpropiedades'),
-        'priority' => 45,
+        'priority' => 39,
+        'active_callback' => '__return_true',
     ));
     
     // Email de contacto
@@ -3918,19 +3961,31 @@ function mjpropiedades_search_properties() {
         }
     }
     
-    if (isset($_GET['precio_min']) && !empty($_GET['precio_min']) && $_GET['precio_min'] > 0) {
+    // Filtro de precio: manejar rangos correctamente
+    $precio_min = isset($_GET['precio_min']) && !empty($_GET['precio_min']) ? intval($_GET['precio_min']) : 0;
+    $precio_max = isset($_GET['precio_max']) && !empty($_GET['precio_max']) ? intval($_GET['precio_max']) : 0;
+    
+    if ($precio_min > 0 && $precio_max > 0) {
+        // Si hay ambos valores, usar BETWEEN
         $args['meta_query'][] = array(
             'key' => '_propiedad_precio',
-            'value' => intval($_GET['precio_min']),
+            'value' => array($precio_min, $precio_max),
+            'compare' => 'BETWEEN',
+            'type' => 'NUMERIC'
+        );
+    } elseif ($precio_min > 0) {
+        // Solo precio mínimo
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_precio',
+            'value' => $precio_min,
             'compare' => '>=',
             'type' => 'NUMERIC'
         );
-    }
-    
-    if (isset($_GET['precio_max']) && !empty($_GET['precio_max']) && $_GET['precio_max'] < 1000000000) {
+    } elseif ($precio_max > 0) {
+        // Solo precio máximo
         $args['meta_query'][] = array(
             'key' => '_propiedad_precio',
-            'value' => intval($_GET['precio_max']),
+            'value' => $precio_max,
             'compare' => '<=',
             'type' => 'NUMERIC'
         );
@@ -4157,8 +4212,9 @@ function mjpropiedades_property_cards_customizer($wp_customize) {
     $wp_customize->add_section('mjpropiedades_property_cards_colors', array(
         'title' => __('Colores de Tarjetas de Propiedades', 'mjpropiedades'),
         'description' => __('Configura los colores para las tarjetas de propiedades', 'mjpropiedades'),
-        'priority' => 30,
+        'priority' => 36,
         'capability' => 'edit_theme_options',
+        'active_callback' => '__return_true',
     ));
     
     // Color de fondo de la tarjeta
@@ -5407,8 +5463,9 @@ function mjpropiedades_agent_customizer_settings($wp_customize) {
     // Sección de agentes
     $wp_customize->add_section('mjpropiedades_agents', array(
         'title' => 'Configuración de Agentes',
-        'priority' => 160,
-        'description' => 'Configuración global para el sistema de agentes inmobiliarios'
+        'priority' => 37,
+        'description' => 'Configuración global para el sistema de agentes inmobiliarios',
+        'active_callback' => '__return_true',
     ));
 
     // Agente por defecto
@@ -5586,5 +5643,858 @@ function mjpropiedades_refresh_agent_choices() {
     }
 }
 add_action('wp_loaded', 'mjpropiedades_refresh_agent_choices');
+
+// ===== PANEL DE ADMINISTRACIÓN PERSONALIZADO DEL TEMA =====
+// Crear menú de administración para las opciones del tema
+function mjpropiedades_admin_menu() {
+    add_theme_page(
+        'Configuración del Tema',
+        'Configuración del Tema',
+        'edit_theme_options',
+        'mjpropiedades-settings',
+        'mjpropiedades_admin_page'
+    );
+}
+add_action('admin_menu', 'mjpropiedades_admin_menu');
+
+// Cargar scripts necesarios para el selector de medios
+function mjpropiedades_admin_scripts($hook) {
+    // Solo cargar en nuestra página de administración
+    if ($hook != 'appearance_page_mjpropiedades-settings') {
+        return;
+    }
+    
+    wp_enqueue_media();
+    wp_enqueue_script('jquery');
+}
+add_action('admin_enqueue_scripts', 'mjpropiedades_admin_scripts');
+
+// Página de administración personalizada
+function mjpropiedades_admin_page() {
+    // Guardar configuraciones si se envió el formulario
+    if (isset($_POST['submit']) && wp_verify_nonce($_POST['mjpropiedades_nonce'], 'mjpropiedades_settings')) {
+        // Guardar todas las configuraciones
+        $settings = array(
+            // Hero Slider - Imágenes de fondo
+            'mjpropiedades_hero_1',
+            'mjpropiedades_hero_2',
+            'mjpropiedades_hero_3',
+            
+            // Hero Slider - Diapositiva 1
+            'mjpropiedades_slide_1_tag',
+            'mjpropiedades_slide_1_title',
+            'mjpropiedades_slide_1_description',
+            'mjpropiedades_slide_1_btn_primary',
+            'mjpropiedades_slide_1_btn_secondary',
+            
+            // Hero Slider - Diapositiva 2
+            'mjpropiedades_slide_2_tag',
+            'mjpropiedades_slide_2_title',
+            'mjpropiedades_slide_2_description',
+            'mjpropiedades_slide_2_btn_primary',
+            'mjpropiedades_slide_2_btn_secondary',
+            
+            // Hero Slider - Diapositiva 3
+            'mjpropiedades_slide_3_tag',
+            'mjpropiedades_slide_3_title',
+            'mjpropiedades_slide_3_description',
+            'mjpropiedades_slide_3_btn_primary',
+            'mjpropiedades_slide_3_btn_secondary',
+            
+            // About Section
+            'mjpropiedades_about_text_1',
+            'mjpropiedades_about_text_2',
+            'mjpropiedades_about_stat_1_number',
+            'mjpropiedades_about_stat_1_label',
+            'mjpropiedades_about_stat_2_number',
+            'mjpropiedades_about_stat_2_label',
+            
+            // Services Section
+            'mjpropiedades_services_tag',
+            'mjpropiedades_services_title',
+            'mjpropiedades_services_subtitle',
+            
+            // Testimonials
+            'mjpropiedades_testimonials_title',
+            'mjpropiedades_testimonials_subtitle',
+            
+            // Menu Configuration
+            'mjpropiedades_menu_alignment',
+            
+            // Typography
+            'mjpropiedades_h1_font_size',
+            'mjpropiedades_h2_font_size',
+            'mjpropiedades_h3_font_size',
+            'mjpropiedades_body_font_size',
+            'mjpropiedades_button_font_size',
+            
+            // Section Titles
+            'mjpropiedades_section_title_alignment',
+            
+            // Contact Info
+            'mjpropiedades_contact_email',
+            'mjpropiedades_contact_phone',
+            'mjpropiedades_contact_address',
+            'mjpropiedades_contact_hours',
+            
+            // Colors
+            'mjpropiedades_hero_tag_color',
+            'mjpropiedades_hero_tag_text_color',
+            'mjpropiedades_hero_title_color',
+            'mjpropiedades_hero_description_color',
+            
+            // Property Cards Colors
+            'mjpropiedades_card_background',
+            'mjpropiedades_card_title_color',
+            'mjpropiedades_card_location_color',
+            'mjpropiedades_card_price_color',
+            'mjpropiedades_card_button_bg',
+            'mjpropiedades_card_button_text',
+            
+            // Agents
+            'mjpropiedades_default_agent',
+            'mjpropiedades_show_rating',
+            
+            // Site Identity
+            'mjpropiedades_logo_height_desktop',
+            'mjpropiedades_logo_height_tablet',
+            'mjpropiedades_logo_height_mobile',
+            'mjpropiedades_logo_max_width',
+            'mjpropiedades_logo_size_preset',
+            
+            // Footer Logo
+            'mjpropiedades_footer_logo_image',
+            'mjpropiedades_footer_logo_position',
+            'mjpropiedades_footer_logo_size',
+            'mjpropiedades_footer_logo_custom_size',
+            'mjpropiedades_footer_logo_show_text',
+            'mjpropiedades_footer_logo_text'
+        );
+        
+        foreach ($settings as $setting) {
+            if (isset($_POST[$setting])) {
+                set_theme_mod($setting, sanitize_text_field($_POST[$setting]));
+            }
+        }
+        
+        // Guardar opciones del sitio (blogname y blogdescription)
+        if (isset($_POST['blogname'])) {
+            update_option('blogname', sanitize_text_field($_POST['blogname']));
+        }
+        if (isset($_POST['blogdescription'])) {
+            update_option('blogdescription', sanitize_text_field($_POST['blogdescription']));
+        }
+        
+        // Guardar logo personalizado
+        if (isset($_POST['custom_logo'])) {
+            set_theme_mod('custom_logo', intval($_POST['custom_logo']));
+        }
+        
+        // Guardar imágenes de fondo del hero
+        if (isset($_POST['mjpropiedades_hero_1'])) {
+            set_theme_mod('mjpropiedades_hero_1', intval($_POST['mjpropiedades_hero_1']));
+        }
+        if (isset($_POST['mjpropiedades_hero_2'])) {
+            set_theme_mod('mjpropiedades_hero_2', intval($_POST['mjpropiedades_hero_2']));
+        }
+        if (isset($_POST['mjpropiedades_hero_3'])) {
+            set_theme_mod('mjpropiedades_hero_3', intval($_POST['mjpropiedades_hero_3']));
+        }
+        
+        // Guardar imagen del footer logo
+        if (isset($_POST['mjpropiedades_footer_logo_image'])) {
+            set_theme_mod('mjpropiedades_footer_logo_image', intval($_POST['mjpropiedades_footer_logo_image']));
+        }
+        
+        echo '<div class="notice notice-success"><p>Configuraciones guardadas exitosamente.</p></div>';
+    }
+    
+    ?>
+    <div class="wrap">
+        <h1>Configuración del Tema - MJ Propiedades</h1>
+        <p>Desde aquí puedes configurar todas las opciones del tema sin usar el personalizador.</p>
+        
+        <form method="post" action="">
+            <?php wp_nonce_field('mjpropiedades_settings', 'mjpropiedades_nonce'); ?>
+            
+            <!-- Identidad del Sitio -->
+            <h2>Identidad del Sitio</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Logo del Sitio</th>
+                    <td>
+                        <?php
+                        $logo_id = get_theme_mod('custom_logo');
+                        if ($logo_id) {
+                            $logo_url = wp_get_attachment_image_url($logo_id, 'full');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($logo_url) . '" style="max-height: 60px; max-width: 200px;" id="logo-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="logo-preview-container">';
+                            echo '<img id="logo-preview" style="max-height: 60px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        
+                        <input type="hidden" name="custom_logo" id="custom_logo" value="<?php echo esc_attr($logo_id); ?>" />
+                        <button type="button" class="button" id="upload-logo-button">
+                            <?php echo $logo_id ? 'Cambiar Logo' : 'Seleccionar Logo'; ?>
+                        </button>
+                        <?php if ($logo_id): ?>
+                        <button type="button" class="button" id="remove-logo-button">Eliminar Logo</button>
+                        <?php endif; ?>
+                        
+                        <p class="description">Selecciona una imagen para usar como logo del sitio. Formatos recomendados: PNG, JPG, SVG. Tamaño recomendado: máximo 300x100 píxeles.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Título del Sitio</th>
+                    <td>
+                        <input type="text" name="blogname" value="<?php echo esc_attr(get_option('blogname')); ?>" class="regular-text" />
+                        <p class="description">Título que aparece en el navegador y en los resultados de búsqueda.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Lema del Sitio</th>
+                    <td>
+                        <input type="text" name="blogdescription" value="<?php echo esc_attr(get_option('blogdescription')); ?>" class="regular-text" />
+                        <p class="description">Descripción breve del sitio que aparece bajo el título.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Preset de Tamaño del Logo</th>
+                    <td>
+                        <select name="mjpropiedades_logo_size_preset">
+                            <option value="small" <?php selected(get_theme_mod('mjpropiedades_logo_size_preset', 'medium'), 'small'); ?>>Pequeño (30px)</option>
+                            <option value="medium" <?php selected(get_theme_mod('mjpropiedades_logo_size_preset', 'medium'), 'medium'); ?>>Mediano (50px)</option>
+                            <option value="large" <?php selected(get_theme_mod('mjpropiedades_logo_size_preset', 'medium'), 'large'); ?>>Grande (70px)</option>
+                            <option value="custom" <?php selected(get_theme_mod('mjpropiedades_logo_size_preset', 'medium'), 'custom'); ?>>Personalizado</option>
+                        </select>
+                        <p class="description">Selecciona un tamaño predefinido o personalizado para el logo.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Altura del Logo en Desktop (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_logo_height_desktop" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_logo_height_desktop', '50')); ?>" min="20" max="150" step="5" />
+                        <p class="description">Altura máxima del logo en pantallas de escritorio (20-150px).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Altura del Logo en Tablet (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_logo_height_tablet" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_logo_height_tablet', '45')); ?>" min="15" max="120" step="5" />
+                        <p class="description">Altura máxima del logo en tablets (15-120px).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Altura del Logo en Móvil (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_logo_height_mobile" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_logo_height_mobile', '40')); ?>" min="15" max="100" step="5" />
+                        <p class="description">Altura máxima del logo en dispositivos móviles (15-100px).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Ancho Máximo del Logo (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_logo_max_width" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_logo_max_width', '200')); ?>" min="100" max="400" step="10" />
+                        <p class="description">Ancho máximo del logo en píxeles (100-400px).</p>
+                    </td>
+                </tr>
+            </table>
+            
+            <!-- Logo del Footer -->
+            <h2>Logo del Footer</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Logo del Footer</th>
+                    <td>
+                        <?php
+                        $footer_logo_id = get_theme_mod('mjpropiedades_footer_logo_image');
+                        if ($footer_logo_id) {
+                            $footer_logo_url = wp_get_attachment_image_url($footer_logo_id, 'full');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($footer_logo_url) . '" style="max-height: 60px; max-width: 200px;" id="footer-logo-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="footer-logo-preview-container">';
+                            echo '<img id="footer-logo-preview" style="max-height: 60px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        
+                        <input type="hidden" name="mjpropiedades_footer_logo_image" id="mjpropiedades_footer_logo_image" value="<?php echo esc_attr($footer_logo_id); ?>" />
+                        <button type="button" class="button" id="upload-footer-logo-button">
+                            <?php echo $footer_logo_id ? 'Cambiar Imagen' : 'Seleccionar Imagen'; ?>
+                        </button>
+                        <?php if ($footer_logo_id): ?>
+                        <button type="button" class="button" id="remove-footer-logo-button">Eliminar</button>
+                        <?php endif; ?>
+                        <p class="description">Selecciona una imagen para el logo del footer. Si no se selecciona, se usará el logo del header.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Posición del Logo en el Footer</th>
+                    <td>
+                        <select name="mjpropiedades_footer_logo_position">
+                            <option value="left" <?php selected(get_theme_mod('mjpropiedades_footer_logo_position', 'left'), 'left'); ?>>Izquierda</option>
+                            <option value="center" <?php selected(get_theme_mod('mjpropiedades_footer_logo_position', 'left'), 'center'); ?>>Centro</option>
+                            <option value="right" <?php selected(get_theme_mod('mjpropiedades_footer_logo_position', 'left'), 'right'); ?>>Derecha</option>
+                        </select>
+                        <p class="description">Selecciona dónde quieres que aparezca el logo en el footer.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño del Logo del Footer</th>
+                    <td>
+                        <select name="mjpropiedades_footer_logo_size">
+                            <option value="small" <?php selected(get_theme_mod('mjpropiedades_footer_logo_size', 'medium'), 'small'); ?>>Pequeño (60px)</option>
+                            <option value="medium" <?php selected(get_theme_mod('mjpropiedades_footer_logo_size', 'medium'), 'medium'); ?>>Mediano (80px)</option>
+                            <option value="large" <?php selected(get_theme_mod('mjpropiedades_footer_logo_size', 'medium'), 'large'); ?>>Grande (100px)</option>
+                            <option value="custom" <?php selected(get_theme_mod('mjpropiedades_footer_logo_size', 'medium'), 'custom'); ?>>Personalizado</option>
+                        </select>
+                        <p class="description">Selecciona el tamaño del logo en el footer.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño Personalizado (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_footer_logo_custom_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_footer_logo_custom_size', '80')); ?>" min="30" max="200" step="5" />
+                        <p class="description">Especifica el tamaño exacto del logo en píxeles (30-200px).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Mostrar Texto Descriptivo</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="mjpropiedades_footer_logo_show_text" value="1" <?php checked(get_theme_mod('mjpropiedades_footer_logo_show_text', true), true); ?> />
+                            Muestra el texto descriptivo debajo del logo
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Texto Descriptivo del Footer</th>
+                    <td>
+                        <textarea name="mjpropiedades_footer_logo_text" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_footer_logo_text', 'Tu corredora de confianza especializada en la Cuarta Región de Chile.')); ?></textarea>
+                        <p class="description">Texto que aparece debajo del logo en el footer.</p>
+                    </td>
+                </tr>
+            </table>
+            
+            <!-- Hero Slider -->
+            <h2>Hero Slider - Diapositivas</h2>
+            
+            <!-- Diapositiva 1 -->
+            <h3>Diapositiva 1</h3>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Imagen de Fondo</th>
+                    <td>
+                        <?php
+                        $hero_1_id = get_theme_mod('mjpropiedades_hero_1');
+                        if ($hero_1_id) {
+                            $hero_1_url = wp_get_attachment_image_url($hero_1_id, 'medium');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($hero_1_url) . '" style="max-height: 100px; max-width: 200px;" id="hero-1-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="hero-1-preview-container">';
+                            echo '<img id="hero-1-preview" style="max-height: 100px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        <input type="hidden" name="mjpropiedades_hero_1" id="mjpropiedades_hero_1" value="<?php echo esc_attr($hero_1_id); ?>" />
+                        <button type="button" class="button" id="upload-hero-1-button">
+                            <?php echo $hero_1_id ? 'Cambiar Imagen' : 'Seleccionar Imagen'; ?>
+                        </button>
+                        <?php if ($hero_1_id): ?>
+                        <button type="button" class="button" id="remove-hero-1-button">Eliminar</button>
+                        <?php endif; ?>
+                        <p class="description">Imagen de fondo para la primera diapositiva del slider.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tag</th>
+                    <td><input type="text" name="mjpropiedades_slide_1_tag" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_1_tag', 'Vende tu propiedad al mejor precio')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Título</th>
+                    <td><input type="text" name="mjpropiedades_slide_1_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_1_title', 'Encuentra tu Hogar Ideal')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Descripción</th>
+                    <td><textarea name="mjpropiedades_slide_1_description" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_slide_1_description', 'Atendemos en Copiapó, Viña del Mar, La Serena y nos expandimos a más ciudades. Descubre propiedades exclusivas con asesoría personalizada y certificada en todo el proceso de compra.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Primario</th>
+                    <td><input type="text" name="mjpropiedades_slide_1_btn_primary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_1_btn_primary', 'Ver Propiedades')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Secundario</th>
+                    <td><input type="text" name="mjpropiedades_slide_1_btn_secondary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_1_btn_secondary', 'Solicitar Tasación')); ?>" class="regular-text" /></td>
+                </tr>
+            </table>
+            
+            <!-- Diapositiva 2 -->
+            <h3>Diapositiva 2</h3>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Imagen de Fondo</th>
+                    <td>
+                        <?php
+                        $hero_2_id = get_theme_mod('mjpropiedades_hero_2');
+                        if ($hero_2_id) {
+                            $hero_2_url = wp_get_attachment_image_url($hero_2_id, 'medium');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($hero_2_url) . '" style="max-height: 100px; max-width: 200px;" id="hero-2-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="hero-2-preview-container">';
+                            echo '<img id="hero-2-preview" style="max-height: 100px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        <input type="hidden" name="mjpropiedades_hero_2" id="mjpropiedades_hero_2" value="<?php echo esc_attr($hero_2_id); ?>" />
+                        <button type="button" class="button" id="upload-hero-2-button">
+                            <?php echo $hero_2_id ? 'Cambiar Imagen' : 'Seleccionar Imagen'; ?>
+                        </button>
+                        <?php if ($hero_2_id): ?>
+                        <button type="button" class="button" id="remove-hero-2-button">Eliminar</button>
+                        <?php endif; ?>
+                        <p class="description">Imagen de fondo para la segunda diapositiva del slider.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tag</th>
+                    <td><input type="text" name="mjpropiedades_slide_2_tag" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_2_tag', 'Arrienda tu próxima casa')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Título</th>
+                    <td><input type="text" name="mjpropiedades_slide_2_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_2_title', 'Tu Nuevo Hogar Te Espera')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Descripción</th>
+                    <td><textarea name="mjpropiedades_slide_2_description" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_slide_2_description', 'Encuentra la propiedad perfecta para arrendar. Amplia variedad de opciones en las mejores ubicaciones de la región.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Primario</th>
+                    <td><input type="text" name="mjpropiedades_slide_2_btn_primary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_2_btn_primary', 'Ver Arriendos')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Secundario</th>
+                    <td><input type="text" name="mjpropiedades_slide_2_btn_secondary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_2_btn_secondary', 'Contactar')); ?>" class="regular-text" /></td>
+                </tr>
+            </table>
+            
+            <!-- Diapositiva 3 -->
+            <h3>Diapositiva 3</h3>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Imagen de Fondo</th>
+                    <td>
+                        <?php
+                        $hero_3_id = get_theme_mod('mjpropiedades_hero_3');
+                        if ($hero_3_id) {
+                            $hero_3_url = wp_get_attachment_image_url($hero_3_id, 'medium');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($hero_3_url) . '" style="max-height: 100px; max-width: 200px;" id="hero-3-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="hero-3-preview-container">';
+                            echo '<img id="hero-3-preview" style="max-height: 100px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        <input type="hidden" name="mjpropiedades_hero_3" id="mjpropiedades_hero_3" value="<?php echo esc_attr($hero_3_id); ?>" />
+                        <button type="button" class="button" id="upload-hero-3-button">
+                            <?php echo $hero_3_id ? 'Cambiar Imagen' : 'Seleccionar Imagen'; ?>
+                        </button>
+                        <?php if ($hero_3_id): ?>
+                        <button type="button" class="button" id="remove-hero-3-button">Eliminar</button>
+                        <?php endif; ?>
+                        <p class="description">Imagen de fondo para la tercera diapositiva del slider.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tag</th>
+                    <td><input type="text" name="mjpropiedades_slide_3_tag" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_3_tag', 'Asesoría profesional')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Título</th>
+                    <td><input type="text" name="mjpropiedades_slide_3_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_3_title', 'Expertos en Bienes Raíces')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Descripción</th>
+                    <td><textarea name="mjpropiedades_slide_3_description" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_slide_3_description', 'Más de 10 años de experiencia en el mercado inmobiliario. Te acompañamos en cada paso del proceso con profesionalismo y dedicación.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Primario</th>
+                    <td><input type="text" name="mjpropiedades_slide_3_btn_primary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_3_btn_primary', 'Nuestros Servicios')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Secundario</th>
+                    <td><input type="text" name="mjpropiedades_slide_3_btn_secondary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_3_btn_secondary', 'Conócenos')); ?>" class="regular-text" /></td>
+                </tr>
+            </table>
+            
+            <!-- Colores del Hero Slider -->
+            <h3>Colores del Hero Slider</h3>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Color de las Viñetas (Tags)</th>
+                    <td>
+                        <input type="color" name="mjpropiedades_hero_tag_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_tag_color', '#007cba')); ?>" />
+                        <p class="description">Selecciona el color de fondo de las viñetas que aparecen arriba de los títulos.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Texto de las Viñetas</th>
+                    <td>
+                        <input type="color" name="mjpropiedades_hero_tag_text_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_tag_text_color', '#ffffff')); ?>" />
+                        <p class="description">Selecciona el color del texto dentro de las viñetas.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de los Títulos</th>
+                    <td>
+                        <input type="color" name="mjpropiedades_hero_title_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_title_color', '#333333')); ?>" />
+                        <p class="description">Selecciona el color de los títulos principales del slider.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de las Descripciones</th>
+                    <td>
+                        <input type="color" name="mjpropiedades_hero_description_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_description_color', '#666666')); ?>" />
+                        <p class="description">Selecciona el color del texto de las descripciones.</p>
+                    </td>
+                </tr>
+            </table>
+            
+            <!-- Sección About -->
+            <h2>Sección Quiénes Somos</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Texto Principal</th>
+                    <td><textarea name="mjpropiedades_about_text_1" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_about_text_1', 'Somos una empresa especializada en el mercado inmobiliario con más de 10 años de experiencia.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Texto Secundario</th>
+                    <td><textarea name="mjpropiedades_about_text_2" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_about_text_2', 'Nuestro equipo de profesionales certificados te brinda asesoría personalizada en todo el proceso.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Estadística 1 - Número</th>
+                    <td><input type="text" name="mjpropiedades_about_stat_1_number" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_1_number', '500+')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Estadística 1 - Etiqueta</th>
+                    <td><input type="text" name="mjpropiedades_about_stat_1_label" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_1_label', 'Propiedades Vendidas')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Estadística 2 - Número</th>
+                    <td><input type="text" name="mjpropiedades_about_stat_2_number" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_2_number', '100+')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Estadística 2 - Etiqueta</th>
+                    <td><input type="text" name="mjpropiedades_about_stat_2_label" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_2_label', 'Clientes Satisfechos')); ?>" class="regular-text" /></td>
+                </tr>
+            </table>
+            
+            <!-- Sección Servicios -->
+            <h2>Sección Nuestros Servicios</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Tag de Servicios</th>
+                    <td><input type="text" name="mjpropiedades_services_tag" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_services_tag', 'Nuestros Servicios')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Título de Servicios</th>
+                    <td><input type="text" name="mjpropiedades_services_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_services_title', '¿Por qué elegirnos?')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Subtítulo de Servicios</th>
+                    <td><textarea name="mjpropiedades_services_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_services_subtitle', 'Ofrecemos servicios integrales para satisfacer todas tus necesidades inmobiliarias')); ?></textarea></td>
+                </tr>
+            </table>
+            
+            <!-- Sección Testimonios -->
+            <h2>Sección Testimonios</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Título de Testimonios</th>
+                    <td><input type="text" name="mjpropiedades_testimonials_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_testimonials_title', 'Lo que dicen nuestros clientes')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Subtítulo de Testimonios</th>
+                    <td><textarea name="mjpropiedades_testimonials_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_testimonials_subtitle', 'La satisfacción de nuestros clientes es nuestra mayor recompensa')); ?></textarea></td>
+                </tr>
+            </table>
+            
+            <!-- Configuración del Menú -->
+            <h2>Configuración del Menú</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Alineación del Menú</th>
+                    <td>
+                        <select name="mjpropiedades_menu_alignment">
+                            <option value="left" <?php selected(get_theme_mod('mjpropiedades_menu_alignment', 'right'), 'left'); ?>>Izquierda</option>
+                            <option value="center" <?php selected(get_theme_mod('mjpropiedades_menu_alignment', 'right'), 'center'); ?>>Centro</option>
+                            <option value="right" <?php selected(get_theme_mod('mjpropiedades_menu_alignment', 'right'), 'right'); ?>>Derecha</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            
+            <!-- Tipografía -->
+            <h2>Tipografía</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Tamaño H1</th>
+                    <td><input type="text" name="mjpropiedades_h1_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_h1_font_size', '2.25rem')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño H2</th>
+                    <td><input type="text" name="mjpropiedades_h2_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_h2_font_size', '1.5rem')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño H3</th>
+                    <td><input type="text" name="mjpropiedades_h3_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_h3_font_size', '1.25rem')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño Texto Principal</th>
+                    <td><input type="text" name="mjpropiedades_body_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_body_font_size', '1rem')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño Botones</th>
+                    <td><input type="text" name="mjpropiedades_button_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_button_font_size', '1rem')); ?>" class="regular-text" /></td>
+                </tr>
+            </table>
+            
+            <!-- Títulos de Secciones -->
+            <h2>Títulos de Secciones</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Alineación de Títulos</th>
+                    <td>
+                        <select name="mjpropiedades_section_title_alignment">
+                            <option value="left" <?php selected(get_theme_mod('mjpropiedades_section_title_alignment', 'center'), 'left'); ?>>Izquierda</option>
+                            <option value="center" <?php selected(get_theme_mod('mjpropiedades_section_title_alignment', 'center'), 'center'); ?>>Centro</option>
+                            <option value="right" <?php selected(get_theme_mod('mjpropiedades_section_title_alignment', 'center'), 'right'); ?>>Derecha</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            
+            <!-- Información de Contacto -->
+            <h2>Información de Contacto</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Email de Contacto</th>
+                    <td><input type="email" name="mjpropiedades_contact_email" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_contact_email', 'consultas@homeisa.cl')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Teléfono de Contacto</th>
+                    <td><input type="text" name="mjpropiedades_contact_phone" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_contact_phone', '+56 9 1234 5678')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Dirección</th>
+                    <td><textarea name="mjpropiedades_contact_address" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_contact_address', 'La Serena, Región de Coquimbo, Chile')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Horarios</th>
+                    <td><textarea name="mjpropiedades_contact_hours" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_contact_hours', 'Lunes a Viernes: 9:00 - 18:00\nSábados: 9:00 - 14:00')); ?></textarea></td>
+                </tr>
+            </table>
+            
+            <!-- Colores del Hero -->
+            <h2>Colores del Hero</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Color del Tag</th>
+                    <td><input type="color" name="mjpropiedades_hero_tag_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_tag_color', '#007cba')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Texto del Tag</th>
+                    <td><input type="color" name="mjpropiedades_hero_tag_text_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_tag_text_color', '#ffffff')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Título</th>
+                    <td><input type="color" name="mjpropiedades_hero_title_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_title_color', '#333333')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de la Descripción</th>
+                    <td><input type="color" name="mjpropiedades_hero_description_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_description_color', '#666666')); ?>" /></td>
+                </tr>
+            </table>
+            
+            <!-- Colores de Tarjetas de Propiedades -->
+            <h2>Colores de Tarjetas de Propiedades</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Color de Fondo de Tarjeta</th>
+                    <td><input type="color" name="mjpropiedades_card_background" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_background', '#ffffff')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Título de Propiedad</th>
+                    <td><input type="color" name="mjpropiedades_card_title_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_title_color', '#333333')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de Ubicación</th>
+                    <td><input type="color" name="mjpropiedades_card_location_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_location_color', '#666666')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Precio</th>
+                    <td><input type="color" name="mjpropiedades_card_price_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_price_color', '#007cba')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de Fondo del Botón</th>
+                    <td><input type="color" name="mjpropiedades_card_button_bg" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_button_bg', '#007cba')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Texto del Botón</th>
+                    <td><input type="color" name="mjpropiedades_card_button_text" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_button_text', '#ffffff')); ?>" /></td>
+                </tr>
+            </table>
+            
+            <!-- Configuración de Agentes -->
+            <h2>Configuración de Agentes</h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Agente por Defecto</th>
+                    <td>
+                        <select name="mjpropiedades_default_agent">
+                            <option value="">Sin agente por defecto</option>
+                            <?php
+                            $agentes = get_posts(array(
+                                'post_type' => 'agente',
+                                'posts_per_page' => -1,
+                                'meta_query' => array(
+                                    array(
+                                        'key' => '_agente_activo',
+                                        'value' => '1',
+                                        'compare' => '='
+                                    )
+                                )
+                            ));
+                            foreach ($agentes as $agente) {
+                                echo '<option value="' . $agente->ID . '" ' . selected(get_theme_mod('mjpropiedades_default_agent', ''), $agente->ID, false) . '>' . $agente->post_title . '</option>';
+                            }
+                            ?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Mostrar Rating</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="mjpropiedades_show_rating" value="1" <?php checked(get_theme_mod('mjpropiedades_show_rating', true), true); ?> />
+                            Mostrar rating de agentes
+                        </label>
+                    </td>
+                </tr>
+            </table>
+            
+            <p class="submit">
+                <input type="submit" name="submit" class="button-primary" value="Guardar Configuración" />
+            </p>
+        </form>
+    </div>
+    
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        var mediaUploader;
+        
+        // Función genérica para manejar selectores de medios
+        function createMediaUploader(buttonId, inputId, previewId, previewContainerId, removeButtonId, title) {
+            $(buttonId).click(function(e) {
+                e.preventDefault();
+                
+                // Si el uploader ya existe, lo reutilizamos
+                if (mediaUploader) {
+                    mediaUploader.open();
+                    return;
+                }
+                
+                // Creamos el uploader
+                mediaUploader = wp.media.frames.file_frame = wp.media({
+                    title: title,
+                    button: {
+                        text: 'Usar como Imagen'
+                    },
+                    multiple: false,
+                    library: {
+                        type: 'image'
+                    }
+                });
+                
+                // Cuando se selecciona una imagen
+                mediaUploader.on('select', function() {
+                    var attachment = mediaUploader.state().get('selection').first().toJSON();
+                    
+                    // Actualizar el campo hidden
+                    $(inputId).val(attachment.id);
+                    
+                    // Mostrar la imagen seleccionada
+                    $(previewId).attr('src', attachment.url);
+                    $(previewContainerId).show();
+                    
+                    // Cambiar el texto del botón
+                    $(buttonId).text('Cambiar Imagen');
+                    
+                    // Mostrar el botón de eliminar si no está visible
+                    if ($(removeButtonId).length === 0) {
+                        $(buttonId).after(' <button type="button" class="button" id="' + removeButtonId.replace('#', '') + '">Eliminar</button>');
+                    } else {
+                        $(removeButtonId).show();
+                    }
+                });
+                
+                // Abrir el uploader
+                mediaUploader.open();
+            });
+        }
+        
+        // Función genérica para eliminar imágenes
+        function createRemoveHandler(inputId, previewContainerId, buttonId, removeButtonId, buttonText) {
+            $(document).on('click', removeButtonId, function(e) {
+                e.preventDefault();
+                
+                // Limpiar el campo
+                $(inputId).val('');
+                
+                // Ocultar la imagen
+                $(previewContainerId).hide();
+                
+                // Cambiar el texto del botón
+                $(buttonId).text(buttonText);
+                
+                // Ocultar el botón de eliminar
+                $(removeButtonId).hide();
+            });
+        }
+        
+        // Logo del sitio
+        createMediaUploader('#upload-logo-button', '#custom_logo', '#logo-preview', '#logo-preview-container', '#remove-logo-button', 'Seleccionar Logo');
+        createRemoveHandler('#custom_logo', '#logo-preview-container', '#upload-logo-button', '#remove-logo-button', 'Seleccionar Logo');
+        
+        // Logo del footer
+        createMediaUploader('#upload-footer-logo-button', '#mjpropiedades_footer_logo_image', '#footer-logo-preview', '#footer-logo-preview-container', '#remove-footer-logo-button', 'Seleccionar Logo del Footer');
+        createRemoveHandler('#mjpropiedades_footer_logo_image', '#footer-logo-preview-container', '#upload-footer-logo-button', '#remove-footer-logo-button', 'Seleccionar Imagen');
+        
+        // Hero 1
+        createMediaUploader('#upload-hero-1-button', '#mjpropiedades_hero_1', '#hero-1-preview', '#hero-1-preview-container', '#remove-hero-1-button', 'Seleccionar Imagen Hero 1');
+        createRemoveHandler('#mjpropiedades_hero_1', '#hero-1-preview-container', '#upload-hero-1-button', '#remove-hero-1-button', 'Seleccionar Imagen');
+        
+        // Hero 2
+        createMediaUploader('#upload-hero-2-button', '#mjpropiedades_hero_2', '#hero-2-preview', '#hero-2-preview-container', '#remove-hero-2-button', 'Seleccionar Imagen Hero 2');
+        createRemoveHandler('#mjpropiedades_hero_2', '#hero-2-preview-container', '#upload-hero-2-button', '#remove-hero-2-button', 'Seleccionar Imagen');
+        
+        // Hero 3
+        createMediaUploader('#upload-hero-3-button', '#mjpropiedades_hero_3', '#hero-3-preview', '#hero-3-preview-container', '#remove-hero-3-button', 'Seleccionar Imagen Hero 3');
+        createRemoveHandler('#mjpropiedades_hero_3', '#hero-3-preview-container', '#upload-hero-3-button', '#remove-hero-3-button', 'Seleccionar Imagen');
+    });
+    </script>
+    <?php
+}
 
 ?>
