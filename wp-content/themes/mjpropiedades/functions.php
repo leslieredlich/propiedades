@@ -5810,16 +5810,74 @@ function mjpropiedades_admin_page() {
     }
     
     ?>
+    <style>
+    .mjpropiedades-accordion {
+        margin: 20px 0;
+    }
+    
+    .mjpropiedades-accordion-header {
+        background: #f1f1f1;
+        border: 1px solid #ddd;
+        padding: 12px 15px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        position: relative;
+        transition: background-color 0.3s ease;
+    }
+    
+    .mjpropiedades-accordion-header:hover {
+        background: #e8e8e8;
+    }
+    
+    .mjpropiedades-accordion-header:after {
+        content: '+';
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 20px;
+        font-weight: bold;
+        transition: transform 0.3s ease;
+    }
+    
+    .mjpropiedades-accordion-header.active:after {
+        transform: translateY(-50%) rotate(45deg);
+    }
+    
+    .mjpropiedades-accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        background: #fff;
+    }
+    
+    .mjpropiedades-accordion-content.active {
+        max-height: 2000px; /* Valor suficientemente grande */
+    }
+    
+    .mjpropiedades-accordion-content-inner {
+        padding: 20px;
+    }
+    </style>
+    
     <div class="wrap">
         <h1>Configuración del Tema - MJ Propiedades</h1>
-        <p>Desde aquí puedes configurar todas las opciones del tema sin usar el personalizador.</p>
+        <p>Desde aquí puedes configurar todas las opciones del tema sin usar el personalizador. Haz clic en cada sección para expandir o contraer su contenido.</p>
         
         <form method="post" action="">
             <?php wp_nonce_field('mjpropiedades_settings', 'mjpropiedades_nonce'); ?>
             
             <!-- Identidad del Sitio -->
-            <h2>Identidad del Sitio</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Identidad del Sitio</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Logo del Sitio</th>
                     <td>
@@ -5902,11 +5960,17 @@ function mjpropiedades_admin_page() {
                         <p class="description">Ancho máximo del logo en píxeles (100-400px).</p>
                     </td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Logo del Footer -->
-            <h2>Logo del Footer</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Logo del Footer</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Logo del Footer</th>
                     <td>
@@ -5980,10 +6044,16 @@ function mjpropiedades_admin_page() {
                         <p class="description">Texto que aparece debajo del logo en el footer.</p>
                     </td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Hero Slider -->
-            <h2>Hero Slider - Diapositivas</h2>
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Hero Slider - Diapositivas</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
             
             <!-- Diapositiva 1 -->
             <h3>Diapositiva 1</h3>
@@ -6169,11 +6239,17 @@ function mjpropiedades_admin_page() {
                         <p class="description">Selecciona el color del texto de las descripciones.</p>
                     </td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Sección About -->
-            <h2>Sección Quiénes Somos</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Sección Quiénes Somos</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Texto Principal</th>
                     <td><textarea name="mjpropiedades_about_text_1" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_about_text_1', 'Somos una empresa especializada en el mercado inmobiliario con más de 10 años de experiencia.')); ?></textarea></td>
@@ -6196,13 +6272,19 @@ function mjpropiedades_admin_page() {
                 </tr>
                 <tr>
                     <th scope="row">Estadística 2 - Etiqueta</th>
-                    <td><input type="text" name="mjpropiedades_about_stat_2_label" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_2_label', 'Clientes Satisfechos')); ?>" class="regular-text" /></td>
+                    <td><input type="text" name="mjpropiedades_about_stat_2_label" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_2_label', 'Clientes Satisfechos')); ?>" class="regular-text" />                    </td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Sección Servicios -->
-            <h2>Sección Nuestros Servicios</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Sección Nuestros Servicios</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Tag de Servicios</th>
                     <td><input type="text" name="mjpropiedades_services_tag" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_services_tag', 'Nuestros Servicios')); ?>" class="regular-text" /></td>
@@ -6215,11 +6297,17 @@ function mjpropiedades_admin_page() {
                     <th scope="row">Subtítulo de Servicios</th>
                     <td><textarea name="mjpropiedades_services_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_services_subtitle', 'Ofrecemos servicios integrales para satisfacer todas tus necesidades inmobiliarias')); ?></textarea></td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Sección Testimonios -->
-            <h2>Sección Testimonios</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Sección Testimonios</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Título de Testimonios</th>
                     <td><input type="text" name="mjpropiedades_testimonials_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_testimonials_title', 'Lo que dicen nuestros clientes')); ?>" class="regular-text" /></td>
@@ -6228,11 +6316,17 @@ function mjpropiedades_admin_page() {
                     <th scope="row">Subtítulo de Testimonios</th>
                     <td><textarea name="mjpropiedades_testimonials_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_testimonials_subtitle', 'La satisfacción de nuestros clientes es nuestra mayor recompensa')); ?></textarea></td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Configuración del Menú -->
-            <h2>Configuración del Menú</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Configuración del Menú</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Alineación del Menú</th>
                     <td>
@@ -6243,11 +6337,17 @@ function mjpropiedades_admin_page() {
                         </select>
                     </td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Tipografía -->
-            <h2>Tipografía</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Tipografía</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Tamaño H1</th>
                     <td><input type="text" name="mjpropiedades_h1_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_h1_font_size', '2.25rem')); ?>" class="regular-text" /></td>
@@ -6268,11 +6368,17 @@ function mjpropiedades_admin_page() {
                     <th scope="row">Tamaño Botones</th>
                     <td><input type="text" name="mjpropiedades_button_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_button_font_size', '1rem')); ?>" class="regular-text" /></td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Títulos de Secciones -->
-            <h2>Títulos de Secciones</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Títulos de Secciones</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Alineación de Títulos</th>
                     <td>
@@ -6283,11 +6389,17 @@ function mjpropiedades_admin_page() {
                         </select>
                     </td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Información de Contacto -->
-            <h2>Información de Contacto</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Información de Contacto</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Email de Contacto</th>
                     <td><input type="email" name="mjpropiedades_contact_email" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_contact_email', 'consultas@homeisa.cl')); ?>" class="regular-text" /></td>
@@ -6304,11 +6416,17 @@ function mjpropiedades_admin_page() {
                     <th scope="row">Horarios</th>
                     <td><textarea name="mjpropiedades_contact_hours" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_contact_hours', 'Lunes a Viernes: 9:00 - 18:00\nSábados: 9:00 - 14:00')); ?></textarea></td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Colores del Hero -->
-            <h2>Colores del Hero</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Colores del Hero</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Color del Tag</th>
                     <td><input type="color" name="mjpropiedades_hero_tag_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_tag_color', '#007cba')); ?>" /></td>
@@ -6325,11 +6443,17 @@ function mjpropiedades_admin_page() {
                     <th scope="row">Color de la Descripción</th>
                     <td><input type="color" name="mjpropiedades_hero_description_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_description_color', '#666666')); ?>" /></td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Colores de Tarjetas de Propiedades -->
-            <h2>Colores de Tarjetas de Propiedades</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Colores de Tarjetas de Propiedades</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Color de Fondo de Tarjeta</th>
                     <td><input type="color" name="mjpropiedades_card_background" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_background', '#ffffff')); ?>" /></td>
@@ -6354,11 +6478,17 @@ function mjpropiedades_admin_page() {
                     <th scope="row">Color del Texto del Botón</th>
                     <td><input type="color" name="mjpropiedades_card_button_text" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_button_text', '#ffffff')); ?>" /></td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Configuración de Agentes -->
-            <h2>Configuración de Agentes</h2>
-            <table class="form-table">
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Configuración de Agentes</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
                 <tr>
                     <th scope="row">Agente por Defecto</th>
                     <td>
@@ -6392,7 +6522,10 @@ function mjpropiedades_admin_page() {
                         </label>
                     </td>
                 </tr>
-            </table>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <p class="submit">
                 <input type="submit" name="submit" class="button-primary" value="Guardar Configuración" />
@@ -6403,6 +6536,22 @@ function mjpropiedades_admin_page() {
     <script type="text/javascript">
     jQuery(document).ready(function($) {
         var mediaUploader;
+        
+        // Funcionalidad del acordeón
+        $('.mjpropiedades-accordion-header').click(function() {
+            var content = $(this).next('.mjpropiedades-accordion-content');
+            var isActive = $(this).hasClass('active');
+            
+            // Cerrar todos los otros acordeones
+            $('.mjpropiedades-accordion-header').removeClass('active');
+            $('.mjpropiedades-accordion-content').removeClass('active');
+            
+            // Si este acordeón no estaba activo, lo abrimos
+            if (!isActive) {
+                $(this).addClass('active');
+                content.addClass('active');
+            }
+        });
         
         // Función genérica para manejar selectores de medios
         function createMediaUploader(buttonId, inputId, previewId, previewContainerId, removeButtonId, title) {
