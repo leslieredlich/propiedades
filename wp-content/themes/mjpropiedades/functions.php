@@ -8,6 +8,198 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// ========================================
+// CONFIGURACIÓN DE EMAIL SMTP
+// ========================================
+
+// Configurar SMTP para Contact Form 7
+function mjpropiedades_configure_smtp($phpmailer) {
+    // Configuración SMTP para homeisa.cl
+    $phpmailer->isSMTP();
+    $phpmailer->Host = 'vps-1765142.promecanicaservicios.com'; // Cambia por tu servidor SMTP
+    $phpmailer->SMTPAuth = true;
+    $phpmailer->Port = 465; // Puerto TLS (usa 465 para SSL)
+    $phpmailer->Username = 'contacto@devkreativo.cl';
+    $phpmailer->Password = 'dy0*Z6-SGy$h*h6M'; // Cambia por tu contraseña real
+    $phpmailer->SMTPSecure = 'ssl'; // 'tls' o 'ssl'
+    $phpmailer->From = 'contacto@devkreativo.cl';
+    $phpmailer->FromName = 'Home Isa - Corredora de Propiedades';
+    $phpmailer->CharSet = 'UTF-8';
+    $phpmailer->isHTML(true);
+}
+add_action('phpmailer_init', 'mjpropiedades_configure_smtp');
+
+// Configuración alternativa usando wp_mail
+function mjpropiedades_configure_wp_mail() {
+    // Configurar headers por defecto
+    add_filter('wp_mail_from', function() {
+        return 'contacto@devkreativo.cl';
+    });
+    
+    add_filter('wp_mail_from_name', function() {
+        return 'Home Isa - Corredora de Propiedades';
+    });
+    
+    add_filter('wp_mail_content_type', function() {
+        return 'text/html; charset=UTF-8';
+    });
+}
+add_action('init', 'mjpropiedades_configure_wp_mail');
+
+// ========================================
+// CONFIGURACIÓN AUTOMÁTICA DE CONTACT FORM 7
+// ========================================
+
+// Crear formulario de contacto automáticamente al activar el tema
+function mjpropiedades_create_default_contact_form() {
+    // Verificar si ya existe un formulario
+    $existing_form = get_posts(array(
+        'post_type' => 'wpcf7_contact_form',
+        'posts_per_page' => 1,
+        'post_status' => 'publish'
+    ));
+    
+    if (empty($existing_form)) {
+        // Crear el formulario
+        $form_id = wp_insert_post(array(
+            'post_type' => 'wpcf7_contact_form',
+            'post_title' => 'Formulario de Contacto',
+            'post_content' => mjpropiedades_get_contact_form_template(),
+            'post_status' => 'publish'
+        ));
+        
+        if ($form_id) {
+            // Configurar el formulario
+            mjpropiedades_configure_contact_form($form_id);
+        }
+    }
+}
+add_action('after_switch_theme', 'mjpropiedades_create_default_contact_form');
+
+// Plantilla del formulario de contacto
+function mjpropiedades_get_contact_form_template() {
+    return '
+<div class="form-row">
+    <div class="form-group">
+        <label for="nombre">Nombre completo</label>
+        [text* nombre id:nombre class:form-input placeholder "Tu nombre completo"]
+    </div>
+    <div class="form-group">
+        <label for="email">Email</label>
+        [email* email id:email class:form-input placeholder "tu@email.com"]
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group">
+        <label for="telefono">Teléfono</label>
+        [tel telefono id:telefono class:form-input placeholder "Tu teléfono"]
+    </div>
+    <div class="form-group">
+        <label for="tipo-consulta">Tipo de consulta</label>
+        [select tipo-consulta id:tipo-consulta class:form-select include_blank "Seleccionar tipo" "Compra de propiedad" "Venta de propiedad" "Arriendo" "Tasación" "Consulta general"]
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="mensaje">Mensaje</label>
+    [textarea* mensaje id:mensaje class:form-textarea placeholder "Cuéntanos más sobre tu consulta..."]
+</div>
+
+<div class="form-submit">
+    [submit class:submit-btn "ENVIAR CONSULTA"]
+</div>
+    ';
+}
+
+// Configurar el formulario de contacto
+function mjpropiedades_configure_contact_form($form_id) {
+    // Configurar mensajes
+    update_post_meta($form_id, '_form', mjpropiedades_get_contact_form_template());
+    update_post_meta($form_id, '_mail', array(
+        'subject' => 'Nueva consulta desde homeisa.cl',
+        'sender' => '[nombre] <[email]>',
+        'body' => mjpropiedades_get_email_template(),
+        'recipient' => 'contacto@devkreativo.cl',
+        'additional_headers' => '',
+        'attachments' => '',
+        'use_html' => 1,
+        'exclude_blank' => 0
+    ));
+    
+    // Configurar mensaje de envío exitoso
+    update_post_meta($form_id, '_mail_2', array(
+        'active' => 1,
+        'subject' => 'Confirmación de consulta recibida',
+        'sender' => 'Home Isa <contacto@devkreativo.cl>',
+        'body' => 'Hola [nombre],<br><br>Hemos recibido tu consulta y te contactaremos pronto.<br><br>Gracias por contactarnos,<br>Equipo Home Isa',
+        'recipient' => '[email]',
+        'additional_headers' => '',
+        'attachments' => '',
+        'use_html' => 1,
+        'exclude_blank' => 0
+    ));
+    
+    // Mensajes del formulario
+    update_post_meta($form_id, '_messages', array(
+        'mail_sent_ok' => '¡Gracias por tu consulta! Hemos recibido tu mensaje y te contactaremos pronto.',
+        'mail_sent_ng' => 'Hubo un error al enviar tu mensaje. Por favor, inténtalo de nuevo.',
+        'validation_error' => 'Uno o más campos tienen un error. Por favor, revísalos e inténtalo de nuevo.',
+        'spam' => 'Tu mensaje fue considerado como spam. Por favor, inténtalo de nuevo.',
+        'acceptance_missing' => 'Debes aceptar los términos y condiciones.',
+        'quiz_answer_not_correct' => 'La respuesta del cuestionario es incorrecta.',
+        'captcha_not_match' => 'Tu respuesta no es correcta.',
+        'invalid_email' => 'La dirección de correo electrónico que ingresaste no es válida.',
+        'invalid_required' => 'Este campo es obligatorio.',
+        'invalid_too_long' => 'Este campo es demasiado largo.',
+        'invalid_too_short' => 'Este campo es demasiado corto.'
+    ));
+}
+
+// Plantilla del email
+function mjpropiedades_get_email_template() {
+    return '
+<h2>Nueva Consulta desde homeisa.cl</h2>
+
+<p><strong>Detalles de la consulta:</strong></p>
+<ul>
+    <li><strong>Nombre:</strong> [nombre]</li>
+    <li><strong>Email:</strong> [email]</li>
+    <li><strong>Teléfono:</strong> [telefono]</li>
+    <li><strong>Tipo de consulta:</strong> [tipo-consulta]</li>
+</ul>
+
+<p><strong>Mensaje:</strong></p>
+<p>[mensaje]</p>
+
+<hr>
+<p><em>Este mensaje fue enviado desde el formulario de contacto de homeisa.cl</em></p>
+    ';
+}
+
+// Función para obtener el ID del formulario automáticamente
+function mjpropiedades_get_contact_form_id() {
+    $forms = get_posts(array(
+        'post_type' => 'wpcf7_contact_form',
+        'posts_per_page' => 1,
+        'post_status' => 'publish'
+    ));
+    
+    if (!empty($forms)) {
+        return $forms[0]->ID;
+    }
+    
+    return 1; // Fallback
+}
+
+// Hook para ejecutar la creación del formulario cuando se active Contact Form 7
+add_action('wpcf7_init', function() {
+    if (!get_option('mjpropiedades_contact_form_created')) {
+        mjpropiedades_create_default_contact_form();
+        update_option('mjpropiedades_contact_form_created', true);
+    }
+});
+
 // Configuración del tema
 function mjpropiedades_setup() {
     // Soporte para título dinámico
@@ -43,6 +235,40 @@ function mjpropiedades_setup() {
     add_filter('page_template', 'mjpropiedades_page_template');
 }
 add_action('after_setup_theme', 'mjpropiedades_setup');
+
+// Función helper para obtener URLs dinámicas del menú
+function mjpropiedades_get_dynamic_menu_url($link_text, $url) {
+    // Detectar si estamos en la página de inicio
+    $is_homepage = is_front_page() || is_page_template('page-inicio.php');
+    
+    // Modificar URLs específicas
+    if (strpos($url, '#servicios') !== false) {
+        return $is_homepage ? '#servicios' : home_url('/inicio/#servicios');
+    }
+    
+    if (strpos($url, '#propiedades') !== false || 
+        (strpos($link_text, 'Propiedades') !== false && strpos($url, '#') !== false)) {
+        // Buscar la página de propiedades
+        $propiedades_page = get_page_by_path('propiedades');
+        if ($propiedades_page) {
+            return $is_homepage ? '#venta' : get_permalink($propiedades_page);
+        } else {
+            // Fallback: usar archive de propiedades
+            return $is_homepage ? '#venta' : get_post_type_archive_link('propiedad');
+        }
+    }
+    
+    return $url;
+}
+
+// Filtro para modificar los enlaces del menú principal
+add_filter('nav_menu_link_attributes', 'mjpropiedades_modify_menu_links', 10, 3);
+function mjpropiedades_modify_menu_links($atts, $item, $args) {
+    if (isset($atts['href'])) {
+        $atts['href'] = mjpropiedades_get_dynamic_menu_url($item->title, $atts['href']);
+    }
+    return $atts;
+}
 
 
 // Registrar post type para consultas de contacto
@@ -917,7 +1143,7 @@ function mjpropiedades_display_properties($operacion = 'venta', $limit = 3) {
             
             $tag_class = ($operacion_real === 'arriendo') ? 'style="background: var(--orange);"' : '';
             $tag_text = ucfirst($operacion_real);
-            $precio_text = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
+            $precio_text = $precio ? '$' . number_format(floatval($precio), 0, ',', '.') : 'Consultar';
             if ($operacion_real === 'arriendo') {
                 $precio_text .= '/mes';
             }
@@ -1088,6 +1314,7 @@ function mjpropiedades_customize_register($wp_customize) {
         'title'    => __('Logo del Footer', 'mjpropiedades'),
         'priority' => 28,
         'description' => __('Configura el logo específico para el footer, independiente del logo del header', 'mjpropiedades'),
+        'active_callback' => '__return_true',
     ));
     
     // Logo del footer
@@ -1208,6 +1435,7 @@ function mjpropiedades_customize_register($wp_customize) {
     $wp_customize->add_section('mjpropiedades_hero', array(
         'title'    => __('Hero Slider', 'mjpropiedades'),
         'priority' => 25,
+        'active_callback' => '__return_true',
     ));
     
     // Hero Image 1 - Compra de Propiedades
@@ -1627,12 +1855,14 @@ function mjpropiedades_customize_register($wp_customize) {
     $wp_customize->add_section('mjpropiedades_about', array(
         'title'    => __('Sección Quiénes Somos', 'mjpropiedades'),
         'priority' => 30,
+        'active_callback' => '__return_true',
     ));
     
     // Sección Servicios
     $wp_customize->add_section('mjpropiedades_services', array(
         'title'    => __('Sección Nuestros Servicios', 'mjpropiedades'),
-        'priority' => 35,
+        'priority' => 32,
+        'active_callback' => '__return_true',
     ));
     
     // Imagen de María José
@@ -1830,7 +2060,8 @@ function mjpropiedades_customize_register($wp_customize) {
     // Sección Testimonios
     $wp_customize->add_section('mjpropiedades_testimonials', array(
         'title'    => __('Sección Testimonios', 'mjpropiedades'),
-        'priority' => 32,
+        'priority' => 33,
+        'active_callback' => '__return_true',
     ));
     
     // Título de la sección
@@ -2056,7 +2287,8 @@ function mjpropiedades_customize_register($wp_customize) {
     // Sección de configuración del menú
     $wp_customize->add_section('mjpropiedades_menu', array(
         'title'    => __('Configuración del Menú', 'mjpropiedades'),
-        'priority' => 35,
+        'priority' => 38,
+        'active_callback' => '__return_true',
     ));
     
     // Alineación del menú
@@ -2175,7 +2407,8 @@ function mjpropiedades_customize_register($wp_customize) {
     // ===== SECCIÓN DE TIPOGRAFÍA =====
     $wp_customize->add_section('mjpropiedades_typography', array(
         'title'    => __('Tipografía', 'mjpropiedades'),
-        'priority' => 30,
+        'priority' => 34,
+        'active_callback' => '__return_true',
     ));
     
     // Tamaño de títulos principales (H1) - Basado en la imagen de referencia
@@ -2352,6 +2585,7 @@ function mjpropiedades_customize_register($wp_customize) {
         'title'    => __('Títulos de Secciones', 'mjpropiedades'),
         'priority' => 31,
         'description' => __('Controla el estilo y alineación de los títulos de secciones en la página de inicio', 'mjpropiedades'),
+        'active_callback' => '__return_true',
     ));
     
     // Alineación de títulos de secciones
@@ -2470,7 +2704,8 @@ function mjpropiedades_customize_register($wp_customize) {
     // Sección de información de contacto
     $wp_customize->add_section('mjpropiedades_contact_info', array(
         'title'    => __('Información de Contacto', 'mjpropiedades'),
-        'priority' => 45,
+        'priority' => 39,
+        'active_callback' => '__return_true',
     ));
     
     // Email de contacto
@@ -3397,121 +3632,6 @@ function mjpropiedades_save_page_template($post_id) {
 }
 add_action('save_post', 'mjpropiedades_save_page_template');
 
-// Agregar sección de colores para propiedades destacadas
-function mjpropiedades_add_property_colors_section($wp_customize) {
-    // Sección de colores para propiedades
-    $wp_customize->add_section('mjpropiedades_property_colors', array(
-        'title'    => __('Colores de Tarjetas de Propiedades', 'mjpropiedades'),
-        'priority' => 40,
-    ));
-    
-    // Color del precio
-    $wp_customize->add_setting('mjpropiedades_property_price_color', array(
-        'default' => '#8b4513',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_price_color', array(
-        'label' => __('Color del Precio', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del título
-    $wp_customize->add_setting('mjpropiedades_property_title_color', array(
-        'default' => '#1f2937',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_title_color', array(
-        'label' => __('Color del Título', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color de la ubicación
-    $wp_customize->add_setting('mjpropiedades_property_location_color', array(
-        'default' => '#6b7280',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_location_color', array(
-        'label' => __('Color de la Ubicación', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color de las características
-    $wp_customize->add_setting('mjpropiedades_property_features_color', array(
-        'default' => '#6b7280',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_features_color', array(
-        'label' => __('Color de las Características', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del botón
-    $wp_customize->add_setting('mjpropiedades_property_button_color', array(
-        'default' => '#8b4513',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_button_color', array(
-        'label' => __('Color del Botón', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del botón al hacer hover
-    $wp_customize->add_setting('mjpropiedades_property_button_hover_color', array(
-        'default' => '#6d3410',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_button_hover_color', array(
-        'label' => __('Color del Botón (Hover)', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del tag de venta
-    $wp_customize->add_setting('mjpropiedades_property_tag_venta_color', array(
-        'default' => '#10b981',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_tag_venta_color', array(
-        'label' => __('Color del Tag "Venta"', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-    
-    // Color del tag de arriendo
-    $wp_customize->add_setting('mjpropiedades_property_tag_arriendo_color', array(
-        'default' => '#3b82f6',
-        'sanitize_callback' => 'sanitize_hex_color',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'mjpropiedades_property_tag_arriendo_color', array(
-        'label' => __('Color del Tag "Arriendo"', 'mjpropiedades'),
-        'section' => 'mjpropiedades_property_colors',
-    )));
-}
-add_action('customize_register', 'mjpropiedades_add_property_colors_section');
-
-// Agregar CSS dinámico para colores de propiedades
-function mjpropiedades_property_colors_css() {
-    $price_color = get_theme_mod('mjpropiedades_property_price_color', '#8b4513');
-    $title_color = get_theme_mod('mjpropiedades_property_title_color', '#1f2937');
-    $location_color = get_theme_mod('mjpropiedades_property_location_color', '#6b7280');
-    $features_color = get_theme_mod('mjpropiedades_property_features_color', '#6b7280');
-    $button_color = get_theme_mod('mjpropiedades_property_button_color', '#8b4513');
-    $button_hover_color = get_theme_mod('mjpropiedades_property_button_hover_color', '#6d3410');
-    $tag_venta_color = get_theme_mod('mjpropiedades_property_tag_venta_color', '#10b981');
-    $tag_arriendo_color = get_theme_mod('mjpropiedades_property_tag_arriendo_color', '#3b82f6');
-    
-    echo '<style type="text/css">';
-    echo ':root {';
-    echo '--property-price-color: ' . esc_attr($price_color) . ';';
-    echo '--property-title-color: ' . esc_attr($title_color) . ';';
-    echo '--property-location-color: ' . esc_attr($location_color) . ';';
-    echo '--property-features-color: ' . esc_attr($features_color) . ';';
-    echo '--property-button-color: ' . esc_attr($button_color) . ';';
-    echo '--property-button-hover-color: ' . esc_attr($button_hover_color) . ';';
-    echo '--property-tag-venta-color: ' . esc_attr($tag_venta_color) . ';';
-    echo '--property-tag-arriendo-color: ' . esc_attr($tag_arriendo_color) . ';';
-    echo '}';
-    echo '</style>';
-}
-add_action('wp_head', 'mjpropiedades_property_colors_css');
 
 // Generar sitemap XML
 function mjpropiedades_generate_sitemap() {
@@ -3841,25 +3961,246 @@ function mjpropiedades_search_properties() {
         }
     }
     
-    if (isset($_GET['precio_min']) && !empty($_GET['precio_min']) && $_GET['precio_min'] > 0) {
+    // Filtro de precio: manejar rangos correctamente
+    $precio_min = isset($_GET['precio_min']) && !empty($_GET['precio_min']) ? intval($_GET['precio_min']) : 0;
+    $precio_max = isset($_GET['precio_max']) && !empty($_GET['precio_max']) ? intval($_GET['precio_max']) : 0;
+    
+    if ($precio_min > 0 && $precio_max > 0) {
+        // Si hay ambos valores, usar BETWEEN
         $args['meta_query'][] = array(
             'key' => '_propiedad_precio',
-            'value' => intval($_GET['precio_min']),
+            'value' => array($precio_min, $precio_max),
+            'compare' => 'BETWEEN',
+            'type' => 'NUMERIC'
+        );
+    } elseif ($precio_min > 0) {
+        // Solo precio mínimo
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_precio',
+            'value' => $precio_min,
             'compare' => '>=',
             'type' => 'NUMERIC'
         );
-    }
-    
-    if (isset($_GET['precio_max']) && !empty($_GET['precio_max']) && $_GET['precio_max'] < 1000000000) {
+    } elseif ($precio_max > 0) {
+        // Solo precio máximo
         $args['meta_query'][] = array(
             'key' => '_propiedad_precio',
-            'value' => intval($_GET['precio_max']),
+            'value' => $precio_max,
             'compare' => '<=',
             'type' => 'NUMERIC'
         );
     }
     
     return new WP_Query($args);
+}
+
+// ===== FORMULARIO DE BÚSQUEDA REUTILIZABLE =====
+
+/**
+ * Genera el formulario de búsqueda de propiedades
+ * @param array $args Argumentos de configuración del formulario
+ * @return string HTML del formulario
+ */
+function mjpropiedades_get_search_form($args = array()) {
+    // Valores por defecto
+    $defaults = array(
+        'action' => home_url('/propiedades/'),
+        'method' => 'get',
+        'class' => 'search-form',
+        'show_title' => true,
+        'title' => 'Encuentra tu Propiedad Ideal',
+        'button_text' => 'Buscar Propiedades',
+        'preserve_values' => true,
+        'form_id' => 'search-form-' . uniqid()
+    );
+    
+    $args = wp_parse_args($args, $defaults);
+    
+    // Obtener valores actuales si se deben preservar
+    $current_values = array();
+    if ($args['preserve_values']) {
+        $current_values = array(
+            'tipo_propiedad' => isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : '',
+            'ubicacion' => isset($_GET['ubicacion']) ? $_GET['ubicacion'] : '',
+            'dormitorios' => isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '',
+            'banos' => isset($_GET['banos']) ? $_GET['banos'] : '',
+            'precio_min' => isset($_GET['precio_min']) ? $_GET['precio_min'] : '0',
+            'precio_max' => isset($_GET['precio_max']) ? $_GET['precio_max'] : '1000000000'
+        );
+    }
+    
+    // Obtener opciones de configuración
+    $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array(
+        'casa' => 'Casa',
+        'departamento' => 'Departamento',
+        'oficina' => 'Oficina',
+        'local' => 'Local Comercial',
+        'terreno' => 'Terreno'
+    ));
+    
+    $comunas = get_option('mjpropiedades_comunas', array(
+        'la-serena' => 'La Serena',
+        'coquimbo' => 'Coquimbo',
+        'ovalle' => 'Ovalle',
+        'vicuna' => 'Vicuña',
+        'paihuano' => 'Paihuano',
+        'andacollo' => 'Andacollo',
+        'combarbala' => 'Combarbalá',
+        'monte-patri' => 'Monte Patria',
+        'punitaqui' => 'Punitaqui',
+        'rio-hurtado' => 'Río Hurtado'
+    ));
+    
+    $dormitorios_options = get_option('mjpropiedades_dormitorios', array(
+        '1' => '1 dormitorio',
+        '2' => '2 dormitorios',
+        '3' => '3 dormitorios',
+        '4' => '4 dormitorios',
+        '5+' => '5+ dormitorios'
+    ));
+    
+    $banos_options = get_option('mjpropiedades_banos', array(
+        '1' => '1 baño',
+        '2' => '2 baños',
+        '3' => '3 baños',
+        '4' => '4 baños',
+        '5+' => '5+ baños'
+    ));
+    
+    ob_start();
+    ?>
+        <div class="search-form-container <?php echo (isset($args['form_id']) && $args['form_id'] === 'properties-search-form') ? 'search-form-clean' : ''; ?>">
+            <?php if ($args['show_title']): ?>
+            <div class="search-header">
+                <h2 class="section-title"><?php echo esc_html($args['title']); ?></h2>
+            </div>
+            <?php endif; ?>
+        
+        <form id="<?php echo esc_attr($args['form_id']); ?>" class="<?php echo esc_attr($args['class']); ?>" method="<?php echo esc_attr($args['method']); ?>" action="<?php echo esc_url($args['action']); ?>">
+            <!-- Primera fila: Todos los select en una fila -->
+            <div class="search-form-row select-row">
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-tipo-propiedad" class="search-label">Tipo de Propiedad</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-tipo-propiedad" name="tipo_propiedad" class="search-select">
+                        <option value="">Todos los tipos</option>
+                        <?php foreach ($tipos_propiedad as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['tipo_propiedad'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-ubicacion" class="search-label">Ubicación</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-ubicacion" name="ubicacion" class="search-select">
+                        <option value="">Seleccionar comuna</option>
+                        <?php foreach ($comunas as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['ubicacion'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-dormitorios" class="search-label">Dormitorios</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-dormitorios" name="dormitorios" class="search-select">
+                        <option value="">Cualquier cantidad</option>
+                        <?php foreach ($dormitorios_options as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['dormitorios'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-banos" class="search-label">Baños</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-banos" name="banos" class="search-select">
+                        <option value="">Cualquier cantidad</option>
+                        <?php foreach ($banos_options as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['banos'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Segunda fila: Sliders de precio -->
+            <div class="search-form-row price-row">
+                <div class="search-group price-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-precio-min" class="search-label">Precio Mínimo (CLP)</label>
+                    <div class="price-slider-container">
+                        <input type="range" id="<?php echo esc_attr($args['form_id']); ?>-precio-min" name="precio_min" class="price-slider" min="0" max="1000000000" value="<?php echo esc_attr($current_values['precio_min']); ?>" step="100000">
+                        <div class="price-display">
+                            <span class="price-value" id="<?php echo esc_attr($args['form_id']); ?>-precio-min-value">$<?php echo number_format(floatval($current_values['precio_min']), 0, ',', '.'); ?></span>
+                            <span class="price-max">$1.000.000.000</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="search-group price-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-precio-max" class="search-label">Precio Máximo (CLP)</label>
+                    <div class="price-slider-container">
+                        <input type="range" id="<?php echo esc_attr($args['form_id']); ?>-precio-max" name="precio_max" class="price-slider" min="0" max="1000000000" value="<?php echo esc_attr($current_values['precio_max']); ?>" step="100000">
+                        <div class="price-display">
+                            <span class="price-min">$0</span>
+                            <span class="price-value" id="<?php echo esc_attr($args['form_id']); ?>-precio-max-value">$<?php echo number_format(floatval($current_values['precio_max']), 0, ',', '.'); ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botón de búsqueda -->
+            <div class="search-actions">
+                <button type="submit" class="search-btn">
+                    <?php echo esc_html($args['button_text']); ?>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+    // Script para actualizar los valores de precio en tiempo real
+    document.addEventListener('DOMContentLoaded', function() {
+        const formId = '<?php echo esc_js($args['form_id']); ?>';
+        const minSlider = document.getElementById(formId + '-precio-min');
+        const maxSlider = document.getElementById(formId + '-precio-max');
+        const minValue = document.getElementById(formId + '-precio-min-value');
+        const maxValue = document.getElementById(formId + '-precio-max-value');
+        
+        function formatPrice(price) {
+            return '$' + new Intl.NumberFormat('es-CL').format(price);
+        }
+        
+        if (minSlider && minValue) {
+            minSlider.addEventListener('input', function() {
+                minValue.textContent = formatPrice(this.value);
+                // Asegurar que el mínimo no sea mayor que el máximo
+                if (parseInt(this.value) > parseInt(maxSlider.value)) {
+                    maxSlider.value = this.value;
+                    maxValue.textContent = formatPrice(this.value);
+                }
+            });
+        }
+        
+        if (maxSlider && maxValue) {
+            maxSlider.addEventListener('input', function() {
+                maxValue.textContent = formatPrice(this.value);
+                // Asegurar que el máximo no sea menor que el mínimo
+                if (parseInt(this.value) < parseInt(minSlider.value)) {
+                    minSlider.value = this.value;
+                    minValue.textContent = formatPrice(this.value);
+                }
+            });
+        }
+    });
+    </script>
+    <?php
+    
+    return ob_get_clean();
 }
 
 // ===== CONFIGURACIÓN DE COLORES PARA TARJETAS DE PROPIEDADES =====
@@ -3871,8 +4212,9 @@ function mjpropiedades_property_cards_customizer($wp_customize) {
     $wp_customize->add_section('mjpropiedades_property_cards_colors', array(
         'title' => __('Colores de Tarjetas de Propiedades', 'mjpropiedades'),
         'description' => __('Configura los colores para las tarjetas de propiedades', 'mjpropiedades'),
-        'priority' => 30,
+        'priority' => 36,
         'capability' => 'edit_theme_options',
+        'active_callback' => '__return_true',
     ));
     
     // Color de fondo de la tarjeta
@@ -4195,58 +4537,69 @@ function mjpropiedades_property_cards_dynamic_css() {
         background: {$card_arriendo_tag_bg} !important;
         box-shadow: 0 1px 3px {$card_arriendo_tag_bg}66 !important;
     }
+    
+    /* Selectores adicionales para compatibilidad */
+    .property-status-tag {
+        color: {$card_tag_text} !important;
+    }
+    
+    .property-status-tag.venta {
+        background: {$card_tag_bg} !important;
+        box-shadow: 0 1px 3px {$card_tag_bg}66 !important;
+    }
+    
+    .property-status-tag.arriendo {
+        background: {$card_arriendo_tag_bg} !important;
+        box-shadow: 0 1px 3px {$card_arriendo_tag_bg}66 !important;
+    }
+    
+    .property-details {
+        color: {$card_details} !important;
+    }
+    
+    .property-feature {
+        color: {$card_details} !important;
+    }
+    
+    .property-feature svg {
+        color: {$card_icons} !important;
+    }
+    
+    .property-button {
+        background: {$card_button_bg} !important;
+        color: {$card_button_text} !important;
+    }
+    
+    .property-button:hover {
+        background: {$card_button_hover} !important;
+        color: {$card_button_text_hover} !important;
+    }
+    
+    /* Selectores para archivos específicos */
+    .featured-properties-grid .property-card {
+        background: {$card_bg} !important;
+        box-shadow: 0 2px 8px {$card_shadow} !important;
+    }
+    
+    .featured-properties-grid .property-card:hover {
+        box-shadow: 0 8px 25px {$card_shadow_hover} !important;
+    }
+    
+    .properties-grid .property-card {
+        background: {$card_bg} !important;
+        box-shadow: 0 2px 8px {$card_shadow} !important;
+    }
+    
+    .properties-grid .property-card:hover {
+        box-shadow: 0 8px 25px {$card_shadow_hover} !important;
+    }
     ";
     
     return $css;
 }
 
-// Agregar CSS dinámico al head
-function mjpropiedades_property_cards_css() {
-    // Verificar si estamos en la página de propiedades o en cualquier página que muestre propiedades
-    $should_load = false;
-    
-    // Verificar página específica por slug
-    if (is_page('propiedades')) {
-        $should_load = true;
-    }
-    
-    // Verificar por ID de página
-    $propiedades_page = get_page_by_path('propiedades');
-    if ($propiedades_page && is_page($propiedades_page->ID)) {
-        $should_load = true;
-    }
-    
-    // Verificar si estamos en home o front page (donde también pueden aparecer propiedades)
-    if (is_home() || is_front_page()) {
-        $should_load = true;
-    }
-    
-    // Verificar si hay propiedades en la consulta actual
-    global $wp_query;
-    if ($wp_query && $wp_query->get('post_type') === 'propiedad') {
-        $should_load = true;
-    }
-    
-    // Verificar si estamos en cualquier página que contenga el template de propiedades
-    if (is_page_template('page-propiedades.php')) {
-        $should_load = true;
-    }
-    
-    // Verificar si estamos usando el template de inicio (page-inicio.php)
-    if (is_page_template('page-inicio.php')) {
-        $should_load = true;
-    }
-    
-    // Verificar si estamos en la página de inicio por slug
-    if (is_page('inicio')) {
-        $should_load = true;
-    }
-    
-    if ($should_load) {
-        echo '<style type="text/css" id="mjpropiedades-property-cards-colors">' . mjpropiedades_property_cards_dynamic_css() . '</style>';
-    }
-}
-add_action('wp_head', 'mjpropiedades_property_cards_css');
+// Reemplazar la función anterior con la nueva que incluye versión
+add_action('wp_head', 'mjpropiedades_property_cards_css_with_version');
 
 // Función adicional para cargar CSS específicamente en el template de propiedades
 function mjpropiedades_load_property_cards_css_in_template() {
@@ -4299,49 +4652,55 @@ function mjpropiedades_property_cards_customizer_js() {
         
         wp.customize('mjpropiedades_card_button_bg', function(value) {
             value.bind(function(newval) {
-                $('.property-btn').css('background', newval);
+                $('.property-btn, .property-button').css('background', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_button_text', function(value) {
             value.bind(function(newval) {
-                $('.property-btn').css('color', newval);
+                $('.property-btn, .property-button').css('color', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_button_hover', function(value) {
             value.bind(function(newval) {
-                $('.property-btn:hover').css('background', newval);
+                $('.property-btn:hover, .property-button:hover').css('background', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_button_text_hover', function(value) {
             value.bind(function(newval) {
-                $('.property-btn:hover').css('color', newval);
+                $('.property-btn:hover, .property-button:hover').css('color', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_details_color', function(value) {
             value.bind(function(newval) {
-                $('.detail-item').css('color', newval);
+                $('.detail-item, .property-details, .property-feature').css('color', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_icons_color', function(value) {
             value.bind(function(newval) {
-                $('.detail-item svg').css('color', newval);
+                $('.detail-item svg, .property-feature svg').css('color', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_tag_bg', function(value) {
             value.bind(function(newval) {
-                $('.property-tag').css('background', newval);
+                $('.property-tag.venta, .property-status-tag.venta').css('background', newval);
+            });
+        });
+        
+        wp.customize('mjpropiedades_card_arriendo_tag_bg', function(value) {
+            value.bind(function(newval) {
+                $('.property-tag.arriendo, .property-status-tag.arriendo').css('background', newval);
             });
         });
         
         wp.customize('mjpropiedades_card_tag_text', function(value) {
             value.bind(function(newval) {
-                $('.property-tag').css('color', newval);
+                $('.property-tag, .property-status-tag').css('color', newval);
             });
         });
         
@@ -4361,7 +4720,99 @@ function mjpropiedades_property_cards_customizer_js() {
     </script>
     <?php
 }
-add_action('customize_controls_print_scripts', 'mjpropiedades_property_cards_customizer_js');
+add_action('customize_preview_init', 'mjpropiedades_property_cards_customizer_js');
+
+// Limpiar caché cuando se cambien los colores de las tarjetas
+function mjpropiedades_clear_cache_on_property_cards_color_change() {
+    // Limpiar caché de WordPress si existe
+    if (function_exists('wp_cache_flush')) {
+        wp_cache_flush();
+    }
+    
+    // Limpiar caché de objetos específico
+    if (function_exists('wp_cache_delete')) {
+        wp_cache_delete('mjpropiedades_property_cards_colors', 'theme_mods');
+    }
+}
+add_action('customize_save_after', 'mjpropiedades_clear_cache_on_property_cards_color_change');
+
+// Agregar parámetros de versión para evitar caché en el CSS de tarjetas
+function mjpropiedades_add_version_to_property_cards_css() {
+    return time(); // Cambia cada vez que se carga la página
+}
+
+// Modificar la función que carga el CSS para agregar versión
+function mjpropiedades_property_cards_css_with_version() {
+    // Verificar si estamos en la página de propiedades o en cualquier página que muestre propiedades
+    $should_load = false;
+    
+    // Verificar página específica por slug
+    if (is_page('propiedades')) {
+        $should_load = true;
+    }
+    
+    // Verificar por ID de página
+    $propiedades_page = get_page_by_path('propiedades');
+    if ($propiedades_page && is_page($propiedades_page->ID)) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en home o front page (donde también pueden aparecer propiedades)
+    if (is_home() || is_front_page()) {
+        $should_load = true;
+    }
+    
+    // Verificar si hay propiedades en la consulta actual
+    global $wp_query;
+    if ($wp_query && $wp_query->get('post_type') === 'propiedad') {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en cualquier página que contenga el template de propiedades
+    if (is_page_template('page-propiedades.php')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos usando el template de inicio (page-inicio.php)
+    if (is_page_template('page-inicio.php')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en la página de inicio por slug
+    if (is_page('inicio')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en el archivo de propiedades (archive-propiedad.php)
+    if (is_post_type_archive('propiedad')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en una página individual de propiedad (single-propiedad.php)
+    if (is_singular('propiedad')) {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en cualquier página que use el template de inicio
+    if (is_page() && get_page_template_slug() === 'page-inicio.php') {
+        $should_load = true;
+    }
+    
+    // Verificar si estamos en cualquier página que use el template de propiedades
+    if (is_page() && get_page_template_slug() === 'page-propiedades.php') {
+        $should_load = true;
+    }
+    
+    // Verificar si el contenido de la página contiene tarjetas de propiedades
+    if (is_page() && (strpos(get_post_field('post_content', get_the_ID()), 'property-card') !== false)) {
+        $should_load = true;
+    }
+    
+    if ($should_load) {
+        $version = mjpropiedades_add_version_to_property_cards_css();
+        echo '<style type="text/css" id="mjpropiedades-property-cards-colors" data-version="' . $version . '">' . mjpropiedades_property_cards_dynamic_css() . '</style>';
+    }
+}
 
 // Agregar página de administración para opciones de búsqueda
 function mjpropiedades_add_search_options_page() {
@@ -4595,4 +5046,1597 @@ function mjpropiedades_search_options_page() {
     </style>
     <?php
 }
+
+// ========================================
+// SISTEMA DE AGENTES INMOBILIARIOS
+// ========================================
+
+// 1. CREAR CUSTOM POST TYPE PARA AGENTES
+function mjpropiedades_create_agente_post_type() {
+    $labels = array(
+        'name' => 'Agentes',
+        'singular_name' => 'Agente',
+        'menu_name' => 'Agentes',
+        'add_new' => 'Agregar Agente',
+        'add_new_item' => 'Agregar Nuevo Agente',
+        'edit_item' => 'Editar Agente',
+        'new_item' => 'Nuevo Agente',
+        'view_item' => 'Ver Agente',
+        'search_items' => 'Buscar Agentes',
+        'not_found' => 'No se encontraron agentes',
+        'not_found_in_trash' => 'No se encontraron agentes en la papelera'
+    );
+
+    $args = array(
+        'labels' => $labels,
+        'public' => false,
+        'publicly_queryable' => false,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'query_var' => true,
+        'rewrite' => false,
+        'capability_type' => 'post',
+        'has_archive' => false,
+        'hierarchical' => false,
+        'menu_position' => 25,
+        'menu_icon' => 'dashicons-businessman',
+        'supports' => array('title', 'thumbnail', 'editor'),
+        'show_in_rest' => false
+    );
+
+    register_post_type('agente', $args);
+}
+add_action('init', 'mjpropiedades_create_agente_post_type');
+
+// 2. CREAR META BOXES PARA AGENTES
+function mjpropiedades_add_agente_meta_boxes() {
+    add_meta_box(
+        'agente_contact_info',
+        'Información de Contacto',
+        'mjpropiedades_agente_contact_info_callback',
+        'agente',
+        'normal',
+        'high'
+    );
+
+    add_meta_box(
+        'agente_specializations',
+        'Especializaciones',
+        'mjpropiedades_agente_specializations_callback',
+        'agente',
+        'normal',
+        'high'
+    );
+
+    add_meta_box(
+        'agente_stats',
+        'Estadísticas',
+        'mjpropiedades_agente_stats_callback',
+        'agente',
+        'side',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'mjpropiedades_add_agente_meta_boxes');
+
+// Callback para información de contacto
+function mjpropiedades_agente_contact_info_callback($post) {
+    wp_nonce_field('mjpropiedades_agente_contact_info', 'mjpropiedades_agente_contact_info_nonce');
+    
+    $telefono = get_post_meta($post->ID, '_agente_telefono', true);
+    $whatsapp = get_post_meta($post->ID, '_agente_whatsapp', true);
+    $email = get_post_meta($post->ID, '_agente_email', true);
+    $email_alt = get_post_meta($post->ID, '_agente_email_alt', true);
+    ?>
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="agente_telefono">Teléfono Principal</label></th>
+            <td><input type="tel" id="agente_telefono" name="agente_telefono" value="<?php echo esc_attr($telefono); ?>" class="regular-text" placeholder="+56 9 1234 5678" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_whatsapp">WhatsApp</label></th>
+            <td><input type="tel" id="agente_whatsapp" name="agente_whatsapp" value="<?php echo esc_attr($whatsapp); ?>" class="regular-text" placeholder="+56 9 1234 5678" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_email">Email Principal</label></th>
+            <td><input type="email" id="agente_email" name="agente_email" value="<?php echo esc_attr($email); ?>" class="regular-text" placeholder="agente@propiedades.com" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_email_alt">Email Alternativo</label></th>
+            <td><input type="email" id="agente_email_alt" name="agente_email_alt" value="<?php echo esc_attr($email_alt); ?>" class="regular-text" placeholder="alternativo@propiedades.com" /></td>
+        </tr>
+    </table>
+    <?php
+}
+
+// Callback para especializaciones
+function mjpropiedades_agente_specializations_callback($post) {
+    wp_nonce_field('mjpropiedades_agente_specializations', 'mjpropiedades_agente_specializations_nonce');
+    
+    $cargo = get_post_meta($post->ID, '_agente_cargo', true);
+    $comunas = get_post_meta($post->ID, '_agente_comunas', true);
+    $tipos_propiedad = get_post_meta($post->ID, '_agente_tipos_propiedad', true);
+    $operaciones = get_post_meta($post->ID, '_agente_operaciones', true);
+    $experiencia = get_post_meta($post->ID, '_agente_experiencia', true);
+    
+    if (!is_array($comunas)) $comunas = array();
+    if (!is_array($tipos_propiedad)) $tipos_propiedad = array();
+    if (!is_array($operaciones)) $operaciones = array();
+    
+    $comunas_disponibles = array('La Serena', 'Coquimbo', 'Ovalle', 'Vicuña', 'Illapel', 'Salamanca', 'Los Vilos', 'Andacollo', 'Punitaqui', 'Monte Patria', 'Combarbalá', 'Canela', 'Paiguano');
+    $tipos_disponibles = array('Casa', 'Departamento', 'Terreno', 'Local Comercial', 'Oficina', 'Bodega', 'Parcela', 'Edificio');
+    $operaciones_disponibles = array('Venta', 'Arriendo', 'Ambas');
+    ?>
+    
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="agente_cargo">Cargo/Especialización</label></th>
+            <td><input type="text" id="agente_cargo" name="agente_cargo" value="<?php echo esc_attr($cargo); ?>" class="regular-text" placeholder="Especialista en La Serena" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_experiencia">Años de Experiencia</label></th>
+            <td><input type="number" id="agente_experiencia" name="agente_experiencia" value="<?php echo esc_attr($experiencia); ?>" class="small-text" min="0" max="50" /></td>
+        </tr>
+        <tr>
+            <th scope="row">Comunas de Especialización</th>
+            <td>
+                <?php foreach ($comunas_disponibles as $comuna) : ?>
+                    <label style="display: block; margin-bottom: 5px;">
+                        <input type="checkbox" name="agente_comunas[]" value="<?php echo esc_attr($comuna); ?>" <?php checked(in_array($comuna, $comunas)); ?> />
+                        <?php echo esc_html($comuna); ?>
+                    </label>
+                <?php endforeach; ?>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Tipos de Propiedad</th>
+            <td>
+                <?php foreach ($tipos_disponibles as $tipo) : ?>
+                    <label style="display: block; margin-bottom: 5px;">
+                        <input type="checkbox" name="agente_tipos_propiedad[]" value="<?php echo esc_attr($tipo); ?>" <?php checked(in_array($tipo, $tipos_propiedad)); ?> />
+                        <?php echo esc_html($tipo); ?>
+                    </label>
+                <?php endforeach; ?>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Operaciones</th>
+            <td>
+                <?php foreach ($operaciones_disponibles as $operacion) : ?>
+                    <label style="display: block; margin-bottom: 5px;">
+                        <input type="checkbox" name="agente_operaciones[]" value="<?php echo esc_attr($operacion); ?>" <?php checked(in_array($operacion, $operaciones)); ?> />
+                        <?php echo esc_html($operacion); ?>
+                    </label>
+                <?php endforeach; ?>
+            </td>
+        </tr>
+    </table>
+    <?php
+}
+
+// Callback para estadísticas
+function mjpropiedades_agente_stats_callback($post) {
+    wp_nonce_field('mjpropiedades_agente_stats', 'mjpropiedades_agente_stats_nonce');
+    
+    $rating = get_post_meta($post->ID, '_agente_rating', true);
+    $resenas = get_post_meta($post->ID, '_agente_resenas', true);
+    $propiedades_vendidas = get_post_meta($post->ID, '_agente_propiedades_vendidas', true);
+    $activo = get_post_meta($post->ID, '_agente_activo', true);
+    ?>
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="agente_rating">Rating (0-5)</label></th>
+            <td><input type="number" id="agente_rating" name="agente_rating" value="<?php echo esc_attr($rating); ?>" class="small-text" min="0" max="5" step="0.1" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_resenas">Número de Reseñas</label></th>
+            <td><input type="number" id="agente_resenas" name="agente_resenas" value="<?php echo esc_attr($resenas); ?>" class="small-text" min="0" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_propiedades_vendidas">Propiedades Vendidas</label></th>
+            <td><input type="number" id="agente_propiedades_vendidas" name="agente_propiedades_vendidas" value="<?php echo esc_attr($propiedades_vendidas); ?>" class="small-text" min="0" /></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="agente_activo">Agente Activo</label></th>
+            <td><input type="checkbox" id="agente_activo" name="agente_activo" value="1" <?php checked($activo, '1'); ?> /> <label for="agente_activo">Activo</label></td>
+        </tr>
+    </table>
+    <?php
+}
+
+// 3. GUARDAR META BOXES DE AGENTES
+function mjpropiedades_save_agente_meta_boxes($post_id) {
+    // Verificar nonces y permisos
+    if (!isset($_POST['mjpropiedades_agente_contact_info_nonce']) || !wp_verify_nonce($_POST['mjpropiedades_agente_contact_info_nonce'], 'mjpropiedades_agente_contact_info')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Guardar información de contacto
+    $fields = array('telefono', 'whatsapp', 'email', 'email_alt');
+    foreach ($fields as $field) {
+        if (isset($_POST['agente_' . $field])) {
+            update_post_meta($post_id, '_agente_' . $field, sanitize_text_field($_POST['agente_' . $field]));
+        }
+    }
+
+    // Guardar especializaciones
+    if (isset($_POST['agente_cargo'])) {
+        update_post_meta($post_id, '_agente_cargo', sanitize_text_field($_POST['agente_cargo']));
+    }
+    
+    if (isset($_POST['agente_experiencia'])) {
+        update_post_meta($post_id, '_agente_experiencia', intval($_POST['agente_experiencia']));
+    }
+
+    if (isset($_POST['agente_comunas'])) {
+        update_post_meta($post_id, '_agente_comunas', array_map('sanitize_text_field', $_POST['agente_comunas']));
+    } else {
+        update_post_meta($post_id, '_agente_comunas', array());
+    }
+
+    if (isset($_POST['agente_tipos_propiedad'])) {
+        update_post_meta($post_id, '_agente_tipos_propiedad', array_map('sanitize_text_field', $_POST['agente_tipos_propiedad']));
+    } else {
+        update_post_meta($post_id, '_agente_tipos_propiedad', array());
+    }
+
+    if (isset($_POST['agente_operaciones'])) {
+        update_post_meta($post_id, '_agente_operaciones', array_map('sanitize_text_field', $_POST['agente_operaciones']));
+    } else {
+        update_post_meta($post_id, '_agente_operaciones', array());
+    }
+
+    // Guardar estadísticas
+    if (isset($_POST['agente_rating'])) {
+        update_post_meta($post_id, '_agente_rating', floatval($_POST['agente_rating']));
+    }
+    
+    if (isset($_POST['agente_resenas'])) {
+        update_post_meta($post_id, '_agente_resenas', intval($_POST['agente_resenas']));
+    }
+    
+    if (isset($_POST['agente_propiedades_vendidas'])) {
+        update_post_meta($post_id, '_agente_propiedades_vendidas', intval($_POST['agente_propiedades_vendidas']));
+    }
+    
+    update_post_meta($post_id, '_agente_activo', isset($_POST['agente_activo']) ? '1' : '0');
+}
+add_action('save_post', 'mjpropiedades_save_agente_meta_boxes');
+
+// 4. CREAR META BOX PARA ASIGNAR AGENTE A PROPIEDAD
+function mjpropiedades_add_property_agent_meta_box() {
+    add_meta_box(
+        'property_agent_assignment',
+        'Asignar Agente',
+        'mjpropiedades_property_agent_assignment_callback',
+        'propiedad',
+        'side',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'mjpropiedades_add_property_agent_meta_box');
+
+function mjpropiedades_property_agent_assignment_callback($post) {
+    wp_nonce_field('mjpropiedades_property_agent_assignment', 'mjpropiedades_property_agent_assignment_nonce');
+    
+    $agente_asignado = get_post_meta($post->ID, '_propiedad_agente', true);
+    
+    // Obtener agentes activos
+    $agentes = get_posts(array(
+        'post_type' => 'agente',
+        'posts_per_page' => -1,
+        'meta_query' => array(
+            array(
+                'key' => '_agente_activo',
+                'value' => '1',
+                'compare' => '='
+            )
+        )
+    ));
+    
+    echo '<div id="agent-assignment-container">';
+    echo '<p><strong>Seleccionar Agente:</strong></p>';
+    echo '<select name="propiedad_agente" id="propiedad_agente" style="width: 100%; margin-bottom: 15px;">';
+    echo '<option value="">Sin agente asignado</option>';
+    
+    foreach ($agentes as $agente) {
+        $selected = selected($agente_asignado, $agente->ID, false);
+        $cargo = get_post_meta($agente->ID, '_agente_cargo', true);
+        $rating = get_post_meta($agente->ID, '_agente_rating', true);
+        $resenas = get_post_meta($agente->ID, '_agente_resenas', true);
+        
+        $display_name = $agente->post_title;
+        if ($cargo) {
+            $display_name .= ' - ' . $cargo;
+        }
+        if ($rating) {
+            $display_name .= ' (' . $rating . '⭐)';
+        }
+        
+        echo '<option value="' . $agente->ID . '" ' . $selected . '>' . esc_html($display_name) . '</option>';
+    }
+    
+    echo '</select>';
+    
+    // Vista previa del agente seleccionado
+    if ($agente_asignado) {
+        $agente = get_post($agente_asignado);
+        if ($agente) {
+            echo '<div id="agent-preview" style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">';
+            echo '<h4>Vista Previa del Agente:</h4>';
+            
+            $avatar = get_the_post_thumbnail($agente->ID, 'thumbnail');
+            if ($avatar) {
+                echo '<div style="float: left; margin-right: 10px;">' . $avatar . '</div>';
+            }
+            
+            echo '<div>';
+            echo '<strong>' . esc_html($agente->post_title) . '</strong><br>';
+            
+            $cargo = get_post_meta($agente->ID, '_agente_cargo', true);
+            if ($cargo) {
+                echo '<em>' . esc_html($cargo) . '</em><br>';
+            }
+            
+            $rating = get_post_meta($agente->ID, '_agente_rating', true);
+            $resenas = get_post_meta($agente->ID, '_agente_resenas', true);
+            if ($rating && $resenas) {
+                echo '⭐ ' . $rating . ' (' . $resenas . ' reseñas)<br>';
+            }
+            
+            $telefono = get_post_meta($agente->ID, '_agente_telefono', true);
+            if ($telefono) {
+                echo '📞 ' . esc_html($telefono) . '<br>';
+            }
+            
+            $email = get_post_meta($agente->ID, '_agente_email', true);
+            if ($email) {
+                echo '✉️ ' . esc_html($email);
+            }
+            
+            echo '</div>';
+            echo '<div style="clear: both;"></div>';
+            echo '</div>';
+        }
+    } else {
+        echo '<div id="agent-preview" style="display: none;"></div>';
+    }
+    
+    echo '<p style="margin-top: 15px;">';
+    echo '<a href="' . admin_url('post-new.php?post_type=agente') . '" class="button" target="_blank">Agregar Nuevo Agente</a> ';
+    echo '<a href="' . admin_url('edit.php?post_type=agente') . '" class="button" target="_blank">Gestionar Agentes</a>';
+    echo '</p>';
+    
+    echo '</div>';
+    
+    // JavaScript para actualizar vista previa
+    ?>
+    <script>
+    jQuery(document).ready(function($) {
+        $('#propiedad_agente').on('change', function() {
+            var agentId = $(this).val();
+            var preview = $('#agent-preview');
+            
+            if (agentId) {
+                // Aquí podrías hacer una llamada AJAX para obtener los datos del agente
+                // Por simplicidad, recargamos la página para mostrar la vista previa
+                preview.show();
+            } else {
+                preview.hide();
+            }
+        });
+    });
+    </script>
+    <?php
+}
+
+// Guardar asignación de agente
+function mjpropiedades_save_property_agent_assignment($post_id) {
+    if (!isset($_POST['mjpropiedades_property_agent_assignment_nonce']) || !wp_verify_nonce($_POST['mjpropiedades_property_agent_assignment_nonce'], 'mjpropiedades_property_agent_assignment')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    if (isset($_POST['propiedad_agente'])) {
+        update_post_meta($post_id, '_propiedad_agente', intval($_POST['propiedad_agente']));
+    }
+}
+add_action('save_post', 'mjpropiedades_save_property_agent_assignment');
+
+// 5. AGREGAR CONFIGURACIÓN AL CUSTOMIZER
+function mjpropiedades_agent_customizer_settings($wp_customize) {
+    // Sección de agentes
+    $wp_customize->add_section('mjpropiedades_agents', array(
+        'title' => 'Configuración de Agentes',
+        'priority' => 37,
+        'description' => 'Configuración global para el sistema de agentes inmobiliarios',
+        'active_callback' => '__return_true',
+    ));
+
+    // Agente por defecto
+    $wp_customize->add_setting('mjpropiedades_default_agent', array(
+        'default' => '',
+        'sanitize_callback' => 'absint'
+    ));
+
+    $wp_customize->add_control('mjpropiedades_default_agent', array(
+        'label' => 'Agente por Defecto',
+        'description' => 'Agente que se mostrará cuando una propiedad no tenga agente asignado',
+        'section' => 'mjpropiedades_agents',
+        'type' => 'select',
+        'choices' => mjpropiedades_get_agents_choices()
+    ));
+
+    // Mostrar rating
+    $wp_customize->add_setting('mjpropiedades_show_rating', array(
+        'default' => true,
+        'sanitize_callback' => 'wp_validate_boolean'
+    ));
+
+    $wp_customize->add_control('mjpropiedades_show_rating', array(
+        'label' => 'Mostrar Rating',
+        'description' => 'Mostrar el rating y número de reseñas',
+        'section' => 'mjpropiedades_agents',
+        'type' => 'checkbox'
+    ));
+
+    // Mostrar estadísticas
+    $wp_customize->add_setting('mjpropiedades_show_stats', array(
+        'default' => true,
+        'sanitize_callback' => 'wp_validate_boolean'
+    ));
+
+    $wp_customize->add_control('mjpropiedades_show_stats', array(
+        'label' => 'Mostrar Estadísticas',
+        'description' => 'Mostrar propiedades vendidas y años de experiencia',
+        'section' => 'mjpropiedades_agents',
+        'type' => 'checkbox'
+    ));
+
+    // Mensaje cuando no hay agente
+    $wp_customize->add_setting('mjpropiedades_no_agent_message', array(
+        'default' => 'Contactar con nuestro equipo',
+        'sanitize_callback' => 'sanitize_text_field'
+    ));
+
+    $wp_customize->add_control('mjpropiedades_no_agent_message', array(
+        'label' => 'Mensaje sin Agente',
+        'description' => 'Mensaje que se muestra cuando no hay agente disponible',
+        'section' => 'mjpropiedades_agents',
+        'type' => 'text'
+    ));
+}
+add_action('customize_register', 'mjpropiedades_agent_customizer_settings');
+
+// Función helper para obtener opciones de agentes
+function mjpropiedades_get_agents_choices() {
+    $choices = array('' => 'Sin agente por defecto');
+    
+    $agentes = get_posts(array(
+        'post_type' => 'agente',
+        'posts_per_page' => -1,
+        'meta_query' => array(
+            array(
+                'key' => '_agente_activo',
+                'value' => '1',
+                'compare' => '='
+            )
+        )
+    ));
+
+    foreach ($agentes as $agente) {
+        $choices[$agente->ID] = $agente->post_title;
+    }
+
+    return $choices;
+}
+
+// 6. FUNCIONES HELPER PARA OBTENER DATOS DEL AGENTE
+function mjpropiedades_get_property_agent($property_id = null) {
+    if (!$property_id) {
+        global $post;
+        $property_id = $post->ID;
+    }
+
+    // 1. Buscar agente asignado directamente a la propiedad
+    $agente_id = get_post_meta($property_id, '_propiedad_agente', true);
+    
+    if ($agente_id) {
+        $agente = get_post($agente_id);
+        if ($agente && $agente->post_type === 'agente') {
+            return $agente;
+        }
+    }
+
+    // 2. Solo usar agente por defecto si está configurado en el tema
+    $default_agent_id = get_theme_mod('mjpropiedades_default_agent', '');
+    if ($default_agent_id) {
+        $agente = get_post($default_agent_id);
+        if ($agente && $agente->post_type === 'agente') {
+            return $agente;
+        }
+    }
+
+    // 3. Si no hay agente por defecto configurado, retornar null
+    // El template mostrará información de contacto de la empresa
+    return null;
+}
+
+function mjpropiedades_get_agent_by_comuna($comuna) {
+    $agentes = get_posts(array(
+        'post_type' => 'agente',
+        'posts_per_page' => 1,
+        'meta_query' => array(
+            'relation' => 'AND',
+            array(
+                'key' => '_agente_activo',
+                'value' => '1',
+                'compare' => '='
+            ),
+            array(
+                'key' => '_agente_comunas',
+                'value' => $comuna,
+                'compare' => 'LIKE'
+            )
+        )
+    ));
+
+    return !empty($agentes) ? $agentes[0] : null;
+}
+
+function mjpropiedades_get_agent_data($agente_id) {
+    if (!$agente_id) return null;
+
+    $agente = get_post($agente_id);
+    if (!$agente || $agente->post_type !== 'agente') return null;
+
+    return array(
+        'id' => $agente->ID,
+        'nombre' => $agente->post_title,
+        'cargo' => get_post_meta($agente->ID, '_agente_cargo', true),
+        'telefono' => get_post_meta($agente->ID, '_agente_telefono', true),
+        'whatsapp' => get_post_meta($agente->ID, '_agente_whatsapp', true),
+        'email' => get_post_meta($agente->ID, '_agente_email', true),
+        'email_alt' => get_post_meta($agente->ID, '_agente_email_alt', true),
+        'rating' => get_post_meta($agente->ID, '_agente_rating', true),
+        'resenas' => get_post_meta($agente->ID, '_agente_resenas', true),
+        'experiencia' => get_post_meta($agente->ID, '_agente_experiencia', true),
+        'propiedades_vendidas' => get_post_meta($agente->ID, '_agente_propiedades_vendidas', true),
+        'comunas' => get_post_meta($agente->ID, '_agente_comunas', true),
+        'tipos_propiedad' => get_post_meta($agente->ID, '_agente_tipos_propiedad', true),
+        'operaciones' => get_post_meta($agente->ID, '_agente_operaciones', true),
+        'avatar' => get_the_post_thumbnail_url($agente->ID, 'thumbnail'),
+        'bio' => $agente->post_content
+    );
+}
+
+// 7. ACTUALIZAR EL CUSTOMIZER DINÁMICAMENTE
+function mjpropiedades_refresh_agent_choices() {
+    if (is_customize_preview()) {
+        $wp_customize = new WP_Customize_Manager();
+        $control = $wp_customize->get_control('mjpropiedades_default_agent');
+        if ($control) {
+            $control->choices = mjpropiedades_get_agents_choices();
+        }
+    }
+}
+add_action('wp_loaded', 'mjpropiedades_refresh_agent_choices');
+
+// ===== PANEL DE ADMINISTRACIÓN PERSONALIZADO DEL TEMA =====
+// Crear menú de administración para las opciones del tema
+function mjpropiedades_admin_menu() {
+    add_theme_page(
+        'Configuración del Tema',
+        'Configuración del Tema',
+        'edit_theme_options',
+        'mjpropiedades-settings',
+        'mjpropiedades_admin_page'
+    );
+}
+add_action('admin_menu', 'mjpropiedades_admin_menu');
+
+// Cargar scripts necesarios para el selector de medios
+function mjpropiedades_admin_scripts($hook) {
+    // Solo cargar en nuestra página de administración
+    if ($hook != 'appearance_page_mjpropiedades-settings') {
+        return;
+    }
+    
+    wp_enqueue_media();
+    wp_enqueue_script('jquery');
+}
+add_action('admin_enqueue_scripts', 'mjpropiedades_admin_scripts');
+
+// Página de administración personalizada
+function mjpropiedades_admin_page() {
+    // Guardar configuraciones si se envió el formulario
+    if (isset($_POST['submit']) && wp_verify_nonce($_POST['mjpropiedades_nonce'], 'mjpropiedades_settings')) {
+        // Guardar todas las configuraciones
+        $settings = array(
+            // Hero Slider - Imágenes de fondo
+            'mjpropiedades_hero_1',
+            'mjpropiedades_hero_2',
+            'mjpropiedades_hero_3',
+            
+            // Hero Slider - Diapositiva 1
+            'mjpropiedades_slide_1_tag',
+            'mjpropiedades_slide_1_title',
+            'mjpropiedades_slide_1_description',
+            'mjpropiedades_slide_1_btn_primary',
+            'mjpropiedades_slide_1_btn_secondary',
+            
+            // Hero Slider - Diapositiva 2
+            'mjpropiedades_slide_2_tag',
+            'mjpropiedades_slide_2_title',
+            'mjpropiedades_slide_2_description',
+            'mjpropiedades_slide_2_btn_primary',
+            'mjpropiedades_slide_2_btn_secondary',
+            
+            // Hero Slider - Diapositiva 3
+            'mjpropiedades_slide_3_tag',
+            'mjpropiedades_slide_3_title',
+            'mjpropiedades_slide_3_description',
+            'mjpropiedades_slide_3_btn_primary',
+            'mjpropiedades_slide_3_btn_secondary',
+            
+            // About Section
+            'mjpropiedades_about_text_1',
+            'mjpropiedades_about_text_2',
+            'mjpropiedades_about_stat_1_number',
+            'mjpropiedades_about_stat_1_label',
+            'mjpropiedades_about_stat_2_number',
+            'mjpropiedades_about_stat_2_label',
+            
+            // Services Section
+            'mjpropiedades_services_tag',
+            'mjpropiedades_services_title',
+            'mjpropiedades_services_subtitle',
+            
+            // Testimonials
+            'mjpropiedades_testimonials_title',
+            'mjpropiedades_testimonials_subtitle',
+            
+            // Menu Configuration
+            'mjpropiedades_menu_alignment',
+            
+            // Typography
+            'mjpropiedades_h1_font_size',
+            'mjpropiedades_h2_font_size',
+            'mjpropiedades_h3_font_size',
+            'mjpropiedades_body_font_size',
+            'mjpropiedades_button_font_size',
+            
+            // Section Titles
+            'mjpropiedades_section_title_alignment',
+            
+            // Contact Info
+            'mjpropiedades_contact_email',
+            'mjpropiedades_contact_phone',
+            'mjpropiedades_contact_address',
+            'mjpropiedades_contact_hours',
+            
+            // Colors
+            'mjpropiedades_hero_tag_color',
+            'mjpropiedades_hero_tag_text_color',
+            'mjpropiedades_hero_title_color',
+            'mjpropiedades_hero_description_color',
+            
+            // Property Cards Colors
+            'mjpropiedades_card_background',
+            'mjpropiedades_card_title_color',
+            'mjpropiedades_card_location_color',
+            'mjpropiedades_card_price_color',
+            'mjpropiedades_card_button_bg',
+            'mjpropiedades_card_button_text',
+            
+            // Agents
+            'mjpropiedades_default_agent',
+            'mjpropiedades_show_rating',
+            
+            // Site Identity
+            'mjpropiedades_logo_height_desktop',
+            'mjpropiedades_logo_height_tablet',
+            'mjpropiedades_logo_height_mobile',
+            'mjpropiedades_logo_max_width',
+            'mjpropiedades_logo_size_preset',
+            
+            // Footer Logo
+            'mjpropiedades_footer_logo_image',
+            'mjpropiedades_footer_logo_position',
+            'mjpropiedades_footer_logo_size',
+            'mjpropiedades_footer_logo_custom_size',
+            'mjpropiedades_footer_logo_show_text',
+            'mjpropiedades_footer_logo_text'
+        );
+        
+        foreach ($settings as $setting) {
+            if (isset($_POST[$setting])) {
+                set_theme_mod($setting, sanitize_text_field($_POST[$setting]));
+            }
+        }
+        
+        // Guardar opciones del sitio (blogname y blogdescription)
+        if (isset($_POST['blogname'])) {
+            update_option('blogname', sanitize_text_field($_POST['blogname']));
+        }
+        if (isset($_POST['blogdescription'])) {
+            update_option('blogdescription', sanitize_text_field($_POST['blogdescription']));
+        }
+        
+        // Guardar logo personalizado
+        if (isset($_POST['custom_logo'])) {
+            set_theme_mod('custom_logo', intval($_POST['custom_logo']));
+        }
+        
+        // Guardar imágenes de fondo del hero
+        if (isset($_POST['mjpropiedades_hero_1'])) {
+            set_theme_mod('mjpropiedades_hero_1', intval($_POST['mjpropiedades_hero_1']));
+        }
+        if (isset($_POST['mjpropiedades_hero_2'])) {
+            set_theme_mod('mjpropiedades_hero_2', intval($_POST['mjpropiedades_hero_2']));
+        }
+        if (isset($_POST['mjpropiedades_hero_3'])) {
+            set_theme_mod('mjpropiedades_hero_3', intval($_POST['mjpropiedades_hero_3']));
+        }
+        
+        // Guardar imagen del footer logo
+        if (isset($_POST['mjpropiedades_footer_logo_image'])) {
+            set_theme_mod('mjpropiedades_footer_logo_image', intval($_POST['mjpropiedades_footer_logo_image']));
+        }
+        
+        echo '<div class="notice notice-success"><p>Configuraciones guardadas exitosamente.</p></div>';
+    }
+    
+    ?>
+    <style>
+    .mjpropiedades-accordion {
+        margin: 20px 0;
+    }
+    
+    .mjpropiedades-accordion-header {
+        background: #f1f1f1;
+        border: 1px solid #ddd;
+        padding: 12px 15px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        position: relative;
+        transition: background-color 0.3s ease;
+    }
+    
+    .mjpropiedades-accordion-header:hover {
+        background: #e8e8e8;
+    }
+    
+    .mjpropiedades-accordion-header:after {
+        content: '+';
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 20px;
+        font-weight: bold;
+        transition: transform 0.3s ease;
+    }
+    
+    .mjpropiedades-accordion-header.active:after {
+        transform: translateY(-50%) rotate(45deg);
+    }
+    
+    .mjpropiedades-accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        background: #fff;
+    }
+    
+    .mjpropiedades-accordion-content.active {
+        max-height: 2000px; /* Valor suficientemente grande */
+    }
+    
+    .mjpropiedades-accordion-content-inner {
+        padding: 20px;
+    }
+    </style>
+    
+    <div class="wrap">
+        <h1>Configuración del Tema - MJ Propiedades</h1>
+        <p>Desde aquí puedes configurar todas las opciones del tema sin usar el personalizador. Haz clic en cada sección para expandir o contraer su contenido.</p>
+        
+        <form method="post" action="">
+            <?php wp_nonce_field('mjpropiedades_settings', 'mjpropiedades_nonce'); ?>
+            
+            <!-- Identidad del Sitio -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Identidad del Sitio</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Logo del Sitio</th>
+                    <td>
+                        <?php
+                        $logo_id = get_theme_mod('custom_logo');
+                        if ($logo_id) {
+                            $logo_url = wp_get_attachment_image_url($logo_id, 'full');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($logo_url) . '" style="max-height: 60px; max-width: 200px;" id="logo-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="logo-preview-container">';
+                            echo '<img id="logo-preview" style="max-height: 60px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        
+                        <input type="hidden" name="custom_logo" id="custom_logo" value="<?php echo esc_attr($logo_id); ?>" />
+                        <button type="button" class="button" id="upload-logo-button">
+                            <?php echo $logo_id ? 'Cambiar Logo' : 'Seleccionar Logo'; ?>
+                        </button>
+                        <?php if ($logo_id): ?>
+                        <button type="button" class="button" id="remove-logo-button">Eliminar Logo</button>
+                        <?php endif; ?>
+                        
+                        <p class="description">Selecciona una imagen para usar como logo del sitio. Formatos recomendados: PNG, JPG, SVG. Tamaño recomendado: máximo 300x100 píxeles.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Título del Sitio</th>
+                    <td>
+                        <input type="text" name="blogname" value="<?php echo esc_attr(get_option('blogname')); ?>" class="regular-text" />
+                        <p class="description">Título que aparece en el navegador y en los resultados de búsqueda.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Lema del Sitio</th>
+                    <td>
+                        <input type="text" name="blogdescription" value="<?php echo esc_attr(get_option('blogdescription')); ?>" class="regular-text" />
+                        <p class="description">Descripción breve del sitio que aparece bajo el título.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Preset de Tamaño del Logo</th>
+                    <td>
+                        <select name="mjpropiedades_logo_size_preset">
+                            <option value="small" <?php selected(get_theme_mod('mjpropiedades_logo_size_preset', 'medium'), 'small'); ?>>Pequeño (30px)</option>
+                            <option value="medium" <?php selected(get_theme_mod('mjpropiedades_logo_size_preset', 'medium'), 'medium'); ?>>Mediano (50px)</option>
+                            <option value="large" <?php selected(get_theme_mod('mjpropiedades_logo_size_preset', 'medium'), 'large'); ?>>Grande (70px)</option>
+                            <option value="custom" <?php selected(get_theme_mod('mjpropiedades_logo_size_preset', 'medium'), 'custom'); ?>>Personalizado</option>
+                        </select>
+                        <p class="description">Selecciona un tamaño predefinido o personalizado para el logo.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Altura del Logo en Desktop (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_logo_height_desktop" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_logo_height_desktop', '50')); ?>" min="20" max="150" step="5" />
+                        <p class="description">Altura máxima del logo en pantallas de escritorio (20-150px).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Altura del Logo en Tablet (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_logo_height_tablet" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_logo_height_tablet', '45')); ?>" min="15" max="120" step="5" />
+                        <p class="description">Altura máxima del logo en tablets (15-120px).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Altura del Logo en Móvil (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_logo_height_mobile" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_logo_height_mobile', '40')); ?>" min="15" max="100" step="5" />
+                        <p class="description">Altura máxima del logo en dispositivos móviles (15-100px).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Ancho Máximo del Logo (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_logo_max_width" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_logo_max_width', '200')); ?>" min="100" max="400" step="10" />
+                        <p class="description">Ancho máximo del logo en píxeles (100-400px).</p>
+                    </td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Logo del Footer -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Logo del Footer</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Logo del Footer</th>
+                    <td>
+                        <?php
+                        $footer_logo_id = get_theme_mod('mjpropiedades_footer_logo_image');
+                        if ($footer_logo_id) {
+                            $footer_logo_url = wp_get_attachment_image_url($footer_logo_id, 'full');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($footer_logo_url) . '" style="max-height: 60px; max-width: 200px;" id="footer-logo-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="footer-logo-preview-container">';
+                            echo '<img id="footer-logo-preview" style="max-height: 60px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        
+                        <input type="hidden" name="mjpropiedades_footer_logo_image" id="mjpropiedades_footer_logo_image" value="<?php echo esc_attr($footer_logo_id); ?>" />
+                        <button type="button" class="button" id="upload-footer-logo-button">
+                            <?php echo $footer_logo_id ? 'Cambiar Imagen' : 'Seleccionar Imagen'; ?>
+                        </button>
+                        <?php if ($footer_logo_id): ?>
+                        <button type="button" class="button" id="remove-footer-logo-button">Eliminar</button>
+                        <?php endif; ?>
+                        <p class="description">Selecciona una imagen para el logo del footer. Si no se selecciona, se usará el logo del header.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Posición del Logo en el Footer</th>
+                    <td>
+                        <select name="mjpropiedades_footer_logo_position">
+                            <option value="left" <?php selected(get_theme_mod('mjpropiedades_footer_logo_position', 'left'), 'left'); ?>>Izquierda</option>
+                            <option value="center" <?php selected(get_theme_mod('mjpropiedades_footer_logo_position', 'left'), 'center'); ?>>Centro</option>
+                            <option value="right" <?php selected(get_theme_mod('mjpropiedades_footer_logo_position', 'left'), 'right'); ?>>Derecha</option>
+                        </select>
+                        <p class="description">Selecciona dónde quieres que aparezca el logo en el footer.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño del Logo del Footer</th>
+                    <td>
+                        <select name="mjpropiedades_footer_logo_size">
+                            <option value="small" <?php selected(get_theme_mod('mjpropiedades_footer_logo_size', 'medium'), 'small'); ?>>Pequeño (60px)</option>
+                            <option value="medium" <?php selected(get_theme_mod('mjpropiedades_footer_logo_size', 'medium'), 'medium'); ?>>Mediano (80px)</option>
+                            <option value="large" <?php selected(get_theme_mod('mjpropiedades_footer_logo_size', 'medium'), 'large'); ?>>Grande (100px)</option>
+                            <option value="custom" <?php selected(get_theme_mod('mjpropiedades_footer_logo_size', 'medium'), 'custom'); ?>>Personalizado</option>
+                        </select>
+                        <p class="description">Selecciona el tamaño del logo en el footer.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño Personalizado (px)</th>
+                    <td>
+                        <input type="number" name="mjpropiedades_footer_logo_custom_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_footer_logo_custom_size', '80')); ?>" min="30" max="200" step="5" />
+                        <p class="description">Especifica el tamaño exacto del logo en píxeles (30-200px).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Mostrar Texto Descriptivo</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="mjpropiedades_footer_logo_show_text" value="1" <?php checked(get_theme_mod('mjpropiedades_footer_logo_show_text', true), true); ?> />
+                            Muestra el texto descriptivo debajo del logo
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Texto Descriptivo del Footer</th>
+                    <td>
+                        <textarea name="mjpropiedades_footer_logo_text" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_footer_logo_text', 'Tu corredora de confianza especializada en la Cuarta Región de Chile.')); ?></textarea>
+                        <p class="description">Texto que aparece debajo del logo en el footer.</p>
+                    </td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hero Slider -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Hero Slider - Diapositivas</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+            
+            <!-- Diapositiva 1 -->
+            <h3>Diapositiva 1</h3>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Imagen de Fondo</th>
+                    <td>
+                        <?php
+                        $hero_1_id = get_theme_mod('mjpropiedades_hero_1');
+                        if ($hero_1_id) {
+                            $hero_1_url = wp_get_attachment_image_url($hero_1_id, 'medium');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($hero_1_url) . '" style="max-height: 100px; max-width: 200px;" id="hero-1-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="hero-1-preview-container">';
+                            echo '<img id="hero-1-preview" style="max-height: 100px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        <input type="hidden" name="mjpropiedades_hero_1" id="mjpropiedades_hero_1" value="<?php echo esc_attr($hero_1_id); ?>" />
+                        <button type="button" class="button" id="upload-hero-1-button">
+                            <?php echo $hero_1_id ? 'Cambiar Imagen' : 'Seleccionar Imagen'; ?>
+                        </button>
+                        <?php if ($hero_1_id): ?>
+                        <button type="button" class="button" id="remove-hero-1-button">Eliminar</button>
+                        <?php endif; ?>
+                        <p class="description">Imagen de fondo para la primera diapositiva del slider.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tag</th>
+                    <td><input type="text" name="mjpropiedades_slide_1_tag" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_1_tag', 'Vende tu propiedad al mejor precio')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Título</th>
+                    <td><input type="text" name="mjpropiedades_slide_1_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_1_title', 'Encuentra tu Hogar Ideal')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Descripción</th>
+                    <td><textarea name="mjpropiedades_slide_1_description" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_slide_1_description', 'Atendemos en Copiapó, Viña del Mar, La Serena y nos expandimos a más ciudades. Descubre propiedades exclusivas con asesoría personalizada y certificada en todo el proceso de compra.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Primario</th>
+                    <td><input type="text" name="mjpropiedades_slide_1_btn_primary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_1_btn_primary', 'Ver Propiedades')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Secundario</th>
+                    <td><input type="text" name="mjpropiedades_slide_1_btn_secondary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_1_btn_secondary', 'Solicitar Tasación')); ?>" class="regular-text" /></td>
+                </tr>
+            </table>
+            
+            <!-- Diapositiva 2 -->
+            <h3>Diapositiva 2</h3>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Imagen de Fondo</th>
+                    <td>
+                        <?php
+                        $hero_2_id = get_theme_mod('mjpropiedades_hero_2');
+                        if ($hero_2_id) {
+                            $hero_2_url = wp_get_attachment_image_url($hero_2_id, 'medium');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($hero_2_url) . '" style="max-height: 100px; max-width: 200px;" id="hero-2-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="hero-2-preview-container">';
+                            echo '<img id="hero-2-preview" style="max-height: 100px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        <input type="hidden" name="mjpropiedades_hero_2" id="mjpropiedades_hero_2" value="<?php echo esc_attr($hero_2_id); ?>" />
+                        <button type="button" class="button" id="upload-hero-2-button">
+                            <?php echo $hero_2_id ? 'Cambiar Imagen' : 'Seleccionar Imagen'; ?>
+                        </button>
+                        <?php if ($hero_2_id): ?>
+                        <button type="button" class="button" id="remove-hero-2-button">Eliminar</button>
+                        <?php endif; ?>
+                        <p class="description">Imagen de fondo para la segunda diapositiva del slider.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tag</th>
+                    <td><input type="text" name="mjpropiedades_slide_2_tag" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_2_tag', 'Arrienda tu próxima casa')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Título</th>
+                    <td><input type="text" name="mjpropiedades_slide_2_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_2_title', 'Tu Nuevo Hogar Te Espera')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Descripción</th>
+                    <td><textarea name="mjpropiedades_slide_2_description" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_slide_2_description', 'Encuentra la propiedad perfecta para arrendar. Amplia variedad de opciones en las mejores ubicaciones de la región.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Primario</th>
+                    <td><input type="text" name="mjpropiedades_slide_2_btn_primary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_2_btn_primary', 'Ver Arriendos')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Secundario</th>
+                    <td><input type="text" name="mjpropiedades_slide_2_btn_secondary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_2_btn_secondary', 'Contactar')); ?>" class="regular-text" /></td>
+                </tr>
+            </table>
+            
+            <!-- Diapositiva 3 -->
+            <h3>Diapositiva 3</h3>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Imagen de Fondo</th>
+                    <td>
+                        <?php
+                        $hero_3_id = get_theme_mod('mjpropiedades_hero_3');
+                        if ($hero_3_id) {
+                            $hero_3_url = wp_get_attachment_image_url($hero_3_id, 'medium');
+                            echo '<div style="margin-bottom: 10px;">';
+                            echo '<img src="' . esc_url($hero_3_url) . '" style="max-height: 100px; max-width: 200px;" id="hero-3-preview" />';
+                            echo '</div>';
+                        } else {
+                            echo '<div style="margin-bottom: 10px; display: none;" id="hero-3-preview-container">';
+                            echo '<img id="hero-3-preview" style="max-height: 100px; max-width: 200px;" />';
+                            echo '</div>';
+                        }
+                        ?>
+                        <input type="hidden" name="mjpropiedades_hero_3" id="mjpropiedades_hero_3" value="<?php echo esc_attr($hero_3_id); ?>" />
+                        <button type="button" class="button" id="upload-hero-3-button">
+                            <?php echo $hero_3_id ? 'Cambiar Imagen' : 'Seleccionar Imagen'; ?>
+                        </button>
+                        <?php if ($hero_3_id): ?>
+                        <button type="button" class="button" id="remove-hero-3-button">Eliminar</button>
+                        <?php endif; ?>
+                        <p class="description">Imagen de fondo para la tercera diapositiva del slider.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Tag</th>
+                    <td><input type="text" name="mjpropiedades_slide_3_tag" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_3_tag', 'Asesoría profesional')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Título</th>
+                    <td><input type="text" name="mjpropiedades_slide_3_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_3_title', 'Expertos en Bienes Raíces')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Descripción</th>
+                    <td><textarea name="mjpropiedades_slide_3_description" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_slide_3_description', 'Más de 10 años de experiencia en el mercado inmobiliario. Te acompañamos en cada paso del proceso con profesionalismo y dedicación.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Primario</th>
+                    <td><input type="text" name="mjpropiedades_slide_3_btn_primary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_3_btn_primary', 'Nuestros Servicios')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Botón Secundario</th>
+                    <td><input type="text" name="mjpropiedades_slide_3_btn_secondary" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_slide_3_btn_secondary', 'Conócenos')); ?>" class="regular-text" /></td>
+                </tr>
+            </table>
+            
+            <!-- Colores del Hero Slider -->
+            <h3>Colores del Hero Slider</h3>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Color de las Viñetas (Tags)</th>
+                    <td>
+                        <input type="color" name="mjpropiedades_hero_tag_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_tag_color', '#007cba')); ?>" />
+                        <p class="description">Selecciona el color de fondo de las viñetas que aparecen arriba de los títulos.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Texto de las Viñetas</th>
+                    <td>
+                        <input type="color" name="mjpropiedades_hero_tag_text_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_tag_text_color', '#ffffff')); ?>" />
+                        <p class="description">Selecciona el color del texto dentro de las viñetas.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de los Títulos</th>
+                    <td>
+                        <input type="color" name="mjpropiedades_hero_title_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_title_color', '#333333')); ?>" />
+                        <p class="description">Selecciona el color de los títulos principales del slider.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de las Descripciones</th>
+                    <td>
+                        <input type="color" name="mjpropiedades_hero_description_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_description_color', '#666666')); ?>" />
+                        <p class="description">Selecciona el color del texto de las descripciones.</p>
+                    </td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección About -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Sección Quiénes Somos</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Texto Principal</th>
+                    <td><textarea name="mjpropiedades_about_text_1" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_about_text_1', 'Somos una empresa especializada en el mercado inmobiliario con más de 10 años de experiencia.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Texto Secundario</th>
+                    <td><textarea name="mjpropiedades_about_text_2" rows="3" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_about_text_2', 'Nuestro equipo de profesionales certificados te brinda asesoría personalizada en todo el proceso.')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Estadística 1 - Número</th>
+                    <td><input type="text" name="mjpropiedades_about_stat_1_number" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_1_number', '500+')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Estadística 1 - Etiqueta</th>
+                    <td><input type="text" name="mjpropiedades_about_stat_1_label" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_1_label', 'Propiedades Vendidas')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Estadística 2 - Número</th>
+                    <td><input type="text" name="mjpropiedades_about_stat_2_number" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_2_number', '100+')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Estadística 2 - Etiqueta</th>
+                    <td><input type="text" name="mjpropiedades_about_stat_2_label" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_about_stat_2_label', 'Clientes Satisfechos')); ?>" class="regular-text" />                    </td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección Servicios -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Sección Nuestros Servicios</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Tag de Servicios</th>
+                    <td><input type="text" name="mjpropiedades_services_tag" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_services_tag', 'Nuestros Servicios')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Título de Servicios</th>
+                    <td><input type="text" name="mjpropiedades_services_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_services_title', '¿Por qué elegirnos?')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Subtítulo de Servicios</th>
+                    <td><textarea name="mjpropiedades_services_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_services_subtitle', 'Ofrecemos servicios integrales para satisfacer todas tus necesidades inmobiliarias')); ?></textarea></td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección Testimonios -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Sección Testimonios</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Título de Testimonios</th>
+                    <td><input type="text" name="mjpropiedades_testimonials_title" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_testimonials_title', 'Lo que dicen nuestros clientes')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Subtítulo de Testimonios</th>
+                    <td><textarea name="mjpropiedades_testimonials_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_testimonials_subtitle', 'La satisfacción de nuestros clientes es nuestra mayor recompensa')); ?></textarea></td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuración del Menú -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Configuración del Menú</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Alineación del Menú</th>
+                    <td>
+                        <select name="mjpropiedades_menu_alignment">
+                            <option value="left" <?php selected(get_theme_mod('mjpropiedades_menu_alignment', 'right'), 'left'); ?>>Izquierda</option>
+                            <option value="center" <?php selected(get_theme_mod('mjpropiedades_menu_alignment', 'right'), 'center'); ?>>Centro</option>
+                            <option value="right" <?php selected(get_theme_mod('mjpropiedades_menu_alignment', 'right'), 'right'); ?>>Derecha</option>
+                        </select>
+                    </td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tipografía -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Tipografía</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Tamaño H1</th>
+                    <td><input type="text" name="mjpropiedades_h1_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_h1_font_size', '2.25rem')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño H2</th>
+                    <td><input type="text" name="mjpropiedades_h2_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_h2_font_size', '1.5rem')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño H3</th>
+                    <td><input type="text" name="mjpropiedades_h3_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_h3_font_size', '1.25rem')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño Texto Principal</th>
+                    <td><input type="text" name="mjpropiedades_body_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_body_font_size', '1rem')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Tamaño Botones</th>
+                    <td><input type="text" name="mjpropiedades_button_font_size" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_button_font_size', '1rem')); ?>" class="regular-text" /></td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Títulos de Secciones -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Títulos de Secciones</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Alineación de Títulos</th>
+                    <td>
+                        <select name="mjpropiedades_section_title_alignment">
+                            <option value="left" <?php selected(get_theme_mod('mjpropiedades_section_title_alignment', 'center'), 'left'); ?>>Izquierda</option>
+                            <option value="center" <?php selected(get_theme_mod('mjpropiedades_section_title_alignment', 'center'), 'center'); ?>>Centro</option>
+                            <option value="right" <?php selected(get_theme_mod('mjpropiedades_section_title_alignment', 'center'), 'right'); ?>>Derecha</option>
+                        </select>
+                    </td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información de Contacto -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Información de Contacto</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Email de Contacto</th>
+                    <td><input type="email" name="mjpropiedades_contact_email" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_contact_email', 'consultas@homeisa.cl')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Teléfono de Contacto</th>
+                    <td><input type="text" name="mjpropiedades_contact_phone" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_contact_phone', '+56 9 1234 5678')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Dirección</th>
+                    <td><textarea name="mjpropiedades_contact_address" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_contact_address', 'La Serena, Región de Coquimbo, Chile')); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Horarios</th>
+                    <td><textarea name="mjpropiedades_contact_hours" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_contact_hours', 'Lunes a Viernes: 9:00 - 18:00\nSábados: 9:00 - 14:00')); ?></textarea></td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Colores del Hero -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Colores del Hero</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Color del Tag</th>
+                    <td><input type="color" name="mjpropiedades_hero_tag_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_tag_color', '#007cba')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Texto del Tag</th>
+                    <td><input type="color" name="mjpropiedades_hero_tag_text_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_tag_text_color', '#ffffff')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Título</th>
+                    <td><input type="color" name="mjpropiedades_hero_title_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_title_color', '#333333')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de la Descripción</th>
+                    <td><input type="color" name="mjpropiedades_hero_description_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_hero_description_color', '#666666')); ?>" /></td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Colores de Tarjetas de Propiedades -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Colores de Tarjetas de Propiedades</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Color de Fondo de Tarjeta</th>
+                    <td><input type="color" name="mjpropiedades_card_background" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_background', '#ffffff')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Título de Propiedad</th>
+                    <td><input type="color" name="mjpropiedades_card_title_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_title_color', '#333333')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de Ubicación</th>
+                    <td><input type="color" name="mjpropiedades_card_location_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_location_color', '#666666')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Precio</th>
+                    <td><input type="color" name="mjpropiedades_card_price_color" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_price_color', '#007cba')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color de Fondo del Botón</th>
+                    <td><input type="color" name="mjpropiedades_card_button_bg" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_button_bg', '#007cba')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Color del Texto del Botón</th>
+                    <td><input type="color" name="mjpropiedades_card_button_text" value="<?php echo esc_attr(get_theme_mod('mjpropiedades_card_button_text', '#ffffff')); ?>" /></td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuración de Agentes -->
+            <div class="mjpropiedades-accordion">
+                <h2 class="mjpropiedades-accordion-header">Configuración de Agentes</h2>
+                <div class="mjpropiedades-accordion-content">
+                    <div class="mjpropiedades-accordion-content-inner">
+                        <table class="form-table">
+                <tr>
+                    <th scope="row">Agente por Defecto</th>
+                    <td>
+                        <select name="mjpropiedades_default_agent">
+                            <option value="">Sin agente por defecto</option>
+                            <?php
+                            $agentes = get_posts(array(
+                                'post_type' => 'agente',
+                                'posts_per_page' => -1,
+                                'meta_query' => array(
+                                    array(
+                                        'key' => '_agente_activo',
+                                        'value' => '1',
+                                        'compare' => '='
+                                    )
+                                )
+                            ));
+                            foreach ($agentes as $agente) {
+                                echo '<option value="' . $agente->ID . '" ' . selected(get_theme_mod('mjpropiedades_default_agent', ''), $agente->ID, false) . '>' . $agente->post_title . '</option>';
+                            }
+                            ?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Mostrar Rating</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="mjpropiedades_show_rating" value="1" <?php checked(get_theme_mod('mjpropiedades_show_rating', true), true); ?> />
+                            Mostrar rating de agentes
+                        </label>
+                    </td>
+                </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="submit">
+                <input type="submit" name="submit" class="button-primary" value="Guardar Configuración" />
+            </p>
+        </form>
+    </div>
+    
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        var mediaUploader;
+        
+        // Funcionalidad del acordeón
+        $('.mjpropiedades-accordion-header').click(function() {
+            var content = $(this).next('.mjpropiedades-accordion-content');
+            var isActive = $(this).hasClass('active');
+            
+            // Cerrar todos los otros acordeones
+            $('.mjpropiedades-accordion-header').removeClass('active');
+            $('.mjpropiedades-accordion-content').removeClass('active');
+            
+            // Si este acordeón no estaba activo, lo abrimos
+            if (!isActive) {
+                $(this).addClass('active');
+                content.addClass('active');
+            }
+        });
+        
+        // Función genérica para manejar selectores de medios
+        function createMediaUploader(buttonId, inputId, previewId, previewContainerId, removeButtonId, title) {
+            $(buttonId).click(function(e) {
+                e.preventDefault();
+                
+                // Si el uploader ya existe, lo reutilizamos
+                if (mediaUploader) {
+                    mediaUploader.open();
+                    return;
+                }
+                
+                // Creamos el uploader
+                mediaUploader = wp.media.frames.file_frame = wp.media({
+                    title: title,
+                    button: {
+                        text: 'Usar como Imagen'
+                    },
+                    multiple: false,
+                    library: {
+                        type: 'image'
+                    }
+                });
+                
+                // Cuando se selecciona una imagen
+                mediaUploader.on('select', function() {
+                    var attachment = mediaUploader.state().get('selection').first().toJSON();
+                    
+                    // Actualizar el campo hidden
+                    $(inputId).val(attachment.id);
+                    
+                    // Mostrar la imagen seleccionada
+                    $(previewId).attr('src', attachment.url);
+                    $(previewContainerId).show();
+                    
+                    // Cambiar el texto del botón
+                    $(buttonId).text('Cambiar Imagen');
+                    
+                    // Mostrar el botón de eliminar si no está visible
+                    if ($(removeButtonId).length === 0) {
+                        $(buttonId).after(' <button type="button" class="button" id="' + removeButtonId.replace('#', '') + '">Eliminar</button>');
+                    } else {
+                        $(removeButtonId).show();
+                    }
+                });
+                
+                // Abrir el uploader
+                mediaUploader.open();
+            });
+        }
+        
+        // Función genérica para eliminar imágenes
+        function createRemoveHandler(inputId, previewContainerId, buttonId, removeButtonId, buttonText) {
+            $(document).on('click', removeButtonId, function(e) {
+                e.preventDefault();
+                
+                // Limpiar el campo
+                $(inputId).val('');
+                
+                // Ocultar la imagen
+                $(previewContainerId).hide();
+                
+                // Cambiar el texto del botón
+                $(buttonId).text(buttonText);
+                
+                // Ocultar el botón de eliminar
+                $(removeButtonId).hide();
+            });
+        }
+        
+        // Logo del sitio
+        createMediaUploader('#upload-logo-button', '#custom_logo', '#logo-preview', '#logo-preview-container', '#remove-logo-button', 'Seleccionar Logo');
+        createRemoveHandler('#custom_logo', '#logo-preview-container', '#upload-logo-button', '#remove-logo-button', 'Seleccionar Logo');
+        
+        // Logo del footer
+        createMediaUploader('#upload-footer-logo-button', '#mjpropiedades_footer_logo_image', '#footer-logo-preview', '#footer-logo-preview-container', '#remove-footer-logo-button', 'Seleccionar Logo del Footer');
+        createRemoveHandler('#mjpropiedades_footer_logo_image', '#footer-logo-preview-container', '#upload-footer-logo-button', '#remove-footer-logo-button', 'Seleccionar Imagen');
+        
+        // Hero 1
+        createMediaUploader('#upload-hero-1-button', '#mjpropiedades_hero_1', '#hero-1-preview', '#hero-1-preview-container', '#remove-hero-1-button', 'Seleccionar Imagen Hero 1');
+        createRemoveHandler('#mjpropiedades_hero_1', '#hero-1-preview-container', '#upload-hero-1-button', '#remove-hero-1-button', 'Seleccionar Imagen');
+        
+        // Hero 2
+        createMediaUploader('#upload-hero-2-button', '#mjpropiedades_hero_2', '#hero-2-preview', '#hero-2-preview-container', '#remove-hero-2-button', 'Seleccionar Imagen Hero 2');
+        createRemoveHandler('#mjpropiedades_hero_2', '#hero-2-preview-container', '#upload-hero-2-button', '#remove-hero-2-button', 'Seleccionar Imagen');
+        
+        // Hero 3
+        createMediaUploader('#upload-hero-3-button', '#mjpropiedades_hero_3', '#hero-3-preview', '#hero-3-preview-container', '#remove-hero-3-button', 'Seleccionar Imagen Hero 3');
+        createRemoveHandler('#mjpropiedades_hero_3', '#hero-3-preview-container', '#upload-hero-3-button', '#remove-hero-3-button', 'Seleccionar Imagen');
+    });
+    </script>
+    <?php
+}
+
 ?>

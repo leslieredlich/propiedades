@@ -106,129 +106,16 @@ get_header(); ?>
 <section id="buscar" class="search-section section">
     <br><br><br><br>
     <div class="container">
-        <div class="search-header">
-            <h2 class="section-title">Encuentra tu Propiedad Ideal</h2>
-        </div>
-        
-        <div class="search-form-container">
-            <form class="search-form" method="get" action="<?php echo home_url('/propiedades/'); ?>">
-                <!-- Primera fila de filtros -->
-                <div class="search-form-row">
-                    <div class="search-group">
-                        <label for="search-tipo-propiedad" class="search-label">Tipo de Propiedad</label>
-                        <select id="search-tipo-propiedad" name="tipo_propiedad" class="search-select">
-                            <option value="">Todos los tipos</option>
-                            <?php
-                            $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array(
-                                'casa' => 'Casa',
-                                'departamento' => 'Departamento',
-                                'oficina' => 'Oficina',
-                                'local' => 'Local Comercial',
-                                'terreno' => 'Terreno'
-                            ));
-                            foreach ($tipos_propiedad as $value => $label) {
-                                echo '<option value="' . esc_attr($value) . '">' . esc_html($label) . '</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    
-                    <div class="search-group">
-                        <label for="search-ubicacion" class="search-label">Ubicación</label>
-                        <select id="search-ubicacion" name="ubicacion" class="search-select">
-                            <option value="">Seleccionar comuna</option>
-                            <?php
-                            $comunas = get_option('mjpropiedades_comunas', array(
-                                'la-serena' => 'La Serena',
-                                'coquimbo' => 'Coquimbo',
-                                'ovalle' => 'Ovalle',
-                                'vicuna' => 'Vicuña',
-                                'paihuano' => 'Paihuano',
-                                'andacollo' => 'Andacollo',
-                                'combarbala' => 'Combarbalá',
-                                'monte-patri' => 'Monte Patria',
-                                'punitaqui' => 'Punitaqui',
-                                'rio-hurtado' => 'Río Hurtado'
-                            ));
-                            foreach ($comunas as $value => $label) {
-                                echo '<option value="' . esc_attr($value) . '">' . esc_html($label) . '</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    
-                    <div class="search-group">
-                        <label for="search-dormitorios" class="search-label">Dormitorios</label>
-                        <select id="search-dormitorios" name="dormitorios" class="search-select">
-                            <option value="">Cualquier cantidad</option>
-                            <?php
-                            $dormitorios_options = get_option('mjpropiedades_dormitorios', array(
-                                '1' => '1 dormitorio',
-                                '2' => '2 dormitorios',
-                                '3' => '3 dormitorios',
-                                '4' => '4 dormitorios',
-                                '5+' => '5+ dormitorios'
-                            ));
-                            foreach ($dormitorios_options as $value => $label) {
-                                echo '<option value="' . esc_attr($value) . '">' . esc_html($label) . '</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    
-                    <div class="search-group">
-                        <label for="search-banos" class="search-label">Baños</label>
-                        <select id="search-banos" name="banos" class="search-select">
-                            <option value="">Cualquier cantidad</option>
-                            <?php
-                            $banos_options = get_option('mjpropiedades_banos', array(
-                                '1' => '1 baño',
-                                '2' => '2 baños',
-                                '3' => '3 baños',
-                                '4' => '4 baños',
-                                '5+' => '5+ baños'
-                            ));
-                            foreach ($banos_options as $value => $label) {
-                                echo '<option value="' . esc_attr($value) . '">' . esc_html($label) . '</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                </div>
-                
-                <!-- Segunda fila con sliders de precio -->
-                <div class="search-form-row">
-                    <div class="search-group price-group">
-                        <label for="search-precio-min" class="search-label">Precio Mínimo (CLP)</label>
-                        <div class="price-slider-container">
-                            <input type="range" id="search-precio-min" name="precio_min" class="price-slider" min="0" max="1000000000" value="0" step="100000">
-                            <div class="price-display">
-                                <span class="price-value" id="precio-min-value">$0</span>
-                                <span class="price-max">$1.000.000.000</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="search-group price-group">
-                        <label for="search-precio-max" class="search-label">Precio Máximo (CLP)</label>
-                        <div class="price-slider-container">
-                            <input type="range" id="search-precio-max" name="precio_max" class="price-slider" min="0" max="1000000000" value="1000000000" step="100000">
-                            <div class="price-display">
-                                <span class="price-min">$0</span>
-                                <span class="price-value" id="precio-max-value">$1.000.000.000</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Botón de búsqueda -->
-                <div class="search-actions">
-                    <button type="submit" class="search-btn">
-                        Buscar Propiedades
-                    </button>
-                </div>
-            </form>
-        </div>
+        <?php 
+        echo mjpropiedades_get_search_form(array(
+            'show_title' => true,
+            'title' => 'Encuentra tu Propiedad Ideal',
+            'button_text' => 'Buscar Propiedades',
+            'action' => home_url('/propiedades/'),
+            'preserve_values' => true,
+            'form_id' => 'home-search-form'
+        ));
+        ?>
     </div>
     <br><br><br><br><br><br>
 </section>
@@ -398,7 +285,7 @@ get_header(); ?>
                 }
                 
                 // Formatear precio
-                $precio_formatted = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
+                $precio_formatted = $precio ? '$' . number_format(floatval($precio), 0, ',', '.') : 'Consultar';
                 
                 // Determinar operación si no está configurada
                 if (!$operacion) {
@@ -537,7 +424,7 @@ get_header(); ?>
                 }
                 
                 // Formatear precio
-                $precio_formatted = $precio ? '$' . number_format($precio, 0, ',', '.') : 'Consultar';
+                $precio_formatted = $precio ? '$' . number_format(floatval($precio), 0, ',', '.') : 'Consultar';
                 
                 // Determinar operación si no está configurada
                 if (!$operacion) {
@@ -860,10 +747,11 @@ get_header(); ?>
             
             <!-- Formulario de Contacto -->
             <div class="contact-form-container">
-            <?php
+                <?php 
                 // Verificar si Contact Form 7 está activo
                 if (function_exists('wpcf7_contact_form')) {
-                    echo do_shortcode('[contact-form-7 id="1" title="Formulario de Contacto"]');
+                    $form_id = mjpropiedades_get_contact_form_id();
+                    echo do_shortcode('[contact-form-7 id="' . $form_id . '" title="Formulario de Contacto"]');
                 } else {
                     // Fallback al formulario original si CF7 no está instalado
                     ?>

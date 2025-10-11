@@ -91,11 +91,15 @@
 <?php
 // Función de respaldo para el menú desktop
 function mjpropiedades_fallback_menu() {
+    // URLs dinámicas usando la función helper centralizada
+    $servicios_url = mjpropiedades_get_dynamic_menu_url('Servicios', '#servicios');
+    $propiedades_url = mjpropiedades_get_dynamic_menu_url('Propiedades', '#venta');
+    
     echo '<ul class="nav-menu">';
     echo '<li><a href="' . home_url() . '">Inicio</a></li>';
     echo '<li><a href="#about">Quiénes Somos</a></li>';
-    echo '<li><a href="#servicios">Servicios</a></li>';
-    echo '<li><a href="' . get_post_type_archive_link('propiedad') . '">Propiedades</a></li>';
+    echo '<li><a href="' . $servicios_url . '">Servicios</a></li>';
+    echo '<li><a href="' . $propiedades_url . '">Propiedades</a></li>';
     echo '<li><a href="#venta">Venta</a></li>';
     echo '<li><a href="#arriendo">Arriendo</a></li>';
     echo '</ul>';
@@ -103,11 +107,15 @@ function mjpropiedades_fallback_menu() {
 
 // Función de respaldo para el menú móvil
 function mjpropiedades_mobile_fallback_menu() {
+    // URLs dinámicas usando la función helper centralizada
+    $servicios_url = mjpropiedades_get_dynamic_menu_url('Servicios', '#servicios');
+    $propiedades_url = mjpropiedades_get_dynamic_menu_url('Propiedades', '#venta');
+    
     echo '<ul class="mobile-nav-menu">';
     echo '<li><a href="' . home_url() . '">Inicio</a></li>';
     echo '<li><a href="#about">Quiénes Somos</a></li>';
-    echo '<li><a href="#servicios">Servicios</a></li>';
-    echo '<li><a href="' . get_post_type_archive_link('propiedad') . '">Propiedades</a></li>';
+    echo '<li><a href="' . $servicios_url . '">Servicios</a></li>';
+    echo '<li><a href="' . $propiedades_url . '">Propiedades</a></li>';
     echo '<li><a href="#venta">Venta</a></li>';
     echo '<li><a href="#arriendo">Arriendo</a></li>';
     echo '</ul>';
