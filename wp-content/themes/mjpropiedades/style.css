@@ -795,7 +795,7 @@ body {
 }
 
 .search-form-container {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
@@ -817,7 +817,8 @@ body {
 
 /* Primera fila: Todos los select en una fila */
 .search-form-row.select-row {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
 }
 
 /* Segunda fila: Sliders de precio en la misma fila */
@@ -859,6 +860,23 @@ body {
     border-color: #ff6b35;
     background-color: var(--white);
     box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.1);
+}
+
+/* Select más pequeños para operación, dormitorios y baños */
+.search-group:nth-child(1) .search-select,
+.search-group:nth-child(4) .search-select,
+.search-group:nth-child(5) .search-select {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+    padding-right: 35px;
+    background-size: 14px;
+    background-position: right 10px center;
+}
+
+.search-group:nth-child(1) .search-label,
+.search-group:nth-child(4) .search-label,
+.search-group:nth-child(5) .search-label {
+    font-size: 0.8rem;
 }
 
 /* Estilos para los sliders de precio */

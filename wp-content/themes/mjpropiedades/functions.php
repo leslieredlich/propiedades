@@ -3835,6 +3835,15 @@ add_action('after_setup_theme', 'mjpropiedades_create_sample_properties');
 
 // Configurar opciones por defecto para búsqueda
 function mjpropiedades_set_default_search_options() {
+    // Tipos de operación por defecto
+    if (!get_option('mjpropiedades_tipos_operacion')) {
+        $tipos_operacion = array(
+            'venta' => 'Venta',
+            'arriendo' => 'Arriendo'
+        );
+        update_option('mjpropiedades_tipos_operacion', $tipos_operacion);
+    }
+    
     // Tipos de propiedad por defecto
     if (!get_option('mjpropiedades_tipos_propiedad')) {
         $tipos_propiedad = array(
@@ -3937,6 +3946,14 @@ function mjpropiedades_search_properties() {
     }
     
     // Aplicar filtros
+    if (isset($_GET['operacion']) && !empty($_GET['operacion'])) {
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_operacion',
+            'value' => sanitize_text_field($_GET['operacion']),
+            'compare' => '='
+        );
+    }
+    
     if (isset($_GET['tipo_propiedad']) && !empty($_GET['tipo_propiedad'])) {
         $args['meta_query'][] = array(
             'key' => '_propiedad_tipo',
@@ -4054,6 +4071,7 @@ function mjpropiedades_get_search_form($args = array()) {
     $current_values = array();
     if ($args['preserve_values']) {
         $current_values = array(
+            'operacion' => isset($_GET['operacion']) ? $_GET['operacion'] : '',
             'tipo_propiedad' => isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : '',
             'ubicacion' => isset($_GET['ubicacion']) ? $_GET['ubicacion'] : '',
             'dormitorios' => isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '',
@@ -4064,6 +4082,11 @@ function mjpropiedades_get_search_form($args = array()) {
     }
     
     // Obtener opciones de configuración
+    $tipos_operacion = get_option('mjpropiedades_tipos_operacion', array(
+        'venta' => 'Venta',
+        'arriendo' => 'Arriendo'
+    ));
+    
     $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array(
         'casa' => 'Casa',
         'departamento' => 'Departamento',
@@ -4113,6 +4136,18 @@ function mjpropiedades_get_search_form($args = array()) {
         <form id="<?php echo esc_attr($args['form_id']); ?>" class="<?php echo esc_attr($args['class']); ?>" method="<?php echo esc_attr($args['method']); ?>" action="<?php echo esc_url($args['action']); ?>">
             <!-- Primera fila: Todos los select en una fila -->
             <div class="search-form-row select-row">
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-operacion" class="search-label">Tipo de Operación</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-operacion" name="operacion" class="search-select">
+                        <option value="">Todas las operaciones</option>
+                        <?php foreach ($tipos_operacion as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['operacion'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
                 <div class="search-group">
                     <label for="<?php echo esc_attr($args['form_id']); ?>-tipo-propiedad" class="search-label">Tipo de Propiedad</label>
                     <select id="<?php echo esc_attr($args['form_id']); ?>-tipo-propiedad" name="tipo_propiedad" class="search-select">
@@ -4892,6 +4927,12 @@ function mjpropiedades_text_to_array($text) {
 function mjpropiedades_search_options_page() {
     // Guardar opciones si se envió el formulario
     if (isset($_POST['submit']) && wp_verify_nonce($_POST['search_options_nonce'], 'save_search_options')) {
+        // Guardar tipos de operación
+        if (isset($_POST['tipos_operacion_text'])) {
+            $tipos_operacion = mjpropiedades_text_to_array($_POST['tipos_operacion_text']);
+            update_option('mjpropiedades_tipos_operacion', $tipos_operacion);
+        }
+        
         // Guardar tipos de propiedad
         if (isset($_POST['tipos_propiedad_text'])) {
             $tipos = mjpropiedades_text_to_array($_POST['tipos_propiedad_text']);
@@ -4920,6 +4961,7 @@ function mjpropiedades_search_options_page() {
     }
     
     // Obtener opciones actuales
+    $tipos_operacion = get_option('mjpropiedades_tipos_operacion', array());
     $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array());
     $comunas = get_option('mjpropiedades_comunas', array());
     $dormitorios = get_option('mjpropiedades_dormitorios', array());
@@ -4934,6 +4976,14 @@ function mjpropiedades_search_options_page() {
             <?php wp_nonce_field('save_search_options', 'search_options_nonce'); ?>
             
             <table class="form-table">
+                <tr>
+                    <th scope="row">Tipos de Operación</th>
+                    <td>
+                        <textarea name="tipos_operacion_text" rows="4" cols="50" style="width: 100%; max-width: 500px;" placeholder="Venta&#10;Arriendo"><?php echo esc_textarea(mjpropiedades_array_to_text($tipos_operacion)); ?></textarea>
+                        <p class="description">Una opción por línea. Solo ingresa el texto que se mostrará.</p>
+                    </td>
+                </tr>
+                
                 <tr>
                     <th scope="row">Tipos de Propiedad</th>
                     <td>
