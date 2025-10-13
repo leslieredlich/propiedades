@@ -54,7 +54,9 @@
             ?>
         </nav>
         
+        <?php if (!is_singular('propiedad')) : ?>
         <a href="#contacto" class="contact-btn contact-btn-desktop">Contactar</a>
+        <?php endif; ?>
         
         <!-- Botón Hamburger Móvil -->
         <button class="mobile-menu-toggle" aria-label="Abrir menú">
