@@ -2866,6 +2866,7 @@ body.admin-bar .property-detail-page {
     }
 } */
 
+
 /* Mejoras de accesibilidad */
 @media (prefers-reduced-motion: reduce) {
     /* Reducir animaciones para usuarios con preferencias de movimiento reducido */

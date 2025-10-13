@@ -3835,6 +3835,15 @@ add_action('after_setup_theme', 'mjpropiedades_create_sample_properties');
 
 // Configurar opciones por defecto para búsqueda
 function mjpropiedades_set_default_search_options() {
+    // Tipos de operación por defecto
+    if (!get_option('mjpropiedades_tipos_operacion')) {
+        $tipos_operacion = array(
+            'venta' => 'Venta',
+            'arriendo' => 'Arriendo'
+        );
+        update_option('mjpropiedades_tipos_operacion', $tipos_operacion);
+    }
+    
     // Tipos de propiedad por defecto
     if (!get_option('mjpropiedades_tipos_propiedad')) {
         $tipos_propiedad = array(
@@ -3937,6 +3946,14 @@ function mjpropiedades_search_properties() {
     }
     
     // Aplicar filtros
+    if (isset($_GET['operacion']) && !empty($_GET['operacion'])) {
+        $args['meta_query'][] = array(
+            'key' => '_propiedad_operacion',
+            'value' => sanitize_text_field($_GET['operacion']),
+            'compare' => '='
+        );
+    }
+    
     if (isset($_GET['tipo_propiedad']) && !empty($_GET['tipo_propiedad'])) {
         $args['meta_query'][] = array(
             'key' => '_propiedad_tipo',
@@ -4054,6 +4071,7 @@ function mjpropiedades_get_search_form($args = array()) {
     $current_values = array();
     if ($args['preserve_values']) {
         $current_values = array(
+            'operacion' => isset($_GET['operacion']) ? $_GET['operacion'] : '',
             'tipo_propiedad' => isset($_GET['tipo_propiedad']) ? $_GET['tipo_propiedad'] : '',
             'ubicacion' => isset($_GET['ubicacion']) ? $_GET['ubicacion'] : '',
             'dormitorios' => isset($_GET['dormitorios']) ? $_GET['dormitorios'] : '',
@@ -4064,6 +4082,11 @@ function mjpropiedades_get_search_form($args = array()) {
     }
     
     // Obtener opciones de configuración
+    $tipos_operacion = get_option('mjpropiedades_tipos_operacion', array(
+        'venta' => 'Venta',
+        'arriendo' => 'Arriendo'
+    ));
+    
     $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array(
         'casa' => 'Casa',
         'departamento' => 'Departamento',
@@ -4113,6 +4136,18 @@ function mjpropiedades_get_search_form($args = array()) {
         <form id="<?php echo esc_attr($args['form_id']); ?>" class="<?php echo esc_attr($args['class']); ?>" method="<?php echo esc_attr($args['method']); ?>" action="<?php echo esc_url($args['action']); ?>">
             <!-- Primera fila: Todos los select en una fila -->
             <div class="search-form-row select-row">
+                <div class="search-group">
+                    <label for="<?php echo esc_attr($args['form_id']); ?>-operacion" class="search-label">Tipo de Operación</label>
+                    <select id="<?php echo esc_attr($args['form_id']); ?>-operacion" name="operacion" class="search-select">
+                        <option value="">Todas las operaciones</option>
+                        <?php foreach ($tipos_operacion as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_values['operacion'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
                 <div class="search-group">
                     <label for="<?php echo esc_attr($args['form_id']); ?>-tipo-propiedad" class="search-label">Tipo de Propiedad</label>
                     <select id="<?php echo esc_attr($args['form_id']); ?>-tipo-propiedad" name="tipo_propiedad" class="search-select">
@@ -4852,7 +4887,8 @@ function mjpropiedades_property_cards_css_with_version() {
 
 // Agregar página de administración para opciones de búsqueda
 function mjpropiedades_add_search_options_page() {
-    add_options_page(
+    add_submenu_page(
+        'themes.php',  // Parent: Aspecto
         'Opciones de Búsqueda',
         'Opciones de Búsqueda',
         'manage_options',
@@ -4862,51 +4898,62 @@ function mjpropiedades_add_search_options_page() {
 }
 add_action('admin_menu', 'mjpropiedades_add_search_options_page');
 
+// Funciones auxiliares para convertir entre arrays y texto
+function mjpropiedades_array_to_text($array) {
+    $lines = array();
+    foreach ($array as $value => $label) {
+        $lines[] = $label; // Solo mostrar la etiqueta
+    }
+    return implode("\n", $lines);
+}
+
+function mjpropiedades_text_to_array($text) {
+    $array = array();
+    $lines = explode("\n", $text);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if (!empty($line)) {
+            $label = sanitize_text_field($line);
+            $value = sanitize_title($label); // Generar slug automáticamente
+            if (!empty($value) && !empty($label)) {
+                $array[$value] = $label;
+            }
+        }
+    }
+    return $array;
+}
+
 // Página de opciones de búsqueda
 function mjpropiedades_search_options_page() {
     // Guardar opciones si se envió el formulario
     if (isset($_POST['submit']) && wp_verify_nonce($_POST['search_options_nonce'], 'save_search_options')) {
+        // Guardar tipos de operación
+        if (isset($_POST['tipos_operacion_text'])) {
+            $tipos_operacion = mjpropiedades_text_to_array($_POST['tipos_operacion_text']);
+            update_option('mjpropiedades_tipos_operacion', $tipos_operacion);
+        }
+        
         // Guardar tipos de propiedad
-        if (isset($_POST['tipos_propiedad'])) {
-            $tipos = array();
-            foreach ($_POST['tipos_propiedad'] as $tipo) {
-                if (!empty($tipo['value']) && !empty($tipo['label'])) {
-                    $tipos[sanitize_text_field($tipo['value'])] = sanitize_text_field($tipo['label']);
-                }
-            }
+        if (isset($_POST['tipos_propiedad_text'])) {
+            $tipos = mjpropiedades_text_to_array($_POST['tipos_propiedad_text']);
             update_option('mjpropiedades_tipos_propiedad', $tipos);
         }
         
         // Guardar comunas
-        if (isset($_POST['comunas'])) {
-            $comunas = array();
-            foreach ($_POST['comunas'] as $comuna) {
-                if (!empty($comuna['value']) && !empty($comuna['label'])) {
-                    $comunas[sanitize_text_field($comuna['value'])] = sanitize_text_field($comuna['label']);
-                }
-            }
+        if (isset($_POST['comunas_text'])) {
+            $comunas = mjpropiedades_text_to_array($_POST['comunas_text']);
             update_option('mjpropiedades_comunas', $comunas);
         }
         
         // Guardar opciones de dormitorios
-        if (isset($_POST['dormitorios'])) {
-            $dormitorios = array();
-            foreach ($_POST['dormitorios'] as $dormitorio) {
-                if (!empty($dormitorio['value']) && !empty($dormitorio['label'])) {
-                    $dormitorios[sanitize_text_field($dormitorio['value'])] = sanitize_text_field($dormitorio['label']);
-                }
-            }
+        if (isset($_POST['dormitorios_text'])) {
+            $dormitorios = mjpropiedades_text_to_array($_POST['dormitorios_text']);
             update_option('mjpropiedades_dormitorios', $dormitorios);
         }
         
         // Guardar opciones de baños
-        if (isset($_POST['banos'])) {
-            $banos = array();
-            foreach ($_POST['banos'] as $bano) {
-                if (!empty($bano['value']) && !empty($bano['label'])) {
-                    $banos[sanitize_text_field($bano['value'])] = sanitize_text_field($bano['label']);
-                }
-            }
+        if (isset($_POST['banos_text'])) {
+            $banos = mjpropiedades_text_to_array($_POST['banos_text']);
             update_option('mjpropiedades_banos', $banos);
         }
         
@@ -4914,6 +4961,7 @@ function mjpropiedades_search_options_page() {
     }
     
     // Obtener opciones actuales
+    $tipos_operacion = get_option('mjpropiedades_tipos_operacion', array());
     $tipos_propiedad = get_option('mjpropiedades_tipos_propiedad', array());
     $comunas = get_option('mjpropiedades_comunas', array());
     $dormitorios = get_option('mjpropiedades_dormitorios', array());
@@ -4922,89 +4970,49 @@ function mjpropiedades_search_options_page() {
     ?>
     <div class="wrap">
         <h1>Opciones de Búsqueda de Propiedades</h1>
-        <p>Gestiona las opciones disponibles en los formularios de búsqueda.</p>
+        <p>Gestiona las opciones disponibles en los formularios de búsqueda. <strong>Solo ingresa el texto que se mostrará</strong> (una opción por línea).</p>
         
         <form method="post" action="">
             <?php wp_nonce_field('save_search_options', 'search_options_nonce'); ?>
             
             <table class="form-table">
                 <tr>
+                    <th scope="row">Tipos de Operación</th>
+                    <td>
+                        <textarea name="tipos_operacion_text" rows="4" cols="50" style="width: 100%; max-width: 500px;" placeholder="Venta&#10;Arriendo"><?php echo esc_textarea(mjpropiedades_array_to_text($tipos_operacion)); ?></textarea>
+                        <p class="description">Una opción por línea. Solo ingresa el texto que se mostrará.</p>
+                    </td>
+                </tr>
+                
+                <tr>
                     <th scope="row">Tipos de Propiedad</th>
                     <td>
-                        <div id="tipos-propiedad-container">
-                            <?php
-                            $counter = 0;
-                            foreach ($tipos_propiedad as $value => $label) {
-                                echo '<div class="option-row">';
-                                echo '<input type="text" name="tipos_propiedad[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: casa)" style="width: 150px; margin-right: 10px;">';
-                                echo '<input type="text" name="tipos_propiedad[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: Casa)" style="width: 200px; margin-right: 10px;">';
-                                echo '<button type="button" class="button remove-option">Eliminar</button>';
-                                echo '</div>';
-                                $counter++;
-                            }
-                            ?>
-                        </div>
-                        <button type="button" id="add-tipo-propiedad" class="button">Agregar Tipo de Propiedad</button>
+                        <textarea name="tipos_propiedad_text" rows="8" cols="50" style="width: 100%; max-width: 500px;" placeholder="Casa&#10;Departamento&#10;Oficina&#10;Local Comercial&#10;Terreno"><?php echo esc_textarea(mjpropiedades_array_to_text($tipos_propiedad)); ?></textarea>
+                        <p class="description">Una opción por línea. Solo ingresa el texto que se mostrará.</p>
                     </td>
                 </tr>
                 
                 <tr>
                     <th scope="row">Comunas</th>
                     <td>
-                        <div id="comunas-container">
-                            <?php
-                            $counter = 0;
-                            foreach ($comunas as $value => $label) {
-                                echo '<div class="option-row">';
-                                echo '<input type="text" name="comunas[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: la-serena)" style="width: 150px; margin-right: 10px;">';
-                                echo '<input type="text" name="comunas[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: La Serena)" style="width: 200px; margin-right: 10px;">';
-                                echo '<button type="button" class="button remove-option">Eliminar</button>';
-                                echo '</div>';
-                                $counter++;
-                            }
-                            ?>
-                        </div>
-                        <button type="button" id="add-comuna" class="button">Agregar Comuna</button>
+                        <textarea name="comunas_text" rows="8" cols="50" style="width: 100%; max-width: 500px;" placeholder="La Serena&#10;Coquimbo&#10;Ovalle&#10;Vicuña&#10;Andacollo"><?php echo esc_textarea(mjpropiedades_array_to_text($comunas)); ?></textarea>
+                        <p class="description">Una opción por línea. Solo ingresa el texto que se mostrará.</p>
                     </td>
                 </tr>
                 
                 <tr>
                     <th scope="row">Dormitorios</th>
                     <td>
-                        <div id="dormitorios-container">
-                            <?php
-                            $counter = 0;
-                            foreach ($dormitorios as $value => $label) {
-                                echo '<div class="option-row">';
-                                echo '<input type="text" name="dormitorios[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">';
-                                echo '<input type="text" name="dormitorios[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: 2 dormitorios)" style="width: 200px; margin-right: 10px;">';
-                                echo '<button type="button" class="button remove-option">Eliminar</button>';
-                                echo '</div>';
-                                $counter++;
-                            }
-                            ?>
-                        </div>
-                        <button type="button" id="add-dormitorio" class="button">Agregar Opción de Dormitorios</button>
+                        <textarea name="dormitorios_text" rows="8" cols="50" style="width: 100%; max-width: 500px;" placeholder="1&#10;2&#10;3&#10;4&#10;5+"><?php echo esc_textarea(mjpropiedades_array_to_text($dormitorios)); ?></textarea>
+                        <p class="description">Una opción por línea. Solo ingresa el texto que se mostrará.</p>
                     </td>
                 </tr>
                 
                 <tr>
                     <th scope="row">Baños</th>
                     <td>
-                        <div id="banos-container">
-                            <?php
-                            $counter = 0;
-                            foreach ($banos as $value => $label) {
-                                echo '<div class="option-row">';
-                                echo '<input type="text" name="banos[' . $counter . '][value]" value="' . esc_attr($value) . '" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">';
-                                echo '<input type="text" name="banos[' . $counter . '][label]" value="' . esc_attr($label) . '" placeholder="Etiqueta (ej: 2 baños)" style="width: 200px; margin-right: 10px;">';
-                                echo '<button type="button" class="button remove-option">Eliminar</button>';
-                                echo '</div>';
-                                $counter++;
-                            }
-                            ?>
-                        </div>
-                        <button type="button" id="add-bano" class="button">Agregar Opción de Baños</button>
+                        <textarea name="banos_text" rows="8" cols="50" style="width: 100%; max-width: 500px;" placeholder="1&#10;2&#10;3&#10;4&#10;5+"><?php echo esc_textarea(mjpropiedades_array_to_text($banos)); ?></textarea>
+                        <p class="description">Una opción por línea. Solo ingresa el texto que se mostrará.</p>
                     </td>
                 </tr>
             </table>
@@ -5012,74 +5020,6 @@ function mjpropiedades_search_options_page() {
             <?php submit_button('Guardar Opciones'); ?>
         </form>
     </div>
-    
-    <script>
-    jQuery(document).ready(function($) {
-        let tipoCounter = <?php echo count($tipos_propiedad); ?>;
-        let comunaCounter = <?php echo count($comunas); ?>;
-        let dormitorioCounter = <?php echo count($dormitorios); ?>;
-        let banoCounter = <?php echo count($banos); ?>;
-        
-        // Agregar tipo de propiedad
-        $('#add-tipo-propiedad').click(function() {
-            const html = '<div class="option-row">' +
-                '<input type="text" name="tipos_propiedad[' + tipoCounter + '][value]" placeholder="Valor (ej: casa)" style="width: 150px; margin-right: 10px;">' +
-                '<input type="text" name="tipos_propiedad[' + tipoCounter + '][label]" placeholder="Etiqueta (ej: Casa)" style="width: 200px; margin-right: 10px;">' +
-                '<button type="button" class="button remove-option">Eliminar</button>' +
-                '</div>';
-            $('#tipos-propiedad-container').append(html);
-            tipoCounter++;
-        });
-        
-        // Agregar comuna
-        $('#add-comuna').click(function() {
-            const html = '<div class="option-row">' +
-                '<input type="text" name="comunas[' + comunaCounter + '][value]" placeholder="Valor (ej: la-serena)" style="width: 150px; margin-right: 10px;">' +
-                '<input type="text" name="comunas[' + comunaCounter + '][label]" placeholder="Etiqueta (ej: La Serena)" style="width: 200px; margin-right: 10px;">' +
-                '<button type="button" class="button remove-option">Eliminar</button>' +
-                '</div>';
-            $('#comunas-container').append(html);
-            comunaCounter++;
-        });
-        
-        // Agregar dormitorio
-        $('#add-dormitorio').click(function() {
-            const html = '<div class="option-row">' +
-                '<input type="text" name="dormitorios[' + dormitorioCounter + '][value]" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">' +
-                '<input type="text" name="dormitorios[' + dormitorioCounter + '][label]" placeholder="Etiqueta (ej: 2 dormitorios)" style="width: 200px; margin-right: 10px;">' +
-                '<button type="button" class="button remove-option">Eliminar</button>' +
-                '</div>';
-            $('#dormitorios-container').append(html);
-            dormitorioCounter++;
-        });
-        
-        // Agregar baño
-        $('#add-bano').click(function() {
-            const html = '<div class="option-row">' +
-                '<input type="text" name="banos[' + banoCounter + '][value]" placeholder="Valor (ej: 2)" style="width: 150px; margin-right: 10px;">' +
-                '<input type="text" name="banos[' + banoCounter + '][label]" placeholder="Etiqueta (ej: 2 baños)" style="width: 200px; margin-right: 10px;">' +
-                '<button type="button" class="button remove-option">Eliminar</button>' +
-                '</div>';
-            $('#banos-container').append(html);
-            banoCounter++;
-        });
-        
-        // Eliminar opción
-        $(document).on('click', '.remove-option', function() {
-            $(this).closest('.option-row').remove();
-        });
-    });
-    </script>
-    
-    <style>
-    .option-row {
-        margin-bottom: 10px;
-        padding: 10px;
-        background: #f9f9f9;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-    </style>
     <?php
 }
 
