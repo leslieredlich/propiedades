@@ -413,6 +413,7 @@ get_header(); ?>
             <div class="content-layout">
                 <!-- Columna principal -->
                     <div class="content-main">
+                    
                     <!-- Descripción -->
                     <div class="content-section">
                             <h2 class="section-title">Descripción</h2>
@@ -570,6 +571,63 @@ get_header(); ?>
                         </div>
                     </div>
                     
+                    <!-- Formulario de contacto móvil (solo visible en móvil) -->
+                    <div class="contact-card contact-card-mobile">
+                        <div class="contact-header">
+                            <div class="cta-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                </svg>
+                            </div>
+                            <h3>¿Te gustó esta propiedad?</h3>
+                            <p>Agenda una visita o solicita más información</p>
+                        </div>
+                        
+                        <form class="contact-form" method="post" action="">
+                                <?php wp_nonce_field('property_contact_nonce', 'property_contact_nonce'); ?>
+                                <input type="hidden" name="property_id" value="<?php echo get_the_ID(); ?>">
+                                <input type="hidden" name="property_contact_submitted" value="1">
+                                
+                        <div class="form-group">
+                                    <label for="contact_name_mobile">Nombre completo</label>
+                                <input type="text" id="contact_name_mobile" name="contact_name" placeholder="Tu nombre" required>
+                        </div>
+                                
+                        <div class="form-group">
+                                    <label for="contact_email_mobile">Email</label>
+                                    <input type="email" id="contact_email_mobile" name="contact_email" placeholder="tu@email.com" required>
+                        </div>
+                                
+                        <div class="form-group">
+                                    <label for="contact_phone_mobile">Teléfono</label>
+                                    <input type="tel" id="contact_phone_mobile" name="contact_phone" placeholder="+56 9 1234 5678" required>
+                        </div>
+                                
+                        <div class="form-group">
+                                    <label for="contact_message_mobile">Mensaje</label>
+                                <textarea id="contact_message_mobile" name="contact_message" placeholder="Cuéntanos qué te interesa..." rows="3"></textarea>
+                        </div>
+                    
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="request_visit" value="1">
+                                        <span class="checkmark"></span>
+                                        Solicitar visita programada
+                                    </label>
+                    </div>
+                    
+                                <div class="form-actions">
+                                <button type="submit" class="btn-primary">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                                    </svg>
+                                    Enviar consulta
+                                </button>
+                                </div>
+                    </form>
+                </div>
+                    
                 <!-- Sidebar con formulario -->
                     <div class="content-sidebar">
                     <div class="contact-card">
@@ -726,6 +784,64 @@ get_header(); ?>
         </section>
         
         <?php endwhile; ?>
+</div>
+
+<!-- Botones de contacto fijos para móvil -->
+<div class="fixed-contact-buttons">
+    <?php
+    // Obtener datos del agente para los botones fijos
+    $agente = mjpropiedades_get_property_agent();
+    $agente_data = $agente ? mjpropiedades_get_agent_data($agente->ID) : null;
+    
+    if ($agente_data && $agente_data['telefono']) :
+        ?>
+        <a href="tel:<?php echo esc_attr($agente_data['telefono']); ?>" class="fixed-btn call-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+            <span>Llamar Ahora</span>
+        </a>
+        <?php
+    else :
+        ?>
+        <a href="tel:+56912345678" class="fixed-btn call-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+            <span>Llamar Ahora</span>
+        </a>
+        <?php
+    endif;
+    
+    // Determinar número de WhatsApp
+    $whatsapp_number = $agente_data['whatsapp'] ? $agente_data['whatsapp'] : ($agente_data['telefono'] ? $agente_data['telefono'] : '+56912345678');
+    $whatsapp_message = "Hola, estoy interesado/a en esta propiedad: " . get_the_title() . " en " . $comuna . ". ¿Podrías darme más información?";
+    $whatsapp_url = "https://wa.me/" . str_replace(array('+', ' ', '-'), '', $whatsapp_number) . "?text=" . urlencode($whatsapp_message);
+    ?>
+    
+    <!-- Botón de WhatsApp del agente específico -->
+    <?php if ($agente_data && $agente_data['telefono']) : ?>
+        <?php
+        // Usar WhatsApp específico del agente o su teléfono como fallback
+        $agente_whatsapp = $agente_data['whatsapp'] ? $agente_data['whatsapp'] : $agente_data['telefono'];
+        $agente_whatsapp_message = "Hola " . esc_html($agente_data['nombre']) . ", estoy interesado/a en esta propiedad: " . get_the_title() . " en " . $comuna . ". ¿Podrías darme más información?";
+        $agente_whatsapp_url = "https://wa.me/" . str_replace(array('+', ' ', '-'), '', $agente_whatsapp) . "?text=" . urlencode($agente_whatsapp_message);
+        ?>
+        <a href="<?php echo esc_url($agente_whatsapp_url); ?>" class="fixed-btn whatsapp-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+            </svg>
+            <span>WhatsApp</span>
+        </a>
+    <?php else : ?>
+        <!-- Fallback para cuando no hay agente específico -->
+        <a href="<?php echo esc_url($whatsapp_url); ?>" class="fixed-btn whatsapp-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+            </svg>
+            <span>WhatsApp</span>
+        </a>
+    <?php endif; ?>
 </div>
 
 <style>
@@ -1462,9 +1578,112 @@ body.admin-bar .property-detail-page {
     border: 1px solid var(--border-light);
 }
 
+/* Formulario móvil - oculto por defecto */
+.contact-card-mobile {
+    display: none;
+}
+
+/* Botones de contacto fijos para móvil */
+.fixed-contact-buttons {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    z-index: 1000;
+    gap: 0.75rem;
+    flex-direction: column; /* Cambiar a columna */
+}
+
+.fixed-btn {
+    width: 100%; /* Ancho completo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    min-height: 56px;
+    box-shadow: var(--shadow-sm);
+}
+
+.fixed-btn.call-btn {
+    background: var(--primary-color);
+    color: white;
+    border: 2px solid var(--primary-color);
+}
+
+/* Estilos específicos para botones fijos de WhatsApp - Mayor especificidad */
+.fixed-contact-buttons .fixed-btn.whatsapp-btn {
+    background: #25d366 !important;
+    color: white !important;
+    border: 2px solid #25d366 !important;
+    width: 100% !important;
+    padding: 1rem !important;
+    border-radius: var(--radius-md) !important;
+    gap: 0.5rem !important;
+    font-size: 0.9375rem !important;
+    font-weight: 700 !important;
+    min-height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: all 0.2s ease !important;
+}
+
+.fixed-contact-buttons .fixed-btn.whatsapp-btn:active {
+    transform: scale(0.98) !important;
+    box-shadow: none !important;
+}
+
+.fixed-contact-buttons .fixed-btn.whatsapp-btn svg {
+    width: 24px !important;
+    height: 24px !important;
+    fill: currentColor !important;
+}
+
+.fixed-btn:active {
+    transform: scale(0.98);
+    box-shadow: none;
+}
+
+.fixed-btn svg {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
 .contact-header {
     text-align: center;
     margin-bottom: 2rem;
+}
+
+/* Ícono CTA para formulario móvil */
+.cta-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-blue));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.cta-icon svg {
+    width: 32px;
+    height: 32px;
 }
 
 .contact-header h3 {
@@ -1770,219 +1989,680 @@ body.admin-bar .property-detail-page {
 }
 
 @media (max-width: 768px) {
+    /* Layout principal móvil */
     .hero-gallery-section {
-        padding: 1rem 0;
+        padding: 0;
+        background: var(--bg-primary);
     }
     
     .hero-container {
-        gap: 1.5rem;
+        padding: 0;
+        gap: 0;
+        grid-template-columns: 1fr;
+    }
+    
+    /* Galería móvil - Pantalla completa inmersiva */
+    .gallery-container {
+        border-radius: 0;
+        box-shadow: none;
+        margin-bottom: 0;
     }
     
     .gallery-main {
-        height: 300px;
+        height: 280px;
+        border-radius: 0;
     }
     
+    /* Ocultar elementos innecesarios de la galería en móvil */
+    .gallery-dots,
+    .gallery-thumbnails {
+        display: none;
+    }
+    
+    /* Mostrar navegación minimalista en móvil */
+    .gallery-navigation {
+        display: flex !important;
+        position: absolute !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+        padding: 0 1rem !important;
+        pointer-events: none !important;
+        z-index: 20 !important;
+        left: 0 !important;
+        right: 0 !important;
+    }
+    
+    /* Asegurar que las flechas sean visibles solo cuando hay múltiples imágenes */
+    .gallery-container.single-image .gallery-navigation {
+        display: none !important;
+    }
+    
+    /* Flechas minimalistas para móvil */
+    .nav-btn {
+        width: 44px !important;
+        height: 44px !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: none !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        backdrop-filter: blur(10px) !important;
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        color: #1f2937 !important;
+        z-index: 21 !important;
+        position: relative !important;
+    }
+    
+    .nav-btn:hover,
+    .nav-btn:active {
+        background: rgba(255, 255, 255, 1) !important;
+        transform: scale(1.05) !important;
+        opacity: 1 !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    .nav-btn svg {
+        width: 20px !important;
+        height: 20px !important;
+        color: #1f2937 !important;
+        stroke: #1f2937 !important;
+        stroke-width: 2.5 !important;
+        fill: none !important;
+    }
+    
+    /* Panel de información móvil - Diseño limpio y espacioso */
     .info-panel {
-        padding: 1.5rem;
+        position: static;
+        padding: 1.75rem 1.25rem;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+        border-bottom: 1px solid var(--border-light);
     }
     
+    /* Precio destacado en móvil */
     .property-price {
-        font-size: 1.75rem;
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        letter-spacing: -0.5px;
     }
     
+    /* Título optimizado */
     .property-title {
-        font-size: 1.25rem;
+        font-size: 1.375rem;
+        font-weight: 700;
+        line-height: 1.4;
+        margin-bottom: 0.75rem;
     }
     
+    /* Ubicación más visible */
+    .property-location {
+        font-size: 0.9375rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-secondary);
+    }
+    
+    /* Grid de características móvil - Diseño horizontal compacto */
     .main-features-grid {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 0.75rem;
+        margin-bottom: 1.5rem;
     }
     
-    .contact-buttons {
+    .main-features-grid .feature-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.375rem;
+        padding: 0.75rem 0.5rem;
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        font-size: 0.8125rem;
+    }
+    
+    .main-features-grid .feature-item svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    /* Separador sutil */
+    .separator {
+        margin: 1.25rem 0;
+        background: var(--border-light);
+    }
+    
+    /* Información del agente - Diseño centrado y minimalista */
+    .agent-info {
+        text-align: center;
+        margin-top: 0;
+    }
+    
+    .agent-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .agent-profile {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.875rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .agent-avatar {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .agent-details {
+        text-align: center;
+    }
+    
+    .agent-name {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: 0.375rem;
+    }
+    
+    .agent-specialization {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.625rem;
+    }
+    
+    .agent-rating {
+        justify-content: center;
         gap: 0.5rem;
     }
     
-    .contact-btn {
-        padding: 0.75rem 1rem;
-        font-size: 0.8rem;
+    .stars {
+        justify-content: center;
     }
     
+    .rating-text {
+        font-size: 0.8125rem;
+    }
+    
+    /* Ocultar botones de contacto del panel en móvil */
+    .contact-buttons {
+        display: none;
+    }
+    
+    /* Mostrar botones fijos en móvil */
+    .fixed-contact-buttons {
+        display: flex;
+    }
+    
+    /* Ajustar padding bottom para los botones fijos (ahora en columna) */
+    .property-detail-page {
+        padding-bottom: 180px; /* Más espacio para 3 botones en columna */
+    }
+    
+    /* Container general móvil */
     .container {
-        padding: 0 1rem;
+        padding: 0 1.25rem;
     }
     
+    /* Ocultar sección duplicada de información en móvil */
     .property-info {
-        padding: 2rem 0;
+        display: none;
     }
     
-    .property-title {
-        font-size: 1.875rem;
-    }
-    
-    .price-main {
-        font-size: 2rem;
-    }
-    
-    .main-features {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    
-    .feature-item {
-        padding: 1rem;
-    }
-    
+    /* Contenido principal móvil */
     .property-content {
-        padding: 2rem 0;
+        padding: 1.5rem 0;
+        background: var(--bg-secondary);
     }
     
     .content-section {
-        padding: 1.5rem;
+        padding: 1.5rem 1.25rem;
+        margin-bottom: 1rem;
+        border-radius: var(--radius-lg);
     }
     
-    .contact-card {
-        padding: 1.5rem;
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1.25rem;
     }
     
+    /* Características lista móvil */
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .feature-item-list {
+        padding: 0.625rem 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .feature-item-list:last-child {
+        border-bottom: none;
+    }
+    
+    /* Info grid móvil */
+    .info-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .info-item {
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .info-label {
+        font-size: 0.8125rem;
+        margin-bottom: 0.375rem;
+    }
+    
+    .info-value {
+        font-size: 0.9375rem;
+    }
+    
+    /* Sidebar de contacto - ocultar en móvil */
+    .content-sidebar {
+        display: none;
+    }
+    
+    /* Mostrar formulario móvil después de información adicional */
+    .contact-card-mobile {
+        display: block;
+        padding: 1.5rem 1.25rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        border-radius: var(--radius-lg);
+        background: var(--bg-primary);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-light);
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    .contact-header h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.625rem;
+    }
+    
+    .contact-header p {
+        font-size: 0.875rem;
+    }
+    
+    /* Formulario móvil */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        border-radius: var(--radius-md);
+    }
+    
+    .btn-primary {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 700;
+        min-height: 52px;
+    }
+    
+    .btn-primary:active {
+        transform: scale(0.98);
+    }
+    
+    /* Propiedades similares móvil */
     .similar-properties {
         padding: 2rem 0;
+        background: var(--bg-secondary);
+    }
+    
+    .similar-properties .section-title {
+        font-size: 1.375rem;
+        margin-bottom: 1.5rem;
+        padding: 0 1.25rem;
     }
     
     .properties-grid {
         grid-template-columns: 1fr;
-        gap: 1.5rem;
+        gap: 1.25rem;
+        padding: 0 1.25rem;
     }
     
-    .gallery-thumbnails {
-        bottom: 2.5rem;
-        left: 0.5rem;
-        right: 0.5rem;
+    .property-card {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
     }
     
-    .thumbnail {
-        width: 50px;
-        height: 38px;
+    .card-image {
+        height: 220px;
     }
     
-    .nav-btn {
-        width: 40px;
-        height: 40px;
+    .card-content {
+        padding: 1.25rem;
+    }
+    
+    .card-title a {
+        font-size: 1.0625rem;
+    }
+    
+    /* Navegación con swipe para galería móvil */
+    .gallery-container {
+        position: relative;
+        touch-action: pan-y pinch-zoom;
+    }
+    
+    /* Indicador visual sutil de imágenes */
+    .gallery-main::after {
+        content: attr(data-count);
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
     }
 }
 
 @media (max-width: 480px) {
+    /* Layout para dispositivos pequeños */
     .hero-gallery-section {
-        padding: 0.5rem 0;
+        padding: 0;
     }
     
+    /* Galería más compacta en pantallas pequeñas */
     .gallery-main {
-        height: 250px;
+        height: 240px;
     }
     
+    /* Panel de información aún más compacto */
     .info-panel {
-        padding: 1rem;
+        padding: 1.5rem 1rem;
     }
     
+    /* Ajustes de tipografía para pantallas pequeñas */
     .property-price {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
+        font-weight: 800;
     }
     
     .property-title {
-        font-size: 1.125rem;
+        font-size: 1.25rem;
+        line-height: 1.35;
     }
     
+    .property-location {
+        font-size: 0.875rem;
+    }
+    
+    /* Grid de características más compacto */
     .main-features-grid {
         gap: 0.5rem;
     }
     
-    .feature-item {
-        font-size: 0.8rem;
+    .main-features-grid .feature-item {
+        padding: 0.625rem 0.375rem;
+        font-size: 0.75rem;
+        gap: 0.25rem;
     }
     
+    .main-features-grid .feature-item svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Información del agente compacta */
     .agent-profile {
         gap: 0.75rem;
     }
     
     .agent-avatar {
-        width: 40px;
-        height: 40px;
+        width: 48px;
+        height: 48px;
     }
     
     .agent-name {
-        font-size: 0.9rem;
+        font-size: 1.0625rem;
     }
     
     .agent-specialization {
-        font-size: 0.8rem;
+        font-size: 0.8125rem;
     }
     
-    .contact-btn {
-        padding: 0.75rem 0.875rem;
-        font-size: 0.8rem;
-    }
-    
-    .gallery-thumbnails {
-        bottom: 2rem;
-    }
-    
-    .thumbnail {
-        width: 45px;
-        height: 34px;
-    }
-    
-    .nav-btn {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .dot {
-        width: 6px;
-        height: 6px;
-    }
-    
-    .property-title {
-        font-size: 1.5rem;
-    }
-    
-    .price-main {
-        font-size: 1.75rem;
-    }
-    
-    .main-features {
-        gap: 0.75rem;
-    }
-    
-    .feature-item {
-        padding: 0.875rem;
-        gap: 0.75rem;
-    }
-    
-    .feature-icon {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .feature-number {
-        font-size: 1.25rem;
-    }
-    
-    .content-section {
-        padding: 1rem;
-    }
-    
-    .contact-card {
-        padding: 1rem;
-    }
-    
-    .form-actions {
-        gap: 0.75rem;
-    }
-    
-    .btn-primary,
-    .btn-secondary {
-        padding: 0.75rem 1.25rem;
+    .agent-title {
         font-size: 0.875rem;
+    }
+    
+    .agent-rating {
+        gap: 0.375rem;
+    }
+    
+    .rating-text {
+        font-size: 0.75rem;
+    }
+    
+    /* Botones fijos para móviles pequeños */
+    .fixed-contact-buttons {
+        padding: 0.875rem;
+        gap: 0.625rem;
+    }
+    
+    .fixed-btn {
+        padding: 0.875rem;
+        font-size: 0.875rem;
+        min-height: 52px;
+    }
+    
+    .fixed-btn svg {
+        width: 22px;
+        height: 22px;
+    }
+    
+    /* Estilos específicos para WhatsApp en móviles pequeños */
+    .fixed-contact-buttons .fixed-btn.whatsapp-btn {
+        padding: 0.875rem !important;
+        font-size: 0.875rem !important;
+        min-height: 52px !important;
+    }
+    
+    .fixed-contact-buttons .fixed-btn.whatsapp-btn svg {
+        width: 22px !important;
+        height: 22px !important;
+    }
+    
+    /* Ajustar padding bottom para móviles pequeños (3 botones en columna) */
+    .property-detail-page {
+        padding-bottom: 170px; /* Ajustado para 3 botones en columna */
+    }
+    
+    /* Container más compacto */
+    .container {
+        padding: 0 1rem;
+    }
+    
+    /* Secciones de contenido */
+    .content-section {
+        padding: 1.25rem 1rem;
+        margin-bottom: 0.875rem;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Descripción más compacta */
+    .description-content {
+        font-size: 0.9375rem;
+        line-height: 1.6;
+    }
+    
+    /* Características en lista */
+    .feature-item-list {
+        padding: 0.5rem 0;
+        font-size: 0.875rem;
+    }
+    
+    .feature-item-list svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    /* Grid de info más compacto */
+    .info-grid {
+        gap: 0.75rem;
+    }
+    
+    .info-item {
+        padding: 0.875rem;
+    }
+    
+    .info-label {
+        font-size: 0.75rem;
+    }
+    
+    .info-value {
+        font-size: 0.875rem;
+    }
+    
+    /* Formulario de contacto móvil */
+    .contact-card-mobile {
+        padding: 1.25rem 1rem;
+        margin-top: 0.875rem;
+    }
+    
+    .contact-card-mobile .cta-icon {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 1rem;
+    }
+    
+    .contact-card-mobile .cta-icon svg {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .contact-card-mobile .contact-header h3 {
+        font-size: 1.125rem;
+    }
+    
+    .contact-card-mobile .contact-header p {
+        font-size: 0.8125rem;
+    }
+    
+    .form-group {
+        margin-bottom: 0.875rem;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.9375rem;
+    }
+    
+    .form-group label {
+        font-size: 0.8125rem;
+    }
+    
+    .btn-primary {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9375rem;
+        min-height: 48px;
+    }
+    
+    /* Propiedades similares */
+    .similar-properties {
+        padding: 1.5rem 0;
+    }
+    
+    .similar-properties .section-title {
+        font-size: 1.25rem;
+        padding: 0 1rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .properties-grid {
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+    
+    .card-image {
+        height: 200px;
+    }
+    
+    .card-content {
+        padding: 1rem;
+    }
+    
+    .card-title a {
+        font-size: 1rem;
+    }
+    
+    .card-details {
+        font-size: 0.8125rem;
+    }
+    
+    .card-price {
+        font-size: 1.125rem;
+    }
+    
+    .card-btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.8125rem;
+    }
+    
+    /* Botón ver todas */
+    .btn-view-all {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.9375rem;
+    }
+    
+    /* Indicador de contador de imágenes */
+    .gallery-main::after {
+        bottom: 0.75rem;
+        right: 0.75rem;
+        padding: 0.25rem 0.625rem;
+        font-size: 0.6875rem;
+    }
+    
+    /* Flechas más compactas para móviles pequeños */
+    .nav-btn {
+        width: 40px !important;
+        height: 40px !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12) !important;
+    }
+    
+    .nav-btn svg {
+        width: 18px !important;
+        height: 18px !important;
+        color: #1f2937 !important;
+        stroke: #1f2937 !important;
+        stroke-width: 2.5 !important;
+        fill: none !important;
+    }
+    
+    /* Ajustar padding para móviles pequeños */
+    .gallery-navigation {
+        padding: 0 0.75rem !important;
     }
 }
 
@@ -2017,6 +2697,17 @@ body.admin-bar .property-detail-page {
     }
 }
 
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 .content-section {
     animation: fadeIn 0.6s ease-out;
 }
@@ -2027,6 +2718,86 @@ body.admin-bar .property-detail-page {
 
 .property-card {
     animation: fadeIn 0.6s ease-out;
+}
+
+/* Animación para la galería */
+.gallery-image {
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Feedback visual mejorado para dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+    /* Estilos específicos para dispositivos táctiles */
+    
+    .contact-btn,
+    .btn-primary,
+    .btn-secondary,
+    .card-btn,
+    .btn-view-all {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        user-select: none;
+    }
+    
+    /* Efecto de presionado más pronunciado en móviles */
+    .contact-btn:active {
+        transform: scale(0.96);
+        opacity: 0.9;
+    }
+    
+    .btn-primary:active {
+        transform: scale(0.96);
+        opacity: 0.9;
+    }
+    
+    /* Flechas de navegación para táctiles */
+    .nav-btn {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        user-select: none;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .nav-btn:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.1s ease;
+    }
+    
+    /* Área táctil extendida para elementos pequeños */
+    .agent-rating .stars svg,
+    .feature-item svg {
+        padding: 4px;
+        margin: -4px;
+    }
+    
+    /* Feedback visual en cards */
+    .property-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+    
+    /* Transiciones más rápidas en móvil para mejor respuesta */
+    * {
+        transition-duration: 0.2s !important;
+    }
+}
+
+/* Mejoras de rendimiento para animaciones en móvil */
+@media (max-width: 768px) {
+    .gallery-image,
+    .gallery-image img {
+        will-change: opacity;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+    }
+    
+    /* Optimización de scroll */
+    .property-content,
+    .similar-properties {
+        -webkit-overflow-scrolling: touch;
+    }
 }
 
 /* Estados de carga */
@@ -2052,6 +2823,106 @@ body.admin-bar .property-detail-page {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Modo oscuro - Respeta las preferencias del sistema */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-primary: #f3f4f6;
+        --text-secondary: #d1d5db;
+        --text-light: #9ca3af;
+        --bg-primary: #1f2937;
+        --bg-secondary: #111827;
+        --bg-light: #374151;
+        --border-color: #374151;
+        --border-light: #4b5563;
+    }
+    
+    @media (max-width: 768px) {
+        /* Ajustes específicos para móvil en modo oscuro */
+        .info-panel {
+            background: var(--bg-primary);
+            border-bottom-color: var(--border-color);
+        }
+        
+        .content-section,
+        .contact-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .main-features-grid .feature-item {
+            background: var(--bg-light);
+        }
+        
+        /* Mejorar contraste de botones en modo oscuro */
+        .call-btn {
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+        
+        .whatsapp-btn {
+            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3) !important;
+        }
+    }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    /* Reducir animaciones para usuarios con preferencias de movimiento reducido */
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .gallery-image {
+        transition: none;
+    }
+}
+
+/* Mejoras para lectores de pantalla */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus visible mejorado para navegación con teclado */
+.contact-btn:focus-visible,
+.btn-primary:focus-visible,
+.nav-btn:focus-visible,
+.dot:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Mejoras de contraste para WCAG AA */
+@media (max-width: 768px) {
+    .agent-specialization,
+    .property-location,
+    .info-label {
+        color: var(--text-secondary);
+        /* Asegurar contraste mínimo 4.5:1 */
+    }
+    
+    /* Hacer los enlaces más visibles en móvil */
+    a {
+        text-decoration-skip-ink: auto;
+    }
+    
+    a:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
 }
 </style>
 
@@ -2113,6 +2984,85 @@ document.addEventListener('DOMContentLoaded', function() {
             changeImage(1);
         }
     });
+    
+    // Soporte táctil (swipe) para navegación en móvil
+    const galleryContainer = document.querySelector('.gallery-container');
+    if (galleryContainer && totalImages > 1) {
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
+        
+        // Agregar clase para ocultar flechas si solo hay una imagen
+        if (totalImages <= 1) {
+            galleryContainer.classList.add('single-image');
+        }
+        
+        // Eventos táctiles para swipe
+        galleryContainer.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+        
+        galleryContainer.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        }, { passive: true });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50; // Mínimo de píxeles para considerar un swipe
+            const horizontalSwipe = Math.abs(touchEndX - touchStartX);
+            const verticalSwipe = Math.abs(touchEndY - touchStartY);
+            
+            // Solo procesar si el swipe es más horizontal que vertical
+            if (horizontalSwipe > verticalSwipe && horizontalSwipe > swipeThreshold) {
+                if (touchEndX < touchStartX) {
+                    // Swipe izquierda - siguiente imagen
+                    changeImage(1);
+                }
+                if (touchEndX > touchStartX) {
+                    // Swipe derecha - imagen anterior
+                    changeImage(-1);
+                }
+            }
+        }
+        
+        // Eventos para click en escritorio (opcional)
+        galleryContainer.addEventListener('click', function(e) {
+            // Solo en dispositivos no táctiles
+            if (!('ontouchstart' in window)) {
+                const rect = this.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const containerWidth = rect.width;
+                
+                // Si se hace click en el 20% izquierdo de la imagen
+                if (clickX < containerWidth * 0.2) {
+                    changeImage(-1);
+                }
+                // Si se hace click en el 20% derecho de la imagen
+                else if (clickX > containerWidth * 0.8) {
+                    changeImage(1);
+                }
+            }
+        });
+    }
+    
+    // Actualizar contador de imágenes en el atributo data
+    const galleryMain = document.querySelector('.gallery-main');
+    if (galleryMain && totalImages > 1) {
+        function updateImageCounter() {
+            galleryMain.setAttribute('data-count', `${currentImageIndex + 1}/${totalImages}`);
+        }
+        updateImageCounter();
+        
+        // Actualizar contador cuando cambie la imagen
+        const originalUpdateGallery = updateGallery;
+        updateGallery = function() {
+            originalUpdateGallery();
+            updateImageCounter();
+        };
+    }
     
     // Auto-play de la galería (opcional)
     let autoPlayInterval;

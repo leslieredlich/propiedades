@@ -248,14 +248,8 @@ function mjpropiedades_get_dynamic_menu_url($link_text, $url) {
     
     if (strpos($url, '#propiedades') !== false || 
         (strpos($link_text, 'Propiedades') !== false && strpos($url, '#') !== false)) {
-        // Buscar la página de propiedades
-        $propiedades_page = get_page_by_path('propiedades');
-        if ($propiedades_page) {
-            return $is_homepage ? '#venta' : get_permalink($propiedades_page);
-        } else {
-            // Fallback: usar archive de propiedades
-            return $is_homepage ? '#venta' : get_post_type_archive_link('propiedad');
-        }
+        // Siempre usar el archive de propiedades (unificado)
+        return $is_homepage ? '#venta' : get_post_type_archive_link('propiedad');
     }
     
     return $url;
@@ -3576,12 +3570,7 @@ add_action('customize_save_after', 'mjpropiedades_apply_footer_logo_size_preset'
 
 // Función para manejar plantillas de página
 function mjpropiedades_page_template($template) {
-    if (is_page('propiedades')) {
-        $new_template = locate_template(array('page-propiedades.php'));
-        if (!empty($new_template)) {
-            return $new_template;
-        }
-    }
+    // Removido el manejo de página 'propiedades' para evitar conflictos con archive
     if (is_page('inicio')) {
         $new_template = locate_template(array('page-inicio.php'));
         if (!empty($new_template)) {
@@ -3607,8 +3596,8 @@ add_action('add_meta_boxes', 'mjpropiedades_add_page_template_metabox');
 function mjpropiedades_page_template_metabox_callback($post) {
     $templates = array(
         'default' => 'Plantilla por defecto',
-        'inicio' => 'Página de Inicio',
-        'propiedades' => 'Página de Propiedades'
+        'inicio' => 'Página de Inicio'
+        // Removido 'propiedades' para evitar conflictos
     );
     
     $current_template = get_post_meta($post->ID, '_wp_page_template', true);
@@ -3729,7 +3718,46 @@ function mjpropiedades_create_properties_page() {
         }
     }
 }
-add_action('after_setup_theme', 'mjpropiedades_create_properties_page');
+// add_action('after_setup_theme', 'mjpropiedades_create_properties_page'); // Desactivado para evitar conflictos
+
+// Función para eliminar la página "propiedades" si existe (para evitar conflictos)
+function mjpropiedades_cleanup_properties_page() {
+    $propiedades_page = get_page_by_path('propiedades');
+    if ($propiedades_page) {
+        // Eliminar la página para evitar conflictos con el archive
+        wp_delete_post($propiedades_page->ID, true);
+    }
+}
+add_action('after_setup_theme', 'mjpropiedades_cleanup_properties_page');
+
+// Redirección para asegurar que todo vaya al archive de propiedades
+function mjpropiedades_redirect_to_archive() {
+    // Si alguien intenta acceder a /propiedades/, redirigir a /propiedad/ preservando parámetros
+    if (is_page('propiedades')) {
+        $archive_url = get_post_type_archive_link('propiedad');
+        
+        // Preservar todos los parámetros GET
+        $query_params = $_GET;
+        if (!empty($query_params)) {
+            $archive_url = add_query_arg($query_params, $archive_url);
+        }
+        
+        wp_redirect($archive_url, 301);
+        exit;
+    }
+}
+add_action('template_redirect', 'mjpropiedades_redirect_to_archive');
+
+// Función para limpiar parámetros duplicados de paginación
+function mjpropiedades_clean_pagination_params() {
+    // Si tenemos tanto 'paged' como 'page', mantener solo 'page'
+    if (isset($_GET['paged']) && isset($_GET['page'])) {
+        $current_url = remove_query_arg('paged');
+        wp_redirect($current_url, 301);
+        exit;
+    }
+}
+add_action('template_redirect', 'mjpropiedades_clean_pagination_params');
 
 // Crear propiedades de prueba (solo si no existen)
 function mjpropiedades_create_sample_properties() {
@@ -3864,10 +3892,16 @@ add_action('after_setup_theme', 'mjpropiedades_set_default_search_options');
 
 // Función para manejar búsqueda de propiedades
 function mjpropiedades_search_properties() {
+    // Detectar si es mobile usando User Agent
+    $is_mobile = wp_is_mobile();
+    
+    // Ajustar número de propiedades por página según el dispositivo
+    $posts_per_page = $is_mobile ? 4 : 12;
+    
     $args = array(
         'post_type' => 'propiedad',
-        'posts_per_page' => 12,
-        'paged' => isset($_GET['paged']) ? intval($_GET['paged']) : 1,
+        'posts_per_page' => $posts_per_page,
+        'paged' => isset($_GET['page']) ? intval($_GET['page']) : 1,
         'meta_query' => array()
     );
     
@@ -4769,9 +4803,10 @@ function mjpropiedades_property_cards_css_with_version() {
     }
     
     // Verificar si estamos en cualquier página que contenga el template de propiedades
-    if (is_page_template('page-propiedades.php')) {
-        $should_load = true;
-    }
+    // Comentado porque page-propiedades.php ya no existe
+    // if (is_page_template('page-propiedades.php')) {
+    //     $should_load = true;
+    // }
     
     // Verificar si estamos usando el template de inicio (page-inicio.php)
     if (is_page_template('page-inicio.php')) {
@@ -4799,9 +4834,10 @@ function mjpropiedades_property_cards_css_with_version() {
     }
     
     // Verificar si estamos en cualquier página que use el template de propiedades
-    if (is_page() && get_page_template_slug() === 'page-propiedades.php') {
-        $should_load = true;
-    }
+    // Comentado porque page-propiedades.php ya no existe
+    // if (is_page() && get_page_template_slug() === 'page-propiedades.php') {
+    //     $should_load = true;
+    // }
     
     // Verificar si el contenido de la página contiene tarjetas de propiedades
     if (is_page() && (strpos(get_post_field('post_content', get_the_ID()), 'property-card') !== false)) {
