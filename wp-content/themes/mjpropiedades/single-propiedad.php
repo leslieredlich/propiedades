@@ -2825,8 +2825,8 @@ body.admin-bar .property-detail-page {
     100% { transform: rotate(360deg); }
 }
 
-/* Modo oscuro - Respeta las preferencias del sistema */
-@media (prefers-color-scheme: dark) {
+/* Modo oscuro deshabilitado - Siempre usar tema claro */
+/* @media (prefers-color-scheme: dark) {
     :root {
         --text-primary: #f3f4f6;
         --text-secondary: #d1d5db;
@@ -2864,7 +2864,7 @@ body.admin-bar .property-detail-page {
             box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3) !important;
         }
     }
-}
+} */
 
 /* Mejoras de accesibilidad */
 @media (prefers-reduced-motion: reduce) {
