@@ -750,8 +750,8 @@ get_header(); ?>
                 <?php 
                 // Verificar si Contact Form 7 está activo
                 if (function_exists('wpcf7_contact_form')) {
-                    $form_id = mjpropiedades_get_contact_form_id();
-                    echo do_shortcode('[contact-form-7 id="' . $form_id . '" title="Formulario de Contacto"]');
+                    // Usar el formulario específico con ID 168
+                    echo do_shortcode('[contact-form-7 id="168" title="Formulario de Contacto Inicio"]');
                 } else {
                     // Fallback al formulario original si CF7 no está instalado
                     ?>
