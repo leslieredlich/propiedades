@@ -9,31 +9,14 @@ if (!defined('ABSPATH')) {
 }
 
 // ========================================
-// CONFIGURACIÓN DE EMAIL SMTP
+// CONFIGURACIÓN DE EMAIL BÁSICA
 // ========================================
-
-// Configurar SMTP para Contact Form 7
-function mjpropiedades_configure_smtp($phpmailer) {
-    // Configuración SMTP para homeisa.cl
-    $phpmailer->isSMTP();
-    $phpmailer->Host = 'vps-1765142.promecanicaservicios.com'; // Cambia por tu servidor SMTP
-    $phpmailer->SMTPAuth = true;
-    $phpmailer->Port = 465; // Puerto TLS (usa 465 para SSL)
-    $phpmailer->Username = 'contacto@devkreativo.cl';
-    $phpmailer->Password = 'dy0*Z6-SGy$h*h6M'; // Cambia por tu contraseña real
-    $phpmailer->SMTPSecure = 'ssl'; // 'tls' o 'ssl'
-    $phpmailer->From = 'contacto@devkreativo.cl';
-    $phpmailer->FromName = 'Home Isa - Corredora de Propiedades';
-    $phpmailer->CharSet = 'UTF-8';
-    $phpmailer->isHTML(true);
-}
-add_action('phpmailer_init', 'mjpropiedades_configure_smtp');
 
 // Configuración alternativa usando wp_mail
 function mjpropiedades_configure_wp_mail() {
     // Configurar headers por defecto
     add_filter('wp_mail_from', function() {
-        return 'contacto@devkreativo.cl';
+        return 'consultas@homeisa.cl';
     });
     
     add_filter('wp_mail_from_name', function() {
@@ -46,159 +29,6 @@ function mjpropiedades_configure_wp_mail() {
 }
 add_action('init', 'mjpropiedades_configure_wp_mail');
 
-// ========================================
-// CONFIGURACIÓN AUTOMÁTICA DE CONTACT FORM 7
-// ========================================
-
-// Crear formulario de contacto automáticamente al activar el tema
-function mjpropiedades_create_default_contact_form() {
-    // Verificar si ya existe un formulario
-    $existing_form = get_posts(array(
-        'post_type' => 'wpcf7_contact_form',
-        'posts_per_page' => 1,
-        'post_status' => 'publish'
-    ));
-    
-    if (empty($existing_form)) {
-        // Crear el formulario
-        $form_id = wp_insert_post(array(
-            'post_type' => 'wpcf7_contact_form',
-            'post_title' => 'Formulario de Contacto',
-            'post_content' => mjpropiedades_get_contact_form_template(),
-            'post_status' => 'publish'
-        ));
-        
-        if ($form_id) {
-            // Configurar el formulario
-            mjpropiedades_configure_contact_form($form_id);
-        }
-    }
-}
-add_action('after_switch_theme', 'mjpropiedades_create_default_contact_form');
-
-// Plantilla del formulario de contacto
-function mjpropiedades_get_contact_form_template() {
-    return '
-<div class="form-row">
-    <div class="form-group">
-        <label for="nombre">Nombre completo</label>
-        [text* nombre id:nombre class:form-input placeholder "Tu nombre completo"]
-    </div>
-    <div class="form-group">
-        <label for="email">Email</label>
-        [email* email id:email class:form-input placeholder "tu@email.com"]
-    </div>
-</div>
-
-<div class="form-row">
-    <div class="form-group">
-        <label for="telefono">Teléfono</label>
-        [tel telefono id:telefono class:form-input placeholder "Tu teléfono"]
-    </div>
-    <div class="form-group">
-        <label for="tipo-consulta">Tipo de consulta</label>
-        [select tipo-consulta id:tipo-consulta class:form-select include_blank "Seleccionar tipo" "Compra de propiedad" "Venta de propiedad" "Arriendo" "Tasación" "Consulta general"]
-    </div>
-</div>
-
-<div class="form-group">
-    <label for="mensaje">Mensaje</label>
-    [textarea* mensaje id:mensaje class:form-textarea placeholder "Cuéntanos más sobre tu consulta..."]
-</div>
-
-<div class="form-submit">
-    [submit class:submit-btn "ENVIAR CONSULTA"]
-</div>
-    ';
-}
-
-// Configurar el formulario de contacto
-function mjpropiedades_configure_contact_form($form_id) {
-    // Configurar mensajes
-    update_post_meta($form_id, '_form', mjpropiedades_get_contact_form_template());
-    update_post_meta($form_id, '_mail', array(
-        'subject' => 'Nueva consulta desde homeisa.cl',
-        'sender' => '[nombre] <[email]>',
-        'body' => mjpropiedades_get_email_template(),
-        'recipient' => 'contacto@devkreativo.cl',
-        'additional_headers' => '',
-        'attachments' => '',
-        'use_html' => 1,
-        'exclude_blank' => 0
-    ));
-    
-    // Configurar mensaje de envío exitoso
-    update_post_meta($form_id, '_mail_2', array(
-        'active' => 1,
-        'subject' => 'Confirmación de consulta recibida',
-        'sender' => 'Home Isa <contacto@devkreativo.cl>',
-        'body' => 'Hola [nombre],<br><br>Hemos recibido tu consulta y te contactaremos pronto.<br><br>Gracias por contactarnos,<br>Equipo Home Isa',
-        'recipient' => '[email]',
-        'additional_headers' => '',
-        'attachments' => '',
-        'use_html' => 1,
-        'exclude_blank' => 0
-    ));
-    
-    // Mensajes del formulario
-    update_post_meta($form_id, '_messages', array(
-        'mail_sent_ok' => '¡Gracias por tu consulta! Hemos recibido tu mensaje y te contactaremos pronto.',
-        'mail_sent_ng' => 'Hubo un error al enviar tu mensaje. Por favor, inténtalo de nuevo.',
-        'validation_error' => 'Uno o más campos tienen un error. Por favor, revísalos e inténtalo de nuevo.',
-        'spam' => 'Tu mensaje fue considerado como spam. Por favor, inténtalo de nuevo.',
-        'acceptance_missing' => 'Debes aceptar los términos y condiciones.',
-        'quiz_answer_not_correct' => 'La respuesta del cuestionario es incorrecta.',
-        'captcha_not_match' => 'Tu respuesta no es correcta.',
-        'invalid_email' => 'La dirección de correo electrónico que ingresaste no es válida.',
-        'invalid_required' => 'Este campo es obligatorio.',
-        'invalid_too_long' => 'Este campo es demasiado largo.',
-        'invalid_too_short' => 'Este campo es demasiado corto.'
-    ));
-}
-
-// Plantilla del email
-function mjpropiedades_get_email_template() {
-    return '
-<h2>Nueva Consulta desde homeisa.cl</h2>
-
-<p><strong>Detalles de la consulta:</strong></p>
-<ul>
-    <li><strong>Nombre:</strong> [nombre]</li>
-    <li><strong>Email:</strong> [email]</li>
-    <li><strong>Teléfono:</strong> [telefono]</li>
-    <li><strong>Tipo de consulta:</strong> [tipo-consulta]</li>
-</ul>
-
-<p><strong>Mensaje:</strong></p>
-<p>[mensaje]</p>
-
-<hr>
-<p><em>Este mensaje fue enviado desde el formulario de contacto de homeisa.cl</em></p>
-    ';
-}
-
-// Función para obtener el ID del formulario automáticamente
-function mjpropiedades_get_contact_form_id() {
-    $forms = get_posts(array(
-        'post_type' => 'wpcf7_contact_form',
-        'posts_per_page' => 1,
-        'post_status' => 'publish'
-    ));
-    
-    if (!empty($forms)) {
-        return $forms[0]->ID;
-    }
-    
-    return 1; // Fallback
-}
-
-// Hook para ejecutar la creación del formulario cuando se active Contact Form 7
-add_action('wpcf7_init', function() {
-    if (!get_option('mjpropiedades_contact_form_created')) {
-        mjpropiedades_create_default_contact_form();
-        update_option('mjpropiedades_contact_form_created', true);
-    }
-});
 
 // Configuración del tema
 function mjpropiedades_setup() {
@@ -299,88 +129,22 @@ function mjpropiedades_register_contact_inquiry_post_type() {
 }
 add_action('init', 'mjpropiedades_register_contact_inquiry_post_type');
 
-// Función para procesar el formulario de contacto
-function mjpropiedades_handle_contact_form() {
-    if (isset($_POST['contact_form_submitted']) && wp_verify_nonce($_POST['contact_nonce'], 'contact_form_nonce')) {
+
+// Función para habilitar debug SMTP temporalmente
+function mjpropiedades_enable_smtp_debug() {
+    // Habilitar debug SMTP solo si se pasa el parámetro debug=1 en la URL
+    if (isset($_GET['smtp_debug']) && $_GET['smtp_debug'] == '1') {
+        add_action('phpmailer_init', function($phpmailer) {
+            $phpmailer->SMTPDebug = 2; // Debug detallado
+            $phpmailer->Debugoutput = function($str, $level) {
+                error_log("SMTP Debug: $str");
+            };
+        });
         
-        // Sanitizar datos del formulario
-        $nombre = sanitize_text_field($_POST['nombre'] ?? '');
-        $telefono = sanitize_text_field($_POST['telefono'] ?? '');
-        $email = sanitize_email($_POST['email'] ?? '');
-        $tipo_consulta = sanitize_text_field($_POST['tipo_consulta'] ?? '');
-        $tipo_propiedad = sanitize_text_field($_POST['tipo_propiedad'] ?? '');
-        $comuna = sanitize_text_field($_POST['comuna'] ?? '');
-        $mensaje = sanitize_textarea_field($_POST['mensaje'] ?? '');
-        
-        // Validar campos requeridos
-        if (empty($nombre) || empty($telefono) || empty($email)) {
-            wp_redirect(add_query_arg('contact', 'error', home_url()));
-            exit;
-        }
-        
-        // Validar email
-        if (!is_email($email)) {
-            wp_redirect(add_query_arg('contact', 'error', home_url()));
-            exit;
-        }
-        
-        // Configurar el email
-        $to = get_option('admin_email');
-        $subject = 'Nueva consulta desde ' . get_bloginfo('name');
-        
-        // Crear el mensaje en texto plano (más compatible)
-        $message_text = "Nueva Consulta de Contacto\n\n";
-        $message_text .= "Nombre: " . $nombre . "\n";
-        $message_text .= "Teléfono: " . $telefono . "\n";
-        $message_text .= "Email: " . $email . "\n";
-        $message_text .= "Tipo de Consulta: " . $tipo_consulta . "\n";
-        $message_text .= "Tipo de Propiedad: " . $tipo_propiedad . "\n";
-        $message_text .= "Comuna: " . $comuna . "\n";
-        $message_text .= "Mensaje: " . $mensaje . "\n\n";
-        $message_text .= "Enviado desde: " . get_bloginfo('name') . " - " . home_url();
-        
-        // Headers simples
-        $headers = array(
-            'Content-Type: text/plain; charset=UTF-8',
-            'From: ' . get_bloginfo('name') . ' <' . get_option('admin_email') . '>'
-        );
-        
-        // Intentar enviar el email
-        $sent = wp_mail($to, $subject, $message_text, $headers);
-        
-        // Si falla el email, guardar en base de datos como respaldo
-        if (!$sent) {
-            // Crear un post personalizado para guardar la consulta
-            $post_data = array(
-                'post_title'   => 'Consulta de: ' . $nombre . ' - ' . date('Y-m-d H:i:s'),
-                'post_content' => $message_text,
-                'post_status'  => 'private',
-                'post_type'    => 'contact_inquiry',
-                'meta_input'   => array(
-                    'contact_nombre' => $nombre,
-                    'contact_email' => $email,
-                    'contact_telefono' => $telefono,
-                    'contact_tipo_consulta' => $tipo_consulta,
-                    'contact_tipo_propiedad' => $tipo_propiedad,
-                    'contact_comuna' => $comuna,
-                    'contact_mensaje' => $mensaje,
-                    'contact_fecha' => current_time('mysql')
-                )
-            );
-            
-            $post_id = wp_insert_post($post_data);
-            
-            if ($post_id) {
-                error_log('Consulta guardada en base de datos con ID: ' . $post_id);
-            }
-        }
-        
-        // Siempre redirigir a éxito
-        wp_redirect(add_query_arg('contact', 'success', home_url()));
-        exit;
+        error_log('Debug SMTP habilitado temporalmente');
     }
 }
-add_action('init', 'mjpropiedades_handle_contact_form');
+add_action('init', 'mjpropiedades_enable_smtp_debug');
 
 // Cargar estilos y scripts
 function mjpropiedades_scripts() {
