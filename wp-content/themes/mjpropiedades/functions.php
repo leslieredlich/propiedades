@@ -9,10 +9,34 @@ if (!defined('ABSPATH')) {
 }
 
 // ========================================
-// CONFIGURACIÓN DE EMAIL BÁSICA
+// CONFIGURACIÓN DE EMAIL SMTP VPS
 // ========================================
 
-// Configuración alternativa usando wp_mail
+// Configurar SMTP VPS - mail.homeisa.cl
+function mjpropiedades_configure_smtp_vps($phpmailer) {
+    // Configuración SMTP para el servidor VPS
+    $phpmailer->isSMTP();
+    $phpmailer->Host = 'mail.homeisa.cl';
+    $phpmailer->SMTPAuth = true;
+    $phpmailer->Port = 465; // Puerto SSL
+    $phpmailer->Username = 'consultas@homeisa.cl';
+    $phpmailer->Password = 'rueWgmsrQO?4!LID'; // CAMBIAR POR LA CONTRASEÑA REAL
+    $phpmailer->SMTPSecure = 'ssl';
+    $phpmailer->From = 'consultas@homeisa.cl';
+    $phpmailer->FromName = 'Home Isa - Corredora de Propiedades';
+    $phpmailer->CharSet = 'UTF-8';
+    $phpmailer->isHTML(true);
+    
+    // Configuración adicional para mejor compatibilidad
+    $phpmailer->SMTPKeepAlive = true;
+    $phpmailer->Timeout = 60;
+    $phpmailer->SMTPDebug = 0; // Cambiar a 2 para debug detallado
+    
+    error_log('SMTP VPS configurado: mail.homeisa.cl');
+}
+add_action('phpmailer_init', 'mjpropiedades_configure_smtp_vps');
+
+// Configuración de headers por defecto
 function mjpropiedades_configure_wp_mail() {
     // Configurar headers por defecto
     add_filter('wp_mail_from', function() {
