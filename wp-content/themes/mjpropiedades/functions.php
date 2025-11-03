@@ -5471,6 +5471,12 @@ function mjpropiedades_admin_page() {
             'mjpropiedades_services_title',
             'mjpropiedades_services_subtitle',
             
+            // Servicios individuales (títulos)
+            'mjpropiedades_service_1_title',
+            'mjpropiedades_service_2_title',
+            'mjpropiedades_service_3_title',
+            'mjpropiedades_service_4_title',
+            
             // Testimonials
             'mjpropiedades_testimonials_title',
             'mjpropiedades_testimonials_subtitle',
@@ -5531,6 +5537,16 @@ function mjpropiedades_admin_page() {
         foreach ($settings as $setting) {
             if (isset($_POST[$setting])) {
                 set_theme_mod($setting, sanitize_text_field($_POST[$setting]));
+            }
+        }
+        
+        // Guardar descripciones y características de servicios (textareas)
+        for ($i = 1; $i <= 4; $i++) {
+            if (isset($_POST["mjpropiedades_service_{$i}_description"])) {
+                set_theme_mod("mjpropiedades_service_{$i}_description", sanitize_textarea_field($_POST["mjpropiedades_service_{$i}_description"]));
+            }
+            if (isset($_POST["mjpropiedades_service_{$i}_features"])) {
+                set_theme_mod("mjpropiedades_service_{$i}_features", sanitize_textarea_field($_POST["mjpropiedades_service_{$i}_features"]));
             }
         }
         
@@ -6055,6 +6071,60 @@ function mjpropiedades_admin_page() {
                     <td><textarea name="mjpropiedades_services_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_services_subtitle', 'Ofrecemos servicios integrales para satisfacer todas tus necesidades inmobiliarias')); ?></textarea></td>
                 </tr>
                         </table>
+                        
+                        <?php
+                        // Valores por defecto para los servicios
+                        $default_services = array(
+                            1 => array(
+                                'title' => 'Venta',
+                                'description' => 'Te ayudamos a vender tu propiedad al mejor precio del mercado con estrategias personalizadas.',
+                                'features' => "Marketing digital especializado\nFotografía profesional\nTours virtuales\nAsesoría de precios"
+                            ),
+                            2 => array(
+                                'title' => 'Arriendo',
+                                'description' => 'Encontramos el inquilino ideal para tu propiedad con procesos seguros y eficientes.',
+                                'features' => "Selección de inquilinos\nVerificación de antecedentes\nContratos legales\nGestión de pagos"
+                            ),
+                            3 => array(
+                                'title' => 'Tasaciones',
+                                'description' => 'Valoramos tu propiedad con precisión profesional para tomar las mejores decisiones.',
+                                'features' => "Análisis de mercado\nComparación de propiedades\nInforme detallado\nCertificación profesional"
+                            ),
+                            4 => array(
+                                'title' => 'Asesoría Legal',
+                                'description' => 'Te acompañamos en todo el proceso legal y administrativo para que no tengas que preocuparte por nada.',
+                                'features' => "Tramitación de escrituras\nGestión de permisos\nSeguimiento legal\nAsesoría especializada"
+                            )
+                        );
+                        
+                        // Servicios individuales
+                        for ($i = 1; $i <= 4; $i++) {
+                            $default_title = isset($default_services[$i]) ? $default_services[$i]['title'] : '';
+                            $default_description = isset($default_services[$i]) ? $default_services[$i]['description'] : '';
+                            $default_features = isset($default_services[$i]) ? $default_services[$i]['features'] : '';
+                            
+                            $title = get_theme_mod("mjpropiedades_service_{$i}_title", $default_title);
+                            $description = get_theme_mod("mjpropiedades_service_{$i}_description", $default_description);
+                            $features = get_theme_mod("mjpropiedades_service_{$i}_features", $default_features);
+                            ?>
+                            <h3 style="margin-top: 30px; margin-bottom: 15px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 16px; font-weight: 600;">Servicio <?php echo $i; ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row">Título del Servicio</th>
+                                    <td><input type="text" name="mjpropiedades_service_<?php echo $i; ?>_title" value="<?php echo esc_attr($title); ?>" class="regular-text" /></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Descripción</th>
+                                    <td><textarea name="mjpropiedades_service_<?php echo $i; ?>_description" rows="3" class="large-text"><?php echo esc_textarea($description); ?></textarea></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Características<br/><small style="font-weight: normal; color: #666;">(una por línea)</small></th>
+                                    <td><textarea name="mjpropiedades_service_<?php echo $i; ?>_features" rows="6" class="large-text"><?php echo esc_textarea($features); ?></textarea></td>
+                                </tr>
+                            </table>
+                            <?php
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
