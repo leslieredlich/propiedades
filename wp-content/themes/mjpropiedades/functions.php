@@ -6212,23 +6212,26 @@ function mjpropiedades_admin_page() {
                             $location = get_theme_mod("mjpropiedades_testimonial_{$i}_location", $default_location);
                             ?>
                             <h3 style="margin-top: 30px; margin-bottom: 15px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 16px; font-weight: 600;">Testimonio <?php echo $i; ?></h3>
-                            <table class="form-table">
+                            <table class="form-table" style="width: 100%;">
                                 <tr>
-                                    <th scope="row">Texto del Testimonio</th>
-                                    <td><textarea name="mjpropiedades_testimonial_<?php echo $i; ?>_text" rows="4" class="large-text"><?php echo esc_textarea($text); ?></textarea></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Nombre</th>
-                                    <td><input type="text" name="mjpropiedades_testimonial_<?php echo $i; ?>_name" value="<?php echo esc_attr($name); ?>" class="regular-text" /></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Ubicación</th>
-                                    <td><input type="text" name="mjpropiedades_testimonial_<?php echo $i; ?>_location" value="<?php echo esc_attr($location); ?>" class="regular-text" /></td>
+                                    <th scope="row" style="width: 150px; vertical-align: top; padding-top: 8px;">Texto del Testimonio</th>
+                                    <td style="padding-right: 15px;">
+                                        <textarea name="mjpropiedades_testimonial_<?php echo $i; ?>_text" rows="4" class="large-text" style="width: 100%;"><?php echo esc_textarea($text); ?></textarea>
+                                    </td>
+                                    <th scope="row" style="width: 80px; vertical-align: top; padding-top: 8px;">Nombre</th>
+                                    <td style="padding-right: 15px;">
+                                        <input type="text" name="mjpropiedades_testimonial_<?php echo $i; ?>_name" value="<?php echo esc_attr($name); ?>" class="regular-text" style="width: 100%;" />
+                                    </td>
+                                    <th scope="row" style="width: 80px; vertical-align: top; padding-top: 8px;">Ubicación</th>
+                                    <td>
+                                        <input type="text" name="mjpropiedades_testimonial_<?php echo $i; ?>_location" value="<?php echo esc_attr($location); ?>" class="regular-text" style="width: 100%;" />
+                                    </td>
                                 </tr>
                             </table>
                             <?php
                         }
                         ?>
+                        <div style="padding-bottom: 40px;"></div>
                     </div>
                 </div>
             </div>
