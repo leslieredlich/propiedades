@@ -5471,9 +5471,29 @@ function mjpropiedades_admin_page() {
             'mjpropiedades_services_title',
             'mjpropiedades_services_subtitle',
             
+            // Servicios individuales (títulos)
+            'mjpropiedades_service_1_title',
+            'mjpropiedades_service_2_title',
+            'mjpropiedades_service_3_title',
+            'mjpropiedades_service_4_title',
+            
             // Testimonials
             'mjpropiedades_testimonials_title',
             'mjpropiedades_testimonials_subtitle',
+            
+            // Testimonios individuales (nombres y ubicaciones)
+            'mjpropiedades_testimonial_1_name',
+            'mjpropiedades_testimonial_1_location',
+            'mjpropiedades_testimonial_2_name',
+            'mjpropiedades_testimonial_2_location',
+            'mjpropiedades_testimonial_3_name',
+            'mjpropiedades_testimonial_3_location',
+            'mjpropiedades_testimonial_4_name',
+            'mjpropiedades_testimonial_4_location',
+            'mjpropiedades_testimonial_5_name',
+            'mjpropiedades_testimonial_5_location',
+            'mjpropiedades_testimonial_6_name',
+            'mjpropiedades_testimonial_6_location',
             
             // Menu Configuration
             'mjpropiedades_menu_alignment',
@@ -5531,6 +5551,23 @@ function mjpropiedades_admin_page() {
         foreach ($settings as $setting) {
             if (isset($_POST[$setting])) {
                 set_theme_mod($setting, sanitize_text_field($_POST[$setting]));
+            }
+        }
+        
+        // Guardar descripciones y características de servicios (textareas)
+        for ($i = 1; $i <= 4; $i++) {
+            if (isset($_POST["mjpropiedades_service_{$i}_description"])) {
+                set_theme_mod("mjpropiedades_service_{$i}_description", sanitize_textarea_field($_POST["mjpropiedades_service_{$i}_description"]));
+            }
+            if (isset($_POST["mjpropiedades_service_{$i}_features"])) {
+                set_theme_mod("mjpropiedades_service_{$i}_features", sanitize_textarea_field($_POST["mjpropiedades_service_{$i}_features"]));
+            }
+        }
+        
+        // Guardar textos de testimonios (textareas)
+        for ($i = 1; $i <= 6; $i++) {
+            if (isset($_POST["mjpropiedades_testimonial_{$i}_text"])) {
+                set_theme_mod("mjpropiedades_testimonial_{$i}_text", sanitize_textarea_field($_POST["mjpropiedades_testimonial_{$i}_text"]));
             }
         }
         
@@ -6055,6 +6092,60 @@ function mjpropiedades_admin_page() {
                     <td><textarea name="mjpropiedades_services_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_services_subtitle', 'Ofrecemos servicios integrales para satisfacer todas tus necesidades inmobiliarias')); ?></textarea></td>
                 </tr>
                         </table>
+                        
+                        <?php
+                        // Valores por defecto para los servicios
+                        $default_services = array(
+                            1 => array(
+                                'title' => 'Venta',
+                                'description' => 'Te ayudamos a vender tu propiedad al mejor precio del mercado con estrategias personalizadas.',
+                                'features' => "Marketing digital especializado\nFotografía profesional\nTours virtuales\nAsesoría de precios"
+                            ),
+                            2 => array(
+                                'title' => 'Arriendo',
+                                'description' => 'Encontramos el inquilino ideal para tu propiedad con procesos seguros y eficientes.',
+                                'features' => "Selección de inquilinos\nVerificación de antecedentes\nContratos legales\nGestión de pagos"
+                            ),
+                            3 => array(
+                                'title' => 'Tasaciones',
+                                'description' => 'Valoramos tu propiedad con precisión profesional para tomar las mejores decisiones.',
+                                'features' => "Análisis de mercado\nComparación de propiedades\nInforme detallado\nCertificación profesional"
+                            ),
+                            4 => array(
+                                'title' => 'Asesoría Legal',
+                                'description' => 'Te acompañamos en todo el proceso legal y administrativo para que no tengas que preocuparte por nada.',
+                                'features' => "Tramitación de escrituras\nGestión de permisos\nSeguimiento legal\nAsesoría especializada"
+                            )
+                        );
+                        
+                        // Servicios individuales
+                        for ($i = 1; $i <= 4; $i++) {
+                            $default_title = isset($default_services[$i]) ? $default_services[$i]['title'] : '';
+                            $default_description = isset($default_services[$i]) ? $default_services[$i]['description'] : '';
+                            $default_features = isset($default_services[$i]) ? $default_services[$i]['features'] : '';
+                            
+                            $title = get_theme_mod("mjpropiedades_service_{$i}_title", $default_title);
+                            $description = get_theme_mod("mjpropiedades_service_{$i}_description", $default_description);
+                            $features = get_theme_mod("mjpropiedades_service_{$i}_features", $default_features);
+                            ?>
+                            <h3 style="margin-top: 30px; margin-bottom: 15px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 16px; font-weight: 600;">Servicio <?php echo $i; ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row">Título del Servicio</th>
+                                    <td><input type="text" name="mjpropiedades_service_<?php echo $i; ?>_title" value="<?php echo esc_attr($title); ?>" class="regular-text" /></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Descripción</th>
+                                    <td><textarea name="mjpropiedades_service_<?php echo $i; ?>_description" rows="3" class="large-text"><?php echo esc_textarea($description); ?></textarea></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Características<br/><small style="font-weight: normal; color: #666;">(una por línea)</small></th>
+                                    <td><textarea name="mjpropiedades_service_<?php echo $i; ?>_features" rows="6" class="large-text"><?php echo esc_textarea($features); ?></textarea></td>
+                                </tr>
+                            </table>
+                            <?php
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
@@ -6074,6 +6165,73 @@ function mjpropiedades_admin_page() {
                     <td><textarea name="mjpropiedades_testimonials_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_testimonials_subtitle', 'La satisfacción de nuestros clientes es nuestra mayor recompensa')); ?></textarea></td>
                 </tr>
                         </table>
+                        
+                        <?php
+                        // Valores por defecto para los testimonios
+                        $default_testimonials = array(
+                            1 => array(
+                                'text' => 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. Home Isa fue increíble, muy profesional y siempre disponible para resolver mis dudas.',
+                                'name' => 'Carlos Mendoza',
+                                'location' => 'Peñuelas, Coquimbo'
+                            ),
+                            2 => array(
+                                'text' => 'Encontré el departamento perfecto en La Serena gracias a Home Isa. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.',
+                                'name' => 'Ana Rodríguez',
+                                'location' => 'La Serena'
+                            ),
+                            3 => array(
+                                'text' => 'Arrendé mi casa en Ovalle con Home Isa. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.',
+                                'name' => 'Roberto Silva',
+                                'location' => 'Ovalle'
+                            ),
+                            4 => array(
+                                'text' => 'Excelente asesoría para mi inversión en Coquimbo. Home Isa me ayudó a encontrar la propiedad ideal con el mejor retorno. Muy satisfecho.',
+                                'name' => 'María González',
+                                'location' => 'Coquimbo'
+                            ),
+                            5 => array(
+                                'text' => 'Compré mi primera casa en La Serena con Home Isa. Su paciencia y dedicación hicieron que todo el proceso fuera muy fácil para mí.',
+                                'name' => 'Diego Herrera',
+                                'location' => 'La Serena'
+                            ),
+                            6 => array(
+                                'text' => 'Vendí mi terreno en Ovalle rápidamente gracias a la estrategia de marketing de Home Isa. Su experiencia en la región es invaluable.',
+                                'name' => 'Patricia Morales',
+                                'location' => 'Ovalle'
+                            )
+                        );
+                        
+                        // Testimonios individuales
+                        for ($i = 1; $i <= 6; $i++) {
+                            $default_text = isset($default_testimonials[$i]) ? $default_testimonials[$i]['text'] : '';
+                            $default_name = isset($default_testimonials[$i]) ? $default_testimonials[$i]['name'] : '';
+                            $default_location = isset($default_testimonials[$i]) ? $default_testimonials[$i]['location'] : '';
+                            
+                            $text = get_theme_mod("mjpropiedades_testimonial_{$i}_text", $default_text);
+                            $name = get_theme_mod("mjpropiedades_testimonial_{$i}_name", $default_name);
+                            $location = get_theme_mod("mjpropiedades_testimonial_{$i}_location", $default_location);
+                            ?>
+                            <h3 style="margin-top: 30px; margin-bottom: 15px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 16px; font-weight: 600;">Testimonio <?php echo $i; ?></h3>
+                            <table class="form-table" style="width: 100%;">
+                                <tr>
+                                    <th scope="row" style="width: 150px; vertical-align: top; padding-top: 8px;">Texto del Testimonio</th>
+                                    <td style="padding-right: 15px;">
+                                        <textarea name="mjpropiedades_testimonial_<?php echo $i; ?>_text" rows="4" class="large-text" style="width: 100%;"><?php echo esc_textarea($text); ?></textarea>
+                                    </td>
+                                    <th scope="row" style="width: 80px; vertical-align: top; padding-top: 8px;">Nombre</th>
+                                    <td style="padding-right: 15px;">
+                                        <input type="text" name="mjpropiedades_testimonial_<?php echo $i; ?>_name" value="<?php echo esc_attr($name); ?>" class="regular-text" style="width: 100%;" />
+                                    </td>
+                                    <th scope="row" style="width: 80px; vertical-align: top; padding-top: 8px;">Ubicación</th>
+                                    <td>
+                                        <input type="text" name="mjpropiedades_testimonial_<?php echo $i; ?>_location" value="<?php echo esc_attr($location); ?>" class="regular-text" style="width: 100%;" />
+                                    </td>
+                                </tr>
+                            </table>
+                            <?php
+                        }
+                        ?>
+                        <div style="padding-bottom: 40px;"></div>
                     </div>
                 </div>
             </div>
