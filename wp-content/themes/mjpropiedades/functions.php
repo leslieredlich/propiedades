@@ -5481,6 +5481,20 @@ function mjpropiedades_admin_page() {
             'mjpropiedades_testimonials_title',
             'mjpropiedades_testimonials_subtitle',
             
+            // Testimonios individuales (nombres y ubicaciones)
+            'mjpropiedades_testimonial_1_name',
+            'mjpropiedades_testimonial_1_location',
+            'mjpropiedades_testimonial_2_name',
+            'mjpropiedades_testimonial_2_location',
+            'mjpropiedades_testimonial_3_name',
+            'mjpropiedades_testimonial_3_location',
+            'mjpropiedades_testimonial_4_name',
+            'mjpropiedades_testimonial_4_location',
+            'mjpropiedades_testimonial_5_name',
+            'mjpropiedades_testimonial_5_location',
+            'mjpropiedades_testimonial_6_name',
+            'mjpropiedades_testimonial_6_location',
+            
             // Menu Configuration
             'mjpropiedades_menu_alignment',
             
@@ -5547,6 +5561,13 @@ function mjpropiedades_admin_page() {
             }
             if (isset($_POST["mjpropiedades_service_{$i}_features"])) {
                 set_theme_mod("mjpropiedades_service_{$i}_features", sanitize_textarea_field($_POST["mjpropiedades_service_{$i}_features"]));
+            }
+        }
+        
+        // Guardar textos de testimonios (textareas)
+        for ($i = 1; $i <= 6; $i++) {
+            if (isset($_POST["mjpropiedades_testimonial_{$i}_text"])) {
+                set_theme_mod("mjpropiedades_testimonial_{$i}_text", sanitize_textarea_field($_POST["mjpropiedades_testimonial_{$i}_text"]));
             }
         }
         
@@ -6144,6 +6165,70 @@ function mjpropiedades_admin_page() {
                     <td><textarea name="mjpropiedades_testimonials_subtitle" rows="2" class="large-text"><?php echo esc_textarea(get_theme_mod('mjpropiedades_testimonials_subtitle', 'La satisfacción de nuestros clientes es nuestra mayor recompensa')); ?></textarea></td>
                 </tr>
                         </table>
+                        
+                        <?php
+                        // Valores por defecto para los testimonios
+                        $default_testimonials = array(
+                            1 => array(
+                                'text' => 'Vendí mi casa en Peñuelas, Coquimbo, en menos de 30 días. Home Isa fue increíble, muy profesional y siempre disponible para resolver mis dudas.',
+                                'name' => 'Carlos Mendoza',
+                                'location' => 'Peñuelas, Coquimbo'
+                            ),
+                            2 => array(
+                                'text' => 'Encontré el departamento perfecto en La Serena gracias a Home Isa. Su conocimiento de la zona es excepcional y el proceso fue muy transparente.',
+                                'name' => 'Ana Rodríguez',
+                                'location' => 'La Serena'
+                            ),
+                            3 => array(
+                                'text' => 'Arrendé mi casa en Ovalle con Home Isa. El servicio fue impecable, desde la tasación hasta la entrega de llaves. Totalmente recomendable.',
+                                'name' => 'Roberto Silva',
+                                'location' => 'Ovalle'
+                            ),
+                            4 => array(
+                                'text' => 'Excelente asesoría para mi inversión en Coquimbo. Home Isa me ayudó a encontrar la propiedad ideal con el mejor retorno. Muy satisfecho.',
+                                'name' => 'María González',
+                                'location' => 'Coquimbo'
+                            ),
+                            5 => array(
+                                'text' => 'Compré mi primera casa en La Serena con Home Isa. Su paciencia y dedicación hicieron que todo el proceso fuera muy fácil para mí.',
+                                'name' => 'Diego Herrera',
+                                'location' => 'La Serena'
+                            ),
+                            6 => array(
+                                'text' => 'Vendí mi terreno en Ovalle rápidamente gracias a la estrategia de marketing de Home Isa. Su experiencia en la región es invaluable.',
+                                'name' => 'Patricia Morales',
+                                'location' => 'Ovalle'
+                            )
+                        );
+                        
+                        // Testimonios individuales
+                        for ($i = 1; $i <= 6; $i++) {
+                            $default_text = isset($default_testimonials[$i]) ? $default_testimonials[$i]['text'] : '';
+                            $default_name = isset($default_testimonials[$i]) ? $default_testimonials[$i]['name'] : '';
+                            $default_location = isset($default_testimonials[$i]) ? $default_testimonials[$i]['location'] : '';
+                            
+                            $text = get_theme_mod("mjpropiedades_testimonial_{$i}_text", $default_text);
+                            $name = get_theme_mod("mjpropiedades_testimonial_{$i}_name", $default_name);
+                            $location = get_theme_mod("mjpropiedades_testimonial_{$i}_location", $default_location);
+                            ?>
+                            <h3 style="margin-top: 30px; margin-bottom: 15px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 16px; font-weight: 600;">Testimonio <?php echo $i; ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row">Texto del Testimonio</th>
+                                    <td><textarea name="mjpropiedades_testimonial_<?php echo $i; ?>_text" rows="4" class="large-text"><?php echo esc_textarea($text); ?></textarea></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Nombre</th>
+                                    <td><input type="text" name="mjpropiedades_testimonial_<?php echo $i; ?>_name" value="<?php echo esc_attr($name); ?>" class="regular-text" /></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Ubicación</th>
+                                    <td><input type="text" name="mjpropiedades_testimonial_<?php echo $i; ?>_location" value="<?php echo esc_attr($location); ?>" class="regular-text" /></td>
+                                </tr>
+                            </table>
+                            <?php
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
