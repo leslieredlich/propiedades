@@ -1,8 +1,8 @@
-# 🏠 María José Propiedades - WordPress Theme
+# 🏠 Propiedades - WordPress Theme
 
 ## 📋 Descripción del Proyecto
 
-**María José Propiedades** es un tema WordPress profesional desarrollado específicamente para corredoras de propiedades inmobiliarias. El tema está optimizado para la **Cuarta Región de Chile** y ofrece una experiencia completa de gestión inmobiliaria con diseño moderno y responsivo.
+**Propiedades** es un tema WordPress profesional desarrollado específicamente para corredoras de propiedades inmobiliarias. El tema está optimizado para la **Cuarta Región de Chile** y ofrece una experiencia completa de gestión inmobiliaria con diseño moderno y responsivo.
 
 ## ✨ Características Principales
 
@@ -90,7 +90,7 @@ wp-content/themes/mjpropiedades/
 
 3. **Activar el tema**
    - Ir a **Apariencia > Temas** en WordPress Admin
-   - Activar **María José Propiedades**
+   - Activar **Propiedades**
 
 4. **Configurar personalización**
    - Ir a **Apariencia > Personalizar**
@@ -292,7 +292,7 @@ define('WP_DEBUG_LOG', true);
 ## 📞 Soporte y Contacto
 
 ### **Desarrollo**
-- **Desarrollador:** María José Propiedades
+- **Desarrollador:** LR
 - **Versión:** 1.0
 - **Última actualización:** 2024
 
@@ -303,12 +303,8 @@ define('WP_DEBUG_LOG', true);
 
 ## 📄 Licencia
 
-Este tema está desarrollado específicamente para **María José Propiedades** y está protegido por derechos de autor. No está disponible para distribución pública.
+Este tema está desarrollado específicamente para **Propiedades** y está protegido por derechos de autor. No está disponible para distribución pública.
 
 ---
-
-## 🎉 Créditos
-
-**Desarrollado con ❤️ para María José Propiedades**
 
 *Tema WordPress profesional optimizado para corredoras inmobiliarias de la Cuarta Región de Chile.*
